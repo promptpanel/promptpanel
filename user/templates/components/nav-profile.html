@@ -1,0 +1,31 @@
+<div class="absolute w-80 py-3 px-4 h-full bg-stone-50 border-r border-stone-200 overflow-y-auto -lg:relative -lg:block -lg:border-b -lg:border-stone-200 -lg:w-full">
+  <h2 class="mb-1.5 text-xl font-serif">My Profile</h2>
+  <a href="/profile/" :class="{ 'bg-stone-200 text-stone-900': $store.active.currentSetting == 'profile' }" class="group cursor-pointer group flex items-center w-full py-1 px-2.5 mb-1 rounded-md font-semibold text-stone-500 transition duration-500 hover:text-stone-900 -lg:p-3">
+    <p>User Profile</p>
+  </a>
+  <a href="/update_password/" :class="{ 'bg-stone-200 text-stone-900': $store.active.currentSetting == 'update_password' }" class="group cursor-pointer group flex items-center w-full py-1 px-2.5 mb-1 rounded-md font-semibold text-stone-500 transition duration-500 hover:text-stone-900 -lg:p-3">
+    <p>Update Password</p>
+  </a>
+  <a @click="logoutUser()" class="group cursor-pointer group flex items-center w-full py-1 px-2.5 mb-1 rounded-md font-semibold text-stone-500 transition duration-500 hover:text-stone-900 -lg:p-3">
+    <p>Logout</p>
+  </a>
+  {% if user_is_admin %}
+  <h2 class="mt-6 mb-1.5 text-xl font-serif">System Administration</h2>
+  <a href="/system/" :class="{ 'bg-stone-200 text-stone-900': $store.active.currentSetting == 'system' }" class="group cursor-pointer group flex items-center w-full py-1 px-2.5 mb-1 rounded-md font-semibold text-stone-500 transition duration-500 hover:text-stone-900 -lg:p-3">
+    <p>System Status</p>
+  </a>
+  <a href="/system/local_model" :class="{ 'bg-stone-200 text-stone-900': $store.active.currentSetting == 'local_model' }" class="group cursor-pointer group flex items-center w-full py-1 px-2.5 mb-1 rounded-md font-semibold text-stone-500 transition duration-500 hover:text-stone-900 -lg:p-3">
+    <p>Local Models</p>
+  </a>
+  {% if env_pro %}
+  <a href="/users/" :class="{ 'bg-stone-200 text-stone-900': $store.active.currentSetting == 'userList' }" class="group cursor-pointer group flex items-center w-full py-1 px-2.5 mb-1 rounded-md font-semibold text-stone-500 transition duration-500 hover:text-stone-900 -lg:p-3">
+    <p>User Management</p>
+  </a>
+  {% endif %} {% endif %}
+  <a href="#!" class="group cursor-pointer group flex items-center w-full px-1 mb-1 rounded-md font-semibold text-stone-500 transition duration-500 hover:text-stone-900 -lg:p-3">
+    <div class="flex items-center justify-center w-7 h-7">
+      <svg class="w-4 h-4" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M8.25 3.75H19.5a.75.75 0 01.75.75v11.25a.75.75 0 01-1.5 0V6.31L5.03 20.03a.75.75 0 01-1.06-1.06L17.69 5.25H8.25a.75.75 0 010-1.5z" clip-rule="evenodd"></path></svg>
+    </div>
+    <p class="ml-1.5">Docs</p>
+  </a>
+</div>

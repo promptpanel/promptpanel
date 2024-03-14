@@ -1,0 +1,119 @@
+<!doctype html>
+<html>
+  <head>
+    <title>{% block title %}{% endblock title %}</title>
+    {% include "components/head.html" %}
+  </head>
+  <body x-cloak x-data="baseState()" x-init="getPanel(), getPanels(), checkEditPage()" class="w-full antialiased text-stone-800 bg-stone-100">
+    {% include "components/warning_header.html" %} {% include "components/toasts.html" %}
+    <div class="fixed top-0 z-[10] flex items-center w-full h-12 px-4">
+      <!-- Left Side -->
+      <div>
+        <!-- Mobile: Nav -->
+        <div @click="mobileOpen = !mobileOpen" x-show="!isEditPage" :class="{'-lg:bg-stone-200 -lg:text-stone-900': mobileOpen}" class="cursor-pointer flex items-center justify-center text-sm font-semibold text-stone-500 min-h-9 min-w-9 rounded hover:text-stone-900 hover:bg-stone-200 lg:hidden -lg:flex">
+          <svg class="w-6 h-6" stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+            <path d="M9 3h-4a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h4a2 2 0 0 0 2 -2v-4a2 2 0 0 0 -2 -2z" stroke-width="0" fill="currentColor"></path>
+            <path d="M9 13h-4a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h4a2 2 0 0 0 2 -2v-4a2 2 0 0 0 -2 -2z" stroke-width="0" fill="currentColor"></path>
+            <path d="M19 13h-4a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h4a2 2 0 0 0 2 -2v-4a2 2 0 0 0 -2 -2z" stroke-width="0" fill="currentColor"></path>
+            <path d="M17 3a1 1 0 0 1 .993 .883l.007 .117v2h2a1 1 0 0 1 .117 1.993l-.117 .007h-2v2a1 1 0 0 1 -1.993 .117l-.007 -.117v-2h-2a1 1 0 0 1 -.117 -1.993l.117 -.007h2v-2a1 1 0 0 1 1 -1z" stroke-width="0" fill="currentColor"></path>
+          </svg>
+        </div>
+        <a href="javascript:history.back()" x-show="isEditPage" class="mr-1.5 flex items-center justify-center text-sm font-semibold text-stone-500 h-7 w-7 rounded hover:text-stone-900 hover:bg-stone-200 -lg:min-h-9 -lg:min-w-9 lg:hidden">
+          <svg class="w-4 h-4 -lg:w-5 -lg:h-5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M11.03 3.97a.75.75 0 010 1.06l-6.22 6.22H21a.75.75 0 010 1.5H4.81l6.22 6.22a.75.75 0 11-1.06 1.06l-7.5-7.5a.75.75 0 010-1.06l7.5-7.5a.75.75 0 011.06 0z" clip-rule="evenodd"></path></svg>
+        </a>
+        <!-- Desktop: Logo -->
+        <div class="w-80 pl-0 pr-4 -lg:hidden">
+          <a href="/">
+            <img src="/static/promptpanel/img/logo.svg" class="h-[1.75rem] opacity-60 transition-all hover:opacity-90" />
+          </a>
+        </div>
+      </div>
+
+      <!-- Center -->
+      <template x-if="panelId && panelData.plugin">
+        <div class="flex items-center -lg:w-full -lg:justify-center -lg:px-1.5 -lg:mx-auto">
+          <a href="javascript:history.back()" x-show="isEditPage" class="mr-1.5 flex items-center justify-center text-sm font-semibold text-stone-500 h-8 w-8 rounded hover:text-stone-900 hover:bg-stone-200 -lg:min-h-9 -lg:min-w-9 -lg:hidden">
+            <svg class="w-4 h-4 -lg:w-5 -lg:h-5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M11.03 3.97a.75.75 0 010 1.06l-6.22 6.22H21a.75.75 0 010 1.5H4.81l6.22 6.22a.75.75 0 11-1.06 1.06l-7.5-7.5a.75.75 0 010-1.06l7.5-7.5a.75.75 0 011.06 0z" clip-rule="evenodd"></path></svg>
+          </a>
+
+          <div class="flex items-center justify-center rounded-md h-8 w-8 overflow-hidden">
+            <img :src="`/${panelData.plugin}/static/icon.png`" @error="event.target.src='/static/promptpanel/img/default-chat.png'" class="w-full" />
+          </div>
+          <div class="ml-1.5 flex items-center">
+            <p class="text-stone-900 font-semibold line-clamp-1" x-text="panelData.name">Panel Name</p>
+            <p class="ml-2 text-stone-500 line-clamp-1" x-text="panelData.plugin_name"></p>
+          </div>
+
+          <a :href="`/panel/edit/${panelId}`" x-show="!isEditPage" class="ml-1.5 flex items-center justify-center text-sm font-semibold text-stone-500 h-8 w-8 rounded hover:text-stone-900 hover:bg-stone-200 -lg:min-h-9 -lg:min-w-9 -lg:hidden">
+            <svg class="w-5 h-5 -lg:w-6 -lg:h-6" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M6 12a.75.75 0 01-.75-.75v-7.5a.75.75 0 111.5 0v7.5A.75.75 0 016 12zM18 12a.75.75 0 01-.75-.75v-7.5a.75.75 0 011.5 0v7.5A.75.75 0 0118 12zM6.75 20.25v-1.5a.75.75 0 00-1.5 0v1.5a.75.75 0 001.5 0zM18.75 18.75v1.5a.75.75 0 01-1.5 0v-1.5a.75.75 0 011.5 0zM12.75 5.25v-1.5a.75.75 0 00-1.5 0v1.5a.75.75 0 001.5 0zM12 21a.75.75 0 01-.75-.75v-7.5a.75.75 0 011.5 0v7.5A.75.75 0 0112 21zM3.75 15a2.25 2.25 0 104.5 0 2.25 2.25 0 00-4.5 0zM12 11.25a2.25 2.25 0 110-4.5 2.25 2.25 0 010 4.5zM15.75 15a2.25 2.25 0 104.5 0 2.25 2.25 0 00-4.5 0z"></path></svg>
+          </a>
+        </div>
+      </template>
+
+      <!-- Right-Side -->
+      <div class="ml-auto flex items-center">
+        <a :href="`/panel/edit/${panelId}`" x-show="!isEditPage && panelId && panelData.plugin" class="ml-1.5 flex items-center justify-center text-sm font-semibold text-stone-500 h-8 w-8 rounded hover:text-stone-900 hover:bg-stone-200 -lg:min-h-9 -lg:min-w-9 lg:hidden">
+          <svg class="w-5 h-5 -lg:w-6 -lg:h-6" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M6 12a.75.75 0 01-.75-.75v-7.5a.75.75 0 111.5 0v7.5A.75.75 0 016 12zM18 12a.75.75 0 01-.75-.75v-7.5a.75.75 0 011.5 0v7.5A.75.75 0 0118 12zM6.75 20.25v-1.5a.75.75 0 00-1.5 0v1.5a.75.75 0 001.5 0zM18.75 18.75v1.5a.75.75 0 01-1.5 0v-1.5a.75.75 0 011.5 0zM12.75 5.25v-1.5a.75.75 0 00-1.5 0v1.5a.75.75 0 001.5 0zM12 21a.75.75 0 01-.75-.75v-7.5a.75.75 0 011.5 0v7.5A.75.75 0 0112 21zM3.75 15a2.25 2.25 0 104.5 0 2.25 2.25 0 00-4.5 0zM12 11.25a2.25 2.25 0 110-4.5 2.25 2.25 0 010 4.5zM15.75 15a2.25 2.25 0 104.5 0 2.25 2.25 0 00-4.5 0z"></path></svg>
+        </a>
+        <!-- Header > Mobile Placeholder -->
+        <div x-show="isEditPage" class="h-7 w-7 hidden -sm:flex"></div>
+        <a href="https://github.com/promptpanel/promptpanel" target="_new" class="cursor-pointer ml-1.5 flex items-center justify-center text-sm font-semibold text-stone-900 rounded h-8 px-2 border border-stone-300 hover:text-stone-900 hover:bg-stone-200 -lg:min-h-9 -lg:min-w-9 -lg:hidden">
+          <svg class="text-amber-500 w-4 h-4 -lg:w-5 -lg:h-5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clip-rule="evenodd"></path></svg>
+          <p class="ml-1">Star on GitHub</p>
+        </a>
+        <a href="/profile" class="cursor-pointer ml-1.5 flex items-center justify-center text-sm font-semibold text-stone-500 h-8 w-8 rounded hover:text-stone-900 hover:bg-stone-200 -lg:min-h-9 -lg:min-w-9 -lg:hidden">
+          <svg class="w-5 h-5 -lg:w-6 -lg:h-6" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M11.828 2.25c-.916 0-1.699.663-1.85 1.567l-.091.549a.798.798 0 01-.517.608 7.45 7.45 0 00-.478.198.798.798 0 01-.796-.064l-.453-.324a1.875 1.875 0 00-2.416.2l-.243.243a1.875 1.875 0 00-.2 2.416l.324.453a.798.798 0 01.064.796 7.448 7.448 0 00-.198.478.798.798 0 01-.608.517l-.55.092a1.875 1.875 0 00-1.566 1.849v.344c0 .916.663 1.699 1.567 1.85l.549.091c.281.047.508.25.608.517.06.162.127.321.198.478a.798.798 0 01-.064.796l-.324.453a1.875 1.875 0 00.2 2.416l.243.243c.648.648 1.67.733 2.416.2l.453-.324a.798.798 0 01.796-.064c.157.071.316.137.478.198.267.1.47.327.517.608l.092.55c.15.903.932 1.566 1.849 1.566h.344c.916 0 1.699-.663 1.85-1.567l.091-.549a.798.798 0 01.517-.608 7.52 7.52 0 00.478-.198.798.798 0 01.796.064l.453.324a1.875 1.875 0 002.416-.2l.243-.243c.648-.648.733-1.67.2-2.416l-.324-.453a.798.798 0 01-.064-.796c.071-.157.137-.316.198-.478.1-.267.327-.47.608-.517l.55-.091a1.875 1.875 0 001.566-1.85v-.344c0-.916-.663-1.699-1.567-1.85l-.549-.091a.798.798 0 01-.608-.517 7.507 7.507 0 00-.198-.478.798.798 0 01.064-.796l.324-.453a1.875 1.875 0 00-.2-2.416l-.243-.243a1.875 1.875 0 00-2.416-.2l-.453.324a.798.798 0 01-.796.064 7.462 7.462 0 00-.478-.198.798.798 0 01-.517-.608l-.091-.55a1.875 1.875 0 00-1.85-1.566h-.344zM12 15.75a3.75 3.75 0 100-7.5 3.75 3.75 0 000 7.5z" clip-rule="evenodd"></path></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div :class="{'-lg:top-[100vh]': !mobileOpen, '-lg:bottom-0': mobileOpen}" class="overflow-y-auto transition-all bg-stone-100 fixed left-0 top-12 z-[10] py-3 px-4 w-80 h-[calc(100%-3rem)] -lg:z-[100] -lg:border-t -lg:border-stone-200 -lg:w-full">
+      <div class="lg:hidden -lg:flex items-center mb-1.5">
+        <div @click="mobileOpen = false" class="cursor-pointer flex items-center justify-center text-sm font-semibold text-stone-500 min-h-9 min-w-9 mr-1.5 rounded hover:text-stone-900 hover:bg-stone-200 lg:hidden -lg:flex">
+          <svg class="w-6 h-6" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 01-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clip-rule="evenodd"></path></svg>
+        </div>
+        <p class="font-semibold text-lg">Panels</p>
+        <a href="/panel/create" class="ml-auto flex items-center justify-center font-semibold h-9 px-3 bg-primary rounded-md text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">
+          <svg class="w-4 h-4 mr-1" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 3.75a.75.75 0 01.75.75v6.75h6.75a.75.75 0 010 1.5h-6.75v6.75a.75.75 0 01-1.5 0v-6.75H4.5a.75.75 0 010-1.5h6.75V4.5a.75.75 0 01.75-.75z" clip-rule="evenodd"></path></svg>
+          New
+        </a>
+      </div>
+      <div class="lg:flex -lg:hidden items-center mb-1">
+        <p class="font-semibold text-xs text-stone-500 uppercase tracking-wider">Panels</p>
+        <a href="/panel/create" class="ml-auto flex items-center justify-center text-sm font-semibold text-stone-500 h-7 w-7 rounded hover:text-stone-900 hover:bg-stone-200">
+          <svg class="w-4 h-4" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 3.75a.75.75 0 01.75.75v6.75h6.75a.75.75 0 010 1.5h-6.75v6.75a.75.75 0 01-1.5 0v-6.75H4.5a.75.75 0 010-1.5h6.75V4.5a.75.75 0 01.75-.75z" clip-rule="evenodd"></path></svg>
+        </a>
+      </div>
+
+      <template x-for="panel in filteredPanels" :key="panel.id">
+        <a :href="`/app/${panel.id}`" class="flex items-center w-full p-1 mb-1 text-stone-500 rounded-md transition duration-500 hover:text-stone-900 -lg:p-3" :class="{'bg-stone-200 !text-stone-900': $store.active.panelId === panel.id}">
+          <div class="flex items-center justify-center w-7 h-7 rounded-md bg-stone-200 overflow-hidden">
+            <img :src="`/${panel.plugin}/static/icon.png`" onerror="this.onerror=null; this.src='/static/promptpanel/img/default-chat.png';" class="w-full" />
+          </div>
+          <p x-text="panel.name" class="font-semibold ml-1.5"></p>
+        </a>
+      </template>
+      <template x-if="panels.length == 0">
+        <p class="text-stone-500 text-sm mb-1">No panels exits, create one.</p>
+      </template>
+      <a href="/panel/create/" class="group cursor-pointer group flex items-center w-full px-1 rounded-md font-semibold text-stone-500 transition duration-500 hover:text-stone-900 -lg:px-3 -lg:py-0">
+        <div class="flex items-center justify-center w-7 h-7">
+          <svg class="w-4 h-4 -lg:w-5 -lg:h-5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 3.75a.75.75 0 01.75.75v6.75h6.75a.75.75 0 010 1.5h-6.75v6.75a.75.75 0 01-1.5 0v-6.75H4.5a.75.75 0 010-1.5h6.75V4.5a.75.75 0 01.75-.75z" clip-rule="evenodd"></path></svg>
+        </div>
+        <p class="ml-0.5">Create Panel</p>
+      </a>
+      <hr class="lg:hidden mt-3 border-t border-stone-200" />
+      <a href="/profile/" class="lg:hidden group cursor-pointer group flex items-center w-full px-1 rounded-md font-semibold text-stone-500 transition duration-500 hover:text-stone-900 -lg:p-3">
+        <div class="flex items-center justify-center w-7 h-7">
+          <svg class="w-5 h-5 -lg:w-6 -lg:h-6" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 20 20" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M10 8a3 3 0 100-6 3 3 0 000 6zM3.465 14.493a1.23 1.23 0 00.41 1.412A9.957 9.957 0 0010 18c2.31 0 4.438-.784 6.131-2.1.43-.333.604-.903.408-1.41a7.002 7.002 0 00-13.074.003z"></path></svg>
+        </div>
+        <p class="ml-0.5">User Profile</p>
+      </a>
+    </div>
+
+    <!-- Content -->
+    <div class="fixed left-80 top-12 w-[calc(100%-21rem)] h-[calc(100%-4rem)] bg-white border border-stone-200 rounded shadow-sm overflow-y-scroll z-[50] -lg:rounded-none -lg:h-[calc(100%-3rem)] -lg:left-0 -lg:w-full">{% block content %} {% endblock content %}</div>
+  </body>
+</html>

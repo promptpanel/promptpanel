@@ -1,0 +1,127 @@
+<!-- prettier-ignore -->
+{% extends "base-blank.html" %}
+{% block title %}Login{% endblock title %}
+{% block content %}
+<style>
+  .wave {
+    animation-name: wave-animation; /* Refers to the name of your @keyframes element below */
+    animation-duration: 2.5s; /* Change to speed up or slow down */
+    animation-iteration-count: 2; /* Never stop waving :) */
+    transform-origin: 70% 70%; /* Pivot around the bottom-left palm */
+    display: inline-block;
+  }
+  @keyframes wave-animation {
+    0% {
+      transform: rotate(0deg);
+    }
+    10% {
+      transform: rotate(14deg);
+    } /* The following five values can be played with to make the waving more or less extreme */
+    20% {
+      transform: rotate(-8deg);
+    }
+    30% {
+      transform: rotate(14deg);
+    }
+    40% {
+      transform: rotate(-4deg);
+    }
+    50% {
+      transform: rotate(10deg);
+    }
+    60% {
+      transform: rotate(0deg);
+    } /* Reset for the last half to pause */
+    100% {
+      transform: rotate(0deg);
+    }
+  }
+</style>
+
+<div class="flex items-center justify-center h-[100vh] w-full antialiased text-stone-900 bg-stone-100 overflow-y-auto">
+  <div class="w-full max-w-md h-full pt-24 p-6">
+    <div class="flex items-start mb-6">
+      <!-- <span class="wave text-3xl">👋</span> -->
+      <div class="">
+        <img src="/static/promptpanel/img/logo.svg" class="mb-3 h-[2rem]" />
+        <h1 class="font-serif text-3xl">Welcome back!</h1>
+        <p class="text-2xl text-stone-500">Login to continue</p>
+      </div>
+    </div>
+    <script>
+      document.addEventListener("alpine:init", () => {
+        Alpine.store("loginStore", {
+          username: "",
+          password: "",
+          loginUser() {
+            console.log("Login user running...");
+            const hostname = window.location.origin;
+            const url = hostname + "/api/v1/users/login/";
+            const data = {
+              username: this.username,
+              password: this.password,
+            };
+            fetch(url, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(data),
+            })
+              .then((response) => response.json())
+              .then((data) => {
+                if (data.status === "success") {
+                  document.cookie = `authToken=${data.token}; path=/`;
+                  window.location.href = "/app/";
+                } else {
+                  console.log("Login failed", data.message);
+                  failToast = {
+                    type: "error",
+                    header: "We had a problem logging you into your account. Please try again.",
+                    message: data.message,
+                  };
+                  Alpine.store("toastStore").addToast(failToast);
+                }
+              })
+              .catch((error) => {
+                failToast = {
+                  type: "error",
+                  header: "We had a problem logging you into your account. Please try again.",
+                  message: error.message,
+                };
+                console.log("Login failed:", error.message);
+                Alpine.store("toastStore").addToast(failToast);
+              });
+          },
+        });
+      });
+    </script>
+
+    <form class="mb-6" @submit.prevent="$store.loginStore.loginUser()">
+      <div class="mb-3">
+        <label for="username" class="block text-stone-500 mb-1">Username</label>
+        <input x-model="$store.loginStore.username" type="username" required id="username" name="username" placeholder="Username..." class="cursor-text w-full px-2.5 h-9 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
+      </div>
+      <div class="mb-3">
+        <label for="password" class="block text-stone-500 mb-1">Password</label>
+        <input x-model="$store.loginStore.password" type="password" required id="password" name="password" placeholder="Password..." class="cursor-text w-full px-2.5 h-9 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
+      </div>
+      <button type="submit" class="flex items-center justify-center w-full font-semibold bg-primary px-2.5 h-9 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">Sign In</button>
+    </form>
+    <!-- <p class="text-stone-500">Need a new account? <a class="font-semibold text-emerald-600 hover:text-emerald-800" href="#!">Sign up</a> here.</p> -->
+  </div>
+</div>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("logged_out") === "true") {
+      successToast = {
+        type: "success",
+        header: "Logged out successfully",
+        message: "You have been logged out successfully. Please sign back in to continue.",
+      };
+      Alpine.store("toastStore").addToast(successToast);
+    }
+  });
+</script>
+{% endblock content %}

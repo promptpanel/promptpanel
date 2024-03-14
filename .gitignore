@@ -11,9 +11,8 @@ tailwindcss
 *.log
 
 # Pro folders
-/promptpanel/
-/pro/
-/plugins/__pro*/
+pro
+plugins/__pro*/
 
 # Builds
 _build/

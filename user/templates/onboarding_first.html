@@ -1,0 +1,129 @@
+<!-- prettier-ignore -->
+{% extends "base-blank.html" %}
+{% block title %}Get Started with PromptPanel{% endblock title %}
+{% block content %}
+<div class="flex items-center justify-center h-[100vh] w-full antialiased text-stone-900 bg-stone-100 overflow-y-auto">
+  <div class="w-full max-w-md h-full pt-24 p-6">
+    <div class="flex items-start mb-6">
+      <!-- <span class="wave text-3xl">👋</span> -->
+      <div class="">
+        <img src="/static/promptpanel/img/logo-gemini.png" class="mb-3 h-[2.5rem]" />
+        <h1 class="font-serif text-3xl">Getting started</h1>
+
+        <p x-show="!$store.onboardStore.runningGetStarted" class="text-2xl text-stone-500 mb-3">Let's load up your first model</p>
+        <p x-show="$store.onboardStore.runningGetStarted" class="text-2xl text-stone-500 mb-3">Your model is warming up...</p>
+
+        <p x-show="!$store.onboardStore.runningGetStarted" class="mb-3">Get started with Gemma 2B, a very small model from Google DeepMind which you can use locally.</p>
+        <p x-show="$store.onboardStore.runningGetStarted" class="mb-3">Gemma is a great small model for getting started - but using a larger, more resource intensive model can yield better results.</p>
+
+        <div class="flex items-center mb-9">
+          <a href="/app/" class="flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 mr-3 rounded-md transition duration-500 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300">Skip</a>
+          <button x-show="!$store.onboardStore.runningGetStarted" @click="$store.onboardStore.getStarted()" class="flex items-center justify-center w-full font-semibold bg-primary px-2.5 h-9 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">Get Started</button>
+          <div x-show="$store.onboardStore.runningGetStarted" class="flex items-center justify-center w-full font-semibold bg-primary px-2.5 h-9 rounded-md text-stone-50">
+            <svg class="animate-spin mr-1.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p>Loading Model</p>
+          </div>
+        </div>
+
+        <p x-show="$store.onboardStore.runningGetStarted" class="text-sm text-stone-500 mb-3">This could take a minute to complete depending on your network connection.</p>
+        <p x-show="$store.onboardStore.runningGetStarted" class="text-sm text-stone-500 mb-3">The Gemma 2B model is ~2GB in size, and can be expected to need around 2GB in memory running on the integrated Ollama inference engine.</p>
+        <p x-show="$store.onboardStore.runningGetStarted" class="text-sm text-stone-500 mb-3">If the model is slow, we recommend using a hosted model like the ones offered by OpenAI. <a href="#!" target="_new" class="underline hover:text-stone-900">Learn more</a></p>
+      </div>
+    </div>
+    <script>
+      document.addEventListener("alpine:init", () => {
+        Alpine.store("onboardStore", {
+          runningGetStarted: false,
+          getStarted() {
+            this.runningGetStarted = true;
+            const hostname = window.location.origin;
+            const createURL = hostname + "/api/v1/app/panel/create/";
+            const modelURL = hostname + "/api/v1/app/ollama/pull/";
+            const authToken = document.cookie
+              .split("; ")
+              .find((row) => row.startsWith("authToken="))
+              .split("=")[1];
+            const headers = {
+              "Content-Type": "application/json",
+              Authorization: "Bearer " + authToken,
+            };
+            const panelData = {
+              name: "My First AI",
+              plugin: "ollama_chat",
+              metadata: {
+                "Context Size": "4096",
+                "System Message": "You are a helpful AI assistant.",
+              },
+            };
+            const modelData = {
+              name: "gemma:2b",
+              stream: false,
+            };
+            fetch(createURL, {
+              method: "POST",
+              headers: headers,
+              body: JSON.stringify(panelData),
+            })
+              .then((response) => response.json())
+              .then((data) => {
+                if (data.status === "success") {
+                  fetch(modelURL, {
+                    method: "POST",
+                    headers: headers,
+                    body: JSON.stringify(modelData),
+                  })
+                    .then((response) => response.json())
+                    .then(() => {
+                      successToast = {
+                        type: "success",
+                        header: "Local model loaded successfully.",
+                      };
+                      Alpine.store("toastStore").addToast(successToast);
+                      setTimeout(function () {
+                        window.location.href = "/app/1/";
+                      }, 1000);
+                    })
+                    .catch((error) => {
+                      failToast = {
+                        type: "error",
+                        header: "We had a problem loading your model. Redirecting to main app.",
+                        message: error.message,
+                      };
+                      Alpine.store("toastStore").addToast(failToast);
+                      setTimeout(function () {
+                        window.location.href = "/app/";
+                      }, 1000);
+                    });
+                } else {
+                  failToast = {
+                    type: "error",
+                    header: "We had a problem loading your model. Redirecting to main app.",
+                    message: data.message,
+                  };
+                  Alpine.store("toastStore").addToast(failToast);
+                  setTimeout(function () {
+                    window.location.href = "/app/";
+                  }, 1000);
+                }
+              })
+              .catch((error) => {
+                failToast = {
+                  type: "error",
+                  header: "We had a problem loading your model. Redirecting to main app.",
+                  message: error.message,
+                };
+                Alpine.store("toastStore").addToast(failToast);
+                setTimeout(function () {
+                  window.location.href = "/app/";
+                }, 1000);
+              });
+          },
+        });
+      });
+    </script>
+  </div>
+</div>
+{% endblock content %}

@@ -1,0 +1,27 @@
+{% if licence_state == "warning" or licence_state == "deactivated" %}
+<div x-data="{show: true}" class="fixed top-0 z-[999] w-full">
+  {% if licence_state == "warning" %}
+  <div x-show="show" @click="show = false" class="flex items-start w-full py-1.5 px-4 bg-amber-400">
+    <div class="flex items-start w-full">
+      <svg class="mr-1 mt-0.5 w-5 h-5" stroke="currentColor" fill="none" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"></path></svg>
+      <div>
+        <p class="font-semibold">There is an issue with your licence</p>
+        <p class="opacity-80">Please contact licence@promptpanel.com to renew your licence.</p>
+      </div>
+      <a href="/system/" class="ml-auto mt-1.5 mr-1.5 flex items-center justify-center font-semibold px-2.5 h-9 rounded-md transition duration-500 border text-stone-600 border-stone-600 hover:bg-stone-600/10"> View Licence Info </a>
+    </div>
+  </div>
+  {% endif %} {% if licence_state == "deactivated" %}
+  <div x-show="show" @click="show = false" class="flex items-center w-full py-1.5 px-4 text-stone-50 bg-rose-800">
+    <div class="flex items-start w-full">
+      <svg class="mr-1 mt-0.5 w-5 h-5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-1.72 6.97a.75.75 0 10-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 101.06 1.06L12 13.06l1.72 1.72a.75.75 0 101.06-1.06L13.06 12l1.72-1.72a.75.75 0 10-1.06-1.06L12 10.94l-1.72-1.72z" clip-rule="evenodd"></path></svg>
+      <div>
+        <p class="font-semibold">Your licence has expired</p>
+        <p class="opacity-80">Please contact licence@promptpanel.com to fix your licence.</p>
+      </div>
+      <a href="/system/" class="ml-auto mt-1.5 mr-1.5 flex items-center justify-center font-semibold px-2.5 h-9 rounded-md transition duration-500 border text-stone-200 border-stone-200 hover:bg-stone-200/20"> View Licence Info </a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
