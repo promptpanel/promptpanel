@@ -71,13 +71,13 @@
         <div>
           <h2 class="mb-0.5 text-xl font-serif">Upgrade to PromptPanel Pro</h2>
           <p class="text-stone-600 mb-0.5">Upgrade to PromptPanel Pro to enable features like multi-user management and more, while supporting our development.</p>
-          <button @click="activateTrial()" type="submit" class="mt-3 flex items-center justify-center font-semibold bg-primary px-2.5 h-9 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">Evaluate Pro for 30 Days</button>
+          <button @click="activateTrial()" type="submit" class="mt-1.5 flex items-center justify-center font-semibold bg-primary px-2.5 h-9 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">Evaluate Pro for 30 Days</button>
         </div>
       </div>
 
       <div class="mb-3">
         <label class="block text-stone-500 mb-0.5">Version</label>
-        <p x-text="$store.active.version_id">1.0</p>
+        <p x-text="$store.active.version_id"></p>
         <p x-show="$store.active.version_id == ''">-</p>
       </div>
 

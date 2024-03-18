@@ -33,27 +33,12 @@ urlpatterns = [
     ## API URLs
     path("api/v1/users/", include("user.urls")),
     path("api/v1/app/", include("panel.urls")),
-    ## Media
+    ## Media / Static Serving
     re_path(r'^media/(?P<path>.*)$', panel_views.media_protected, name='media_protected'),
+    re_path(r'^plugins/(?P<path>.*)$', panel_views.plugin_static, name='dynamic_static'),
 ]
 
 # Add pro routes
 if os.path.exists("/app/pro/base_urls.py"):
     from pro.base_urls import pro_urls
     urlpatterns += pro_urls
-
-# Setup URLs to serve namespaced static files from each plugin
-for static_dir in settings.STATICFILES_DIRS:
-    plugin_name = os.path.basename(os.path.dirname(static_dir))
-    for root, dirs, files in os.walk(static_dir):
-        for file in files:
-            file_path = os.path.join(root, file).replace(static_dir, "").lstrip(os.sep)
-            url_pattern = rf"^{plugin_name}/static/{file_path}$"
-            urlpatterns.append(
-                re_path(
-                    url_pattern,
-                    serve,
-                    {"path": file_path, "document_root": static_dir},
-                    name=f"{plugin_name}_{file_path.replace(os.sep, '_')}",
-                )
-            )

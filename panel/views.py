@@ -7,6 +7,7 @@ from django.template import Template, RequestContext
 from user.decorators import view_authenticated
 from panel.models import File, Message, Panel
 from pathlib import Path
+from django.views.static import serve
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 logger = logging.getLogger("app")
@@ -134,3 +135,12 @@ def media_protected(request, path):
             return response
     else:
         raise Http404
+
+
+@view_authenticated
+def plugin_static(request, path):
+    base_dir = os.path.join(settings.BASE_DIR, "plugins")
+    file_path = os.path.join(base_dir, path)
+    if not file_path.startswith(base_dir):
+        raise Http404
+    return serve(request, os.path.basename(path), os.path.dirname(file_path))

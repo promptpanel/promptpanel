@@ -13,8 +13,8 @@
         <p x-show="!$store.onboardStore.runningGetStarted" class="text-2xl text-stone-500 mb-3">Let's load up your first model</p>
         <p x-show="$store.onboardStore.runningGetStarted" class="text-2xl text-stone-500 mb-3">Your model is warming up...</p>
 
-        <p x-show="!$store.onboardStore.runningGetStarted" class="mb-3">Get started with Gemma 2B, a very small model from Google DeepMind which you can use locally.</p>
-        <p x-show="$store.onboardStore.runningGetStarted" class="mb-3">Gemma is a great small model for getting started - but using a larger, more resource intensive model can yield better results.</p>
+        <p x-show="!$store.onboardStore.runningGetStarted" class="mb-3">Get started with Gemma, a small local model by Google.</p>
+        <p x-show="$store.onboardStore.runningGetStarted" class="mb-3">Gemma is a great small model for getting started - but using a larger, more resource intensive model can yield better results. <a href="https://promptpanel.com/models/overview" target="_new" class="text-sm underline hover:text-primary">Learn more</a></p>
 
         <div class="flex items-center mb-3">
           <a href="/app/" class="flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 mr-3 rounded-md transition duration-500 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300">Skip</a>
@@ -29,8 +29,6 @@
         </div>
 
         <p x-show="$store.onboardStore.runningGetStarted" class="text-sm text-stone-500 mb-1.5">This could take a minute to complete depending on your network connection.</p>
-        <p x-show="$store.onboardStore.runningGetStarted" class="text-sm text-stone-500 mb-1.5">The Gemma 2B model is ~2GB in size, and can be expected to need around 2GB in memory running on the integrated Ollama inference engine.</p>
-        <p x-show="$store.onboardStore.runningGetStarted" class="text-sm text-stone-500 mb-1.5">If the model is slow, we recommend using a hosted model like the ones offered by OpenAI. <a href="#!" target="_new" class="underline hover:text-stone-900">Learn more</a></p>
       </div>
       {% endif %} {% if not env_ollama %}
       <div class="w-full">

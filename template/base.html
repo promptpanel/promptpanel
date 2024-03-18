@@ -38,7 +38,7 @@
           </a>
 
           <div class="flex items-center justify-center rounded-md h-8 w-8 overflow-hidden">
-            <img :src="`/${panelData.plugin}/static/icon.png`" @error="event.target.src='/static/promptpanel/img/default-chat.png'" class="w-full" />
+            <img :src="`/plugins/${panelData.plugin}/static/icon.png`" @error="event.target.src='/static/promptpanel/img/default-chat.png'" class="w-full" />
           </div>
           <div class="ml-1.5 flex items-center">
             <p class="text-stone-900 font-semibold line-clamp-1" x-text="panelData.name">Panel Name</p>
@@ -90,7 +90,7 @@
       <template x-for="panel in filteredPanels" :key="panel.id">
         <a :href="`/app/${panel.id}`" class="flex items-center w-full p-1 mb-1 text-stone-500 rounded-md transition duration-500 hover:text-stone-900 -lg:p-3" :class="{'bg-stone-200 !text-stone-900': $store.active.panelId === panel.id}">
           <div class="flex items-center justify-center w-7 h-7 rounded-md bg-stone-200 overflow-hidden">
-            <img :src="`/${panel.plugin}/static/icon.png`" onerror="this.onerror=null; this.src='/static/promptpanel/img/default-chat.png';" class="w-full" />
+            <img :src="`/plugins/${panel.plugin}/static/icon.png`" onerror="this.onerror=null; this.src='/static/promptpanel/img/default-chat.png';" class="w-full" />
           </div>
           <p x-text="panel.name" class="font-semibold ml-1.5 line-clamp-1"></p>
         </a>
