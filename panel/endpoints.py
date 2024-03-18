@@ -841,15 +841,26 @@ def file_delete(request, file_id):
 
 @api_authenticated
 def ollama_proxy(request, route):
+    prompt_ollama_host = os.getenv("PROMPT_OLLAMA_HOST")
+    ## Check Ollama host setup
+    if not prompt_ollama_host:
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "Ollama is not enabled.",
+            },
+            status=500,
+        )
+    ## Permission check
     if request.method != "GET" and not request.user.is_staff:
         return JsonResponse(
             {
                 "status": "error",
-                "message": "You do not have permission to access Ollama management.",
+                "message": "You do not have permission to access this endpoint.",
             },
             status=403,
         )
-    target_api_base_url = "http://localhost:4010/api/"
+    target_api_base_url = f"{prompt_ollama_host}/api/"
     target_url = f"{target_api_base_url}{route}"
     if request.META.get("QUERY_STRING"):
         target_url += f"?{request.META.get('QUERY_STRING')}"
@@ -858,9 +869,6 @@ def ollama_proxy(request, route):
         response = requests.request(
             method=request.method,
             url=target_url,
-            headers={
-                key: value for key, value in request.headers.items() if key != "Host"
-            },
             data=request.body,
             params=request.GET,
             allow_redirects=False,

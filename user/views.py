@@ -42,6 +42,6 @@ def system(request):
 
 
 @view_authenticated
-def local_model(request):
+def ollama_model(request):
     context = {}
-    return render(request, "local_model.html", context)
+    return render(request, "ollama_model.html", context)

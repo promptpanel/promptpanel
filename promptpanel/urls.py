@@ -16,7 +16,7 @@ urlpatterns = [
     path("update_password/", user_views.update_password, name="view_update_password"),
     ## System settings
     path("system/", user_views.system, name="view_system"),
-    path("system/local_model/", user_views.local_model, name="view_local_model"),
+    path("system/ollama/", user_views.ollama_model, name="view_ollama"),
     ## App Frame
     path("", panel_views.panel_frame, name="view_frame_home"),
     path("app/", panel_views.panel_frame, name="view_frame"),

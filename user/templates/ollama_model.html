@@ -9,11 +9,11 @@
       initialEmail: "{{user_email}}",
       email: "{{user_email}}",
       username: "{{user_username}}",
-      currentSetting: "local_model",
+      currentSetting: "ollama_model",
     });
   });
 </script>
-<script is:inline src="/static/promptpanel/stores/local_model.js"></script>
+<script is:inline src="/static/promptpanel/stores/ollama_model.js"></script>
 <div x-cloak x-data="localModelState()" x-init="getModels()">
   {% include "components/nav-profile.html" %}
 
@@ -133,8 +133,8 @@
     <div class="my-20 max-w-4xl mx-auto px-4">
       <div class="flex items-center mb-6">
         <div>
-          <h1 class="font-serif text-3xl">Local Models</h1>
-          <p class="text-stone-500">Local model inference is powered by in integrated Ollama server.</p>
+          <h1 class="font-serif text-3xl">Manage Ollama</h1>
+          <p class="text-stone-500">Local model inference powered by Ollama.</p>
         </div>
         <button @click="modalCreateModel = true" class="ml-auto flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 rounded-md transition duration-500 border border-stone-200 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300">
           <svg class="mr-1 w-4.5 h-4.5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 20 20" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z"></path></svg>

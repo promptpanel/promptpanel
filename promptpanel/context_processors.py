@@ -29,7 +29,7 @@ def update_stats():
                 counter = {}
                 counter["app_id"] = settings.APP_ID
                 counter["version_id"] = settings.VERSION_ID
-                counter["licence_plan"] = licence["lic_plan"]
+                counter["licence_plan"] = licence["plan"]
                 plugins_dir = os.path.join(os.path.dirname(__file__), "..", "plugins")
                 plugins = [
                     name
@@ -54,7 +54,7 @@ def update_stats():
                 response = requests.post(f"{base_url}/api/v1/telemetry/", json=counter)
                 data = response.json()
             except Exception as e:
-                logger.info("Could not connect to version check")
+                logger.info("Could not connect to version check: ", str(e))
                 pass
             # Check / update licence
             try:
@@ -106,9 +106,9 @@ def update_stats():
                     with open("/app/updated.log", "w") as file:
                         file.write(datetime.now().isoformat())
             except Exception as e:
-                logger.error(
-                    "❌ Licence check did not succeed. Please contact licence@promptpanel.com to resolve. (context)",
-                    e,
+                logger.info(
+                    "❌ Licence check did not succeed. Please contact licence@promptpanel.com to resolve.",
+                    str(e),
                 )
         else:
             pass
@@ -129,6 +129,7 @@ def global_context(request):
             "current_datetime": formatted_now,
             "env_pro": os.getenv("PROMPT_DISTRO") == "PRO",
             "env_head": os.getenv("PROMPT_HEAD") == "ENABLED",
+            "env_ollama": os.getenv("PROMPT_OLLAMA_HOST") != "",
             "user_id": user.id,
             "user_username": user.username,
             "user_email": user.email,

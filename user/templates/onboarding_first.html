@@ -3,11 +3,11 @@
 {% block title %}Get Started with PromptPanel{% endblock title %}
 {% block content %}
 <div class="flex items-center justify-center h-[100vh] w-full antialiased text-stone-900 bg-stone-100 overflow-y-auto">
-  <div class="w-full max-w-md h-full pt-24 p-6">
+  <div class="w-full max-w-lg h-full pt-24 p-6">
     <div class="flex items-start mb-6">
-      <!-- <span class="wave text-3xl">👋</span> -->
-      <div class="">
-        <img src="/static/promptpanel/img/logo-gemini.png" class="mb-3 h-[2.5rem]" />
+      {% if env_ollama %}
+      <div class="w-full">
+        <img src="/static/promptpanel/img/logo-gemini-transparent.png" class="mb-3 h-[2.5rem]" />
         <h1 class="font-serif text-3xl">Getting started</h1>
 
         <p x-show="!$store.onboardStore.runningGetStarted" class="text-2xl text-stone-500 mb-3">Let's load up your first model</p>
@@ -16,9 +16,9 @@
         <p x-show="!$store.onboardStore.runningGetStarted" class="mb-3">Get started with Gemma 2B, a very small model from Google DeepMind which you can use locally.</p>
         <p x-show="$store.onboardStore.runningGetStarted" class="mb-3">Gemma is a great small model for getting started - but using a larger, more resource intensive model can yield better results.</p>
 
-        <div class="flex items-center mb-9">
+        <div class="flex items-center mb-3">
           <a href="/app/" class="flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 mr-3 rounded-md transition duration-500 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300">Skip</a>
-          <button x-show="!$store.onboardStore.runningGetStarted" @click="$store.onboardStore.getStarted()" class="flex items-center justify-center w-full font-semibold bg-primary px-2.5 h-9 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">Get Started</button>
+          <button x-show="!$store.onboardStore.runningGetStarted" @click="$store.onboardStore.getStartedOllama()" class="flex items-center justify-center w-full font-semibold bg-primary px-2.5 h-9 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">Get Started</button>
           <div x-show="$store.onboardStore.runningGetStarted" class="flex items-center justify-center w-full font-semibold bg-primary px-2.5 h-9 rounded-md text-stone-50">
             <svg class="animate-spin mr-1.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -28,16 +28,101 @@
           </div>
         </div>
 
-        <p x-show="$store.onboardStore.runningGetStarted" class="text-sm text-stone-500 mb-3">This could take a minute to complete depending on your network connection.</p>
-        <p x-show="$store.onboardStore.runningGetStarted" class="text-sm text-stone-500 mb-3">The Gemma 2B model is ~2GB in size, and can be expected to need around 2GB in memory running on the integrated Ollama inference engine.</p>
-        <p x-show="$store.onboardStore.runningGetStarted" class="text-sm text-stone-500 mb-3">If the model is slow, we recommend using a hosted model like the ones offered by OpenAI. <a href="#!" target="_new" class="underline hover:text-stone-900">Learn more</a></p>
+        <p x-show="$store.onboardStore.runningGetStarted" class="text-sm text-stone-500 mb-1.5">This could take a minute to complete depending on your network connection.</p>
+        <p x-show="$store.onboardStore.runningGetStarted" class="text-sm text-stone-500 mb-1.5">The Gemma 2B model is ~2GB in size, and can be expected to need around 2GB in memory running on the integrated Ollama inference engine.</p>
+        <p x-show="$store.onboardStore.runningGetStarted" class="text-sm text-stone-500 mb-1.5">If the model is slow, we recommend using a hosted model like the ones offered by OpenAI. <a href="#!" target="_new" class="underline hover:text-stone-900">Learn more</a></p>
       </div>
+      {% endif %} {% if not env_ollama %}
+      <div class="w-full">
+        <img src="/static/promptpanel/img/logo-openai-transparent.png" class="mb-3 h-[2rem]" />
+        <h1 class="font-serif text-3xl">Getting started</h1>
+
+        <p class="text-2xl text-stone-500 mb-3">Let's load up your first model</p>
+        <p class="mb-3">Enter your API key below to get started learning PromptPanel with OpenAI's GPT-4 - one of the most powerful large language models currently on the market. </p>
+        <p class="mb-3">You can find your API key information at: <a href="https://platform.openai.com/api-keys" class="text-primary underline hover:text-primary/80" target="_new">https://platform.openai.com/api-keys</a></p>
+
+        <div class="mb-3">
+          <input x-model="$store.onboardStore.openAIKey" required id="apikey" name="apikey" placeholder="OpenAI API Key..." class="cursor-text w-full px-2.5 h-9 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
+        </div>
+
+        <div class="flex items-center mb-3">
+          <a href="/app/" class="flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 mr-3 rounded-md transition duration-500 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300">Skip</a>
+          <button @click="$store.onboardStore.getStartedOpenAI()" class="flex w-full items-center justify-center font-semibold bg-primary px-2.5 h-9 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">Get Started</button>
+        </div>
+
+        <p class="text-sm text-stone-500 mb-3">*Please note the associated <a href="https://openai.com/pricing" target="_new" class="underline hover:text-primary">costs</a> with your model provider.</p>
+      </div>
+      {% endif %}
     </div>
     <script>
       document.addEventListener("alpine:init", () => {
         Alpine.store("onboardStore", {
           runningGetStarted: false,
-          getStarted() {
+          openAIKey: "",
+          getStartedOpenAI() {
+            this.runningGetStarted = true;
+            const hostname = window.location.origin;
+            const createURL = hostname + "/api/v1/app/panel/create/";
+            const authToken = document.cookie
+              .split("; ")
+              .find((row) => row.startsWith("authToken="))
+              .split("=")[1];
+            const headers = {
+              "Content-Type": "application/json",
+              Authorization: "Bearer " + authToken,
+            };
+            const panelData = {
+              name: "My First AI",
+              plugin: "llm_chat",
+              metadata: {
+                "Model": "gpt-4-0125-preview",
+                "Simple Model": "gpt-3.5-turbo-0125",
+                "Context Size": "4096",
+                "System Message": "You are a helpful AI assistant.",
+                "API Key": this.openAIKey,
+              },
+            };
+            fetch(createURL, {
+              method: "POST",
+              headers: headers,
+              body: JSON.stringify(panelData),
+            })
+              .then((response) => response.json())
+              .then((data) => {
+                if (data.status === "success") {
+                  successToast = {
+                    type: "success",
+                    header: "OpenAI panel created successfully.",
+                  };
+                  Alpine.store("toastStore").addToast(successToast);
+                  setTimeout(function () {
+                    window.location.href = "/app/1/";
+                  }, 1000);
+                } else {
+                  failToast = {
+                    type: "error",
+                    header: "We had a problem creating your panel. Redirecting to main app.",
+                    message: data.message,
+                  };
+                  Alpine.store("toastStore").addToast(failToast);
+                  setTimeout(function () {
+                    window.location.href = "/app/";
+                  }, 1000);
+                }
+              })
+              .catch((error) => {
+                failToast = {
+                  type: "error",
+                  header: "We had a problem creating your panel. Redirecting to main app.",
+                  message: error.message,
+                };
+                Alpine.store("toastStore").addToast(failToast);
+                setTimeout(function () {
+                  window.location.href = "/app/";
+                }, 1000);
+              });
+          },
+          getStartedOllama() {
             this.runningGetStarted = true;
             const hostname = window.location.origin;
             const createURL = hostname + "/api/v1/app/panel/create/";

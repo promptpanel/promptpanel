@@ -92,7 +92,7 @@
           <div class="flex items-center justify-center w-7 h-7 rounded-md bg-stone-200 overflow-hidden">
             <img :src="`/${panel.plugin}/static/icon.png`" onerror="this.onerror=null; this.src='/static/promptpanel/img/default-chat.png';" class="w-full" />
           </div>
-          <p x-text="panel.name" class="font-semibold ml-1.5"></p>
+          <p x-text="panel.name" class="font-semibold ml-1.5 line-clamp-1"></p>
         </a>
       </template>
       <template x-if="panels.length == 0">
