@@ -108,6 +108,7 @@ def plugin_detail(request, plugin_name):
             plugin_data = {
                 "id": plugin_name,
                 "name": manifest_data.get("name", ""),
+                "category": manifest_data.get("category", ""),
                 "description": readme_html,
                 "settings": manifest_data.get("settings", []),
             }

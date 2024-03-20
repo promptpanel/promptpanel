@@ -34,7 +34,34 @@
 <script is:inline src="/static/promptpanel/stores/base.js"></script>
 <link rel="stylesheet" href="/static/promptpanel/css/defaults.css" />
 <script src="/static/promptpanel/js/tailwindcdn.3.4.1.js"></script>
-<script src="/static/promptpanel/js/tailwindcdn.config.js"></script>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          primary: {
+            DEFAULT: "{{ color_primary }}",
+            dark: "{{ color_primary }}",
+          },
+        },
+        screens: {
+          "-2xl": { max: "1536px" },
+          "-xl": { max: "1280px" },
+          "-lg": { max: "1024px" },
+          "-md": { max: "768px" },
+          "-sm": { max: "640px" },
+        },
+        fontFamily: {
+          sans: ["-apple-system, ui-sans-serif,  system-ui"],
+        },
+        listStyleType: {
+          square: "square",
+        },
+      },
+    },
+  };
+</script>
 {% if env_head %}
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-8M77JPC8Y1"></script>
 <script type="text/javascript">

@@ -127,6 +127,7 @@ def global_context(request):
             "version_id": settings.VERSION_ID,
             "app_id": settings.APP_ID,
             "current_datetime": formatted_now,
+            "color_primary": os.getenv("PROMPT_BRAND_COLOR"),
             "env_pro": os.getenv("PROMPT_DISTRO") == "PRO",
             "env_head": os.getenv("PROMPT_HEAD") == "ENABLED",
             "env_ollama": os.getenv("PROMPT_OLLAMA_HOST") != "",
