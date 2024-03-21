@@ -43,6 +43,8 @@ Read more on <a href="https://promptpanel.com/installation/docker-compose-offlin
 
 ---
 
+<video src="https://promptpanel.com/assets/promptpanel-intro.mp4"></video>
+
 AI interfaces are limited and restrictive.
 
 Your models, conversations, and logic are locked in walled-gardens.
