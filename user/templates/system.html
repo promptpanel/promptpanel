@@ -1,0 +1,136 @@
+<!-- prettier-ignore -->
+{% extends "base.html" %}
+{% block title %}System{% endblock title %}
+{% block content %}
+<script>
+  document.addEventListener("alpine:init", () => {
+    Alpine.store("active", {
+      user_id: Number("{{user_id}}"),
+      email: "{{user_email}}",
+      username: "{{user_username}}",
+      currentSetting: "system",
+      app_id: "{{app_id}}",
+      version_id: "{{version_id}}",
+      licence_key: "{{licence_key}}",
+      licence_email: "{{licence_email}}",
+      licence_plan: "{{licence_plan}}",
+      licence_expiry: "{{licence_expiry}}",
+      licence_seats: Number("{{licence_seats}}"),
+      licence_state: "{{licence_state}}",
+    });
+  });
+</script>
+<script is:inline src="/static/promptpanel/stores/system.js"></script>
+<div x-cloak x-data="systemState()">
+  {% include "components/nav-profile.html" %}
+
+  <div :class="{'-right-[100vw]': !modalLicenceInfo, 'right-3': modalLicenceInfo}" class="transition-all fixed mx-auto z-[101] max-w-xl w-full h-[calc(100vh-4.15rem)] bg-stone-50 border-x border-stone-200 -lg:border-none -lg:max-w-[100vw] -lg:shadow-none shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.05)] right-0 rounded-r-lg">
+    <div class="flex items-center px-3 pt-3 mb-1.5">
+      <button @click="modalLicenceInfo = false" class="mr-1.5 cursor-pointer flex items-center justify-center text-sm font-semibold text-stone-500 rounded hover:text-stone-900 hover:bg-stone-200 h-7 w-7 -lg:min-h-9 -lg:min-w-9">
+        <svg class="w-5 h-5 -lg:min-w-6 -lg:min-h-6" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 01-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clip-rule="evenodd"></path></svg>
+      </button>
+      <h2 class="text-xl font-semibold line-clamp-1">Edit Licence</h2>
+    </div>
+    <form class="px-3 pt-0.5" @submit.prevent="setLicence()">
+      <div class="mb-3">
+        <div class="flex items-center"><span>Licence Email</span><span class="ml-0.5 text-rose-600">*</span></div>
+        <input type="text" x-model="licence_email" required placeholder="Licence Email..." class="w-full h-10 px-3 py-1 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
+      </div>
+      <div class="mb-3">
+        <div class="flex items-center"><span>Licence Key</span><span class="ml-0.5 text-rose-600">*</span></div>
+        <input type="text" x-model="licence_key" required placeholder="Licence Key..." class="w-full h-10 px-3 py-1 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
+      </div>
+    </form>
+    <div class="fixed bottom-0 mb-4 py-2 px-3 border-t border-stone-200 w-full max-w-xl -lg:max-w-[100vw]">
+      <div class="flex items-center">
+        <button @click="modalLicenceInfo = false" class="ml-auto flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 rounded-md transition duration-500 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300">Cancel</button>
+        <button @click="setLicence()" class="ml-1.5 flex items-center justify-center font-semibold bg-primary px-2.5 h-9 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">Update Licence</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="absolute w-[calc(100%-20rem)] h-full right-0 overflow-y-auto -lg:relative -lg:block -lg:w-full">
+    <div class="my-20 max-w-2xl mx-auto px-4">
+      <h1 class="font-serif text-3xl mb-6">System Status</h1>
+
+      <div x-show="$store.active.licence_state == 'deactivated'" class="flex items-center p-3 mb-3 bg-rose-50 rounded-md">
+        <div>
+          <h2 class="mb-1.5 text-xl font-serif">Your licence has expired</h2>
+          <p>Please contact <span class="underline">licence@promptpanel.com</span> to fix your licencing issue.</p>
+        </div>
+      </div>
+
+      <div x-show="$store.active.licence_state == 'warning'" class="flex items-center p-3 mb-3 bg-amber-50 rounded-md">
+        <div>
+          <h2 class="mb-1.5 text-xl font-serif">There is an issue with your licence</h2>
+          <p>Please contact <span class="underline">licence@promptpanel.com</span> to fix your licencing issue.</p>
+        </div>
+      </div>
+
+      <div x-show="$store.active.licence_plan == 'free'" class="flex items-center p-3 mb-3 bg-stone-100 rounded-md">
+        <div>
+          <h2 class="mb-0.5 text-xl font-serif">Upgrade to PromptPanel Pro</h2>
+          <p class="text-stone-600 mb-0.5">Upgrade to PromptPanel Pro to enable features like multi-user management and more, while supporting our development.</p>
+          <button @click="activateTrial()" type="submit" class="mt-1.5 flex items-center justify-center font-semibold bg-primary px-2.5 h-9 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">Evaluate Pro for 30 Days</button>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="block text-stone-500 mb-0.5">Version</label>
+        <p x-text="$store.active.version_id"></p>
+        <p x-show="$store.active.version_id == ''">-</p>
+      </div>
+
+      <div class="mb-3">
+        <label class="block text-stone-500 mb-0.5">App Identifier</label>
+        <p x-text="$store.active.app_id"></p>
+        <p x-show="$store.active.app_id == ''">-</p>
+      </div>
+
+      <div class="mb-3">
+        <label class="block text-stone-500 mb-0.5">Licence Key</label>
+        <p x-text="$store.active.licence_key"></p>
+        <p x-show="$store.active.licence_key == ''">-</p>
+      </div>
+
+      <div class="mb-3">
+        <label class="block text-stone-500 mb-0.5">Licenced To</label>
+        <p x-text="$store.active.licence_email"></p>
+        <p x-show="$store.active.licence_email == ''">-</p>
+      </div>
+
+      <div class="mb-3">
+        <label class="block text-stone-500 mb-0.5">Licence</label>
+        <div class="flex items-center">
+          <div x-show="$store.active.licence_plan == 'free'" class="px-2 py-1 bg-stone-200 w-max text-sm font-semibold text-stone-600 rounded-md">Free</div>
+          <div x-show="$store.active.licence_plan !== 'free'" x-text="$store.active.licence_plan" class="capitalize px-2 py-1 bg-primary/10 w-max text-sm font-semibold text-primary rounded-md">Licence</div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="block text-stone-500 mb-0.5">Seats</label>
+        <p x-text="$store.active.licence_seats"></p>
+      </div>
+
+      <div class="mb-3">
+        <label class="block text-stone-500 mb-0.5">Expiry</label>
+        <p x-show="$store.active.licence_expiry !== ''" x-text="$store.active.licence_expiry"></p>
+        <p x-show="$store.active.licence_expiry == ''">-</p>
+      </div>
+
+      <div class="flex items-center mb-3">
+        <button @click="modalLicenceInfo = true" class="flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 rounded-md transition duration-500 border border-stone-200 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300">
+          <svg class="mr-1 w-4 h-4" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 20 20" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.989a.75.75 0 00-.75.75v4.242a.75.75 0 001.5 0v-2.43l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.449-.39zm1.23-3.723a.75.75 0 00.219-.53V2.929a.75.75 0 00-1.5 0V5.36l-.31-.31A7 7 0 003.239 8.188a.75.75 0 101.448.389A5.5 5.5 0 0113.89 6.11l.311.31h-2.432a.75.75 0 000 1.5h4.243a.75.75 0 00.53-.219z" clip-rule="evenodd"></path></svg>
+          Set Licence Information
+        </button>
+        <button @click="downgradeLicence()" class="ml-3 flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 rounded-md transition duration-500 border border-stone-200 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300">
+          <svg class="mr-1 w-4 h-4" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3.97 3.97a.75.75 0 011.06 0l13.72 13.72V8.25a.75.75 0 011.5 0V19.5a.75.75 0 01-.75.75H8.25a.75.75 0 010-1.5h9.44L3.97 5.03a.75.75 0 010-1.06z" clip-rule="evenodd"></path></svg>
+          Downgrade Licence
+        </button>
+      </div>
+
+      <p class="text-sm text-stone-500">Feel free to contact <span class="underline">licence@promptpanel.com</span> if you have any questions.</p>
+    </div>
+  </div>
+</div>
+{% endblock content %}

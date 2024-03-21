@@ -1,0 +1,40 @@
+<script>
+  document.addEventListener("alpine:init", () => {
+    Alpine.store("toastStore", {
+      toasts: [],
+      addToast(toast) {
+        toast.id = Date.now();
+        this.toasts.push(toast);
+        if (toast.type === "success") {
+          setTimeout(() => {
+            this.toasts = this.toasts.filter((t) => t.id !== toast.id);
+          }, 6000);
+        }
+      },
+    });
+  });
+</script>
+<div class="fixed z-[1000] top-0 space-y-2 inset-x-0 mx-auto max-w-md max-h-[100vh] p-3 w-full overflow-y-auto">
+  <template x-for="(toast, index) in $store.toastStore.toasts" :key="index">
+    <div class="group cursor-pointer relative flex items-center bg-stone-800 shadow-lg rounded-md">
+      <div class="absolute top-1 left-0 pl-3 py-2">
+        <template x-if="toast.type === 'success'">
+          <svg class="text-emerald-500 w-5 h-5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M256 48C141.31 48 48 141.31 48 256s93.31 208 208 208 208-93.31 208-208S370.69 48 256 48zm108.25 138.29l-134.4 160a16 16 0 01-12 5.71h-.27a16 16 0 01-11.89-5.3l-57.6-64a16 16 0 1123.78-21.4l45.29 50.32 122.59-145.91a16 16 0 0124.5 20.58z"></path></svg>
+        </template>
+        <template x-if="toast.type === 'warning'">
+          <svg class="text-amber-500 w-5 h-5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd"></path></svg>
+        </template>
+        <template x-if="toast.type === 'error'">
+          <svg class="text-red-500 w-5 h-5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-1.72 6.97a.75.75 0 10-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 101.06 1.06L12 13.06l1.72 1.72a.75.75 0 101.06-1.06L13.06 12l1.72-1.72a.75.75 0 10-1.06-1.06L12 10.94l-1.72-1.72z" clip-rule="evenodd"></path></svg>
+        </template>
+      </div>
+      <div class="px-10 py-2.5 w-full">
+        <p class="text-stone-50 font-bold" x-text="toast.header"></p>
+        <p class="text-stone-300 text-sm mt-0.5" x-show="toast.message" x-text="toast.message"></p>
+      </div>
+      <div @click="$store.toastStore.toasts.splice(index, 1)" class="absolute top-1 right-0 px-3 py-2">
+        <svg class="text-stone-50 opacity-30 w-5 h-5 cursor-pointer transition group-hover:opacity-100" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M289.94 256l95-95A24 24 0 00351 127l-95 95-95-95a24 24 0 00-34 34l95 95-95 95a24 24 0 1034 34l95-95 95 95a24 24 0 0034-34z"></path></svg>
+      </div>
+    </div>
+  </template>
+</div>

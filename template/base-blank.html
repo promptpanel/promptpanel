@@ -1,0 +1,11 @@
+<!doctype html>
+<html>
+  <head>
+    <title>{% block title %}{% endblock title %}</title>
+    {% include "components/head.html" %}
+  </head>
+  <body x-cloak x-data="baseState()" class="w-full antialiased text-stone-800 bg-stone-100">
+    {% include "components/toasts.html" %}
+    <div class="">{% block content %} {% endblock content %}</div>
+  </body>
+</html>

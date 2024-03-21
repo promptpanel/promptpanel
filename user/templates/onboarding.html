@@ -1,0 +1,192 @@
+<!-- prettier-ignore -->
+{% extends "base-blank.html" %}
+{% block title %}Onboarding{% endblock title %}
+{% block content %}
+<div x-data x-cloak class="flex items-center justify-center h-[100vh] w-full antialiased text-stone-900 bg-stone-100 overflow-y-auto">
+  <div class="w-full max-w-md h-full pt-24 p-6">
+    <img src="/static/logo.svg" class="mb-3 h-[2rem]" />
+    <h1 class="font-serif text-3xl mb-0.5">Create your first account</h1>
+    <p class="mb-3 text-2xl text-stone-500">for your AI interface.</p>
+    <!-- <p class="mb-3 text-stone-500 text-sm">Your first account will be registered as an activated administrator - all future sign-ups will need to be activated by an administrator account.</p> -->
+    <script>
+      document.addEventListener("alpine:init", () => {
+        Alpine.store("registerStore", {
+          username: "",
+          email: "",
+          password: "",
+          passwordRepeat: "",
+          userState: {
+            username: false,
+            email: false,
+            match: false,
+            special: false,
+            length: false,
+          },
+          checkUser() {
+            const usernameRegex = /^[a-zA-Z0-9_]{1,150}$/;
+            this.userState.username = usernameRegex.test(this.username);
+
+            const emailRegex = /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/;
+            this.userState.email = emailRegex.test(this.email);
+
+            const specialChars = /[-!@#$%^&*(),.?":{}|<>]/;
+            const containsSpecialChar = specialChars.test(this.password);
+            this.userState.special = containsSpecialChar;
+
+            const lengthCheck = this.password.length > 6;
+            this.userState.length = lengthCheck;
+
+            if (this.password.length > 0 && this.password === this.passwordRepeat) {
+              this.userState.match = true;
+            } else {
+              this.userState.match = false;
+            }
+          },
+          registerUser() {
+            if (this.userState.username && this.userState.email && this.userState.length && this.userState.special && this.userState.match) {
+              const hostname = window.location.origin;
+              const url = hostname + "/api/v1/users/onboard/";
+              const data = {
+                username: this.username,
+                email: this.email,
+                password: this.password,
+              };
+              fetch(url, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+              })
+                .then((response) => response.json())
+                .then((data) => {
+                  if (data.status === "success") {
+                    document.cookie = `authToken=${data.token}; path=/`;
+                    window.location.href = "/onboarding/first/";
+                  } else {
+                    failToast = {
+                      type: "error",
+                      header: "We had a problem creating your account. Please try again.",
+                      message: data.message,
+                    };
+                    Alpine.store("toastStore").addToast(failToast);
+                  }
+                })
+                .catch((error) => {
+                  failToast = {
+                    type: "error",
+                    header: "We had a problem creating your account. Please try again.",
+                    message: error.message,
+                  };
+                  Alpine.store("toastStore").addToast(failToast);
+                });
+            } else {
+              failToast = {
+                type: "error",
+                header: "There was a problem validating the account information you've entered. Please try again.",
+              };
+              Alpine.store("toastStore").addToast(failToast);
+            }
+          },
+        });
+      });
+    </script>
+    <form class="mb-3" @submit.prevent="$store.registerStore.registerUser()">
+      <div class="mb-3">
+        <label for="username" class="block text-stone-500 mb-1">Username</label>
+        <input x-model="$store.registerStore.username" @input.debounce="$store.registerStore.checkUser()" type="username" required id="username" name="username" placeholder="Username..." class="cursor-text w-full h-9 px-2.5 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
+      </div>
+      <div class="mb-3">
+        <label for="email" class="block text-stone-500 mb-1">Email</label>
+        <input x-model="$store.registerStore.email" @input.debounce="$store.registerStore.checkUser()" type="email" required id="email" name="email" placeholder="Email..." class="cursor-text w-full h-9 px-2.5 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
+      </div>
+      <div class="mb-3">
+        <label for="password" class="block text-stone-500 mb-1">Password</label>
+        <input x-model="$store.registerStore.password" @input.debounce="$store.registerStore.checkUser()" type="password" required id="password" name="password" placeholder="Password..." class="cursor-text w-full h-9 px-2.5 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
+      </div>
+      <div class="mb-3">
+        <label for="passwordRepeat" class="block text-stone-500 mb-1">Password</label>
+        <input x-model="$store.registerStore.passwordRepeat" @input.debounce="$store.registerStore.checkUser()" type="password" required id="passwordRepeat" name="passwordRepeat" placeholder="Repeat Password..." class="cursor-text w-full h-9 px-2.5 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
+      </div>
+
+      <div class="mb-3">
+        <template x-if="!$store.registerStore.userState.username">
+          <div class="flex items-center">
+            <div class="flex items-center justify-center bg-stone-300 w-2 h-2 mr-1.5 rounded-full"></div>
+            <p class="text-stone-500">Username is valid (letters, numbers, underscores)</p>
+          </div>
+        </template>
+        <template x-if="$store.registerStore.userState.username">
+          <div class="flex items-center">
+            <div class="flex items-center justify-center bg-emerald-600 w-2 h-2 mr-1.5 rounded-full"></div>
+            <p class="">Username is valid (letters, numbers, underscores)</p>
+          </div>
+        </template>
+
+        <template x-if="!$store.registerStore.userState.email">
+          <div class="flex items-center">
+            <div class="flex items-center justify-center bg-stone-300 w-2 h-2 mr-1.5 rounded-full"></div>
+            <p class="text-stone-500">Email address is valid</p>
+          </div>
+        </template>
+        <template x-if="$store.registerStore.userState.email">
+          <div class="flex items-center">
+            <div class="flex items-center justify-center bg-emerald-600 w-2 h-2 mr-1.5 rounded-full"></div>
+            <p class="">Email address is valid</p>
+          </div>
+        </template>
+
+        <template x-if="!$store.registerStore.userState.length">
+          <div class="flex items-center">
+            <div class="flex items-center justify-center bg-stone-300 w-2 h-2 mr-1.5 rounded-full"></div>
+            <p class="text-stone-500">Passwords are more than 6 characters</p>
+          </div>
+        </template>
+        <template x-if="$store.registerStore.userState.length">
+          <div class="flex items-center">
+            <div class="flex items-center justify-center bg-emerald-600 w-2 h-2 mr-1.5 rounded-full"></div>
+            <p class="">Passwords are more than 6 characters</p>
+          </div>
+        </template>
+
+        <template x-if="!$store.registerStore.userState.special">
+          <div class="flex items-center">
+            <div class="flex items-center justify-center bg-stone-300 w-2 h-2 mr-1.5 rounded-full"></div>
+            <p class="text-stone-500">Passwords contain a special character</p>
+          </div>
+        </template>
+        <template x-if="$store.registerStore.userState.special">
+          <div class="flex items-center">
+            <div class="flex items-center justify-center bg-emerald-600 w-2 h-2 mr-1.5 rounded-full"></div>
+            <p class="">Passwords contain a special character</p>
+          </div>
+        </template>
+
+        <template x-if="!$store.registerStore.userState.match">
+          <div class="flex items-center">
+            <div class="flex items-center justify-center bg-stone-300 w-2 h-2 mr-1.5 rounded-full"></div>
+            <p class="text-stone-500">Passwords match</p>
+          </div>
+        </template>
+        <template x-if="$store.registerStore.userState.match">
+          <div class="flex items-center">
+            <div class="flex items-center justify-center bg-emerald-600 w-2 h-2 mr-1.5 rounded-full"></div>
+            <p class="">Passwords match</p>
+          </div>
+        </template>
+      </div>
+      <template x-if="$store.registerStore.userState.username && $store.registerStore.userState.email && $store.registerStore.userState.length && $store.registerStore.userState.special && $store.registerStore.userState.match">
+        <button type="submit" class="flex items-center justify-center w-full font-semibold bg-primary px-2.5 h-9 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">Create Account</button>
+      </template>
+      <template x-if="!$store.registerStore.userState.username || !$store.registerStore.userState.email || !$store.registerStore.userState.length || !$store.registerStore.userState.special || !$store.registerStore.userState.match">
+        <button class="cursor-not-allowed flex items-center justify-center w-full font-semibold bg-stone-200 px-2.5 h-9 rounded-md text-stone-400">Create Account</button>
+      </template>
+    </form>
+    <p class="text-stone-500 text-sm text-center">
+      By creating your account, you agree to our <br />
+      <a class="underline text-stone-500 hover:text-primary" target="_new" href="https://promptpanel.com/terms/terms-of-service/">terms of service</a> and <a class="underline text-stone-500 hover:text-primary" target="_new" href="https://promptpanel.com/terms/privacy-policy/">privacy policy</a>.
+    </p>
+  </div>
+</div>
+
+{% endblock content %}
