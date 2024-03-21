@@ -1,10 +1,8 @@
 <img src="https://promptpanel.com/images/logo.svg" alt="logo" style="width:64px;">
-<br/>
-<br/>
 
 **PromptPanel**\
 The Universal AI Interface\
-<a href="http://promptpanel.com/docs">Documentation</a> | <a href="https://hub.docker.com/r/promptpanel/promptpanel">DockerHub</a>
+<a href="https://promptpanel.com/docs">Documentation</a> | <a href="https://hub.docker.com/r/promptpanel/promptpanel">DockerHub</a> | <a href="https://github.com/promptpanel/plugins">Plugins</a>
 
 
 ## Installation
@@ -32,7 +30,7 @@ Docker Run:
 docker run --name promptpanel -p 4000:4000 promptpanel/promptpanel:latest
 ```
 
-Read more on <a href="http://promptpanel.com/installation/docker-compose-offline/" target="_new">running PromptPanel</a>.
+Read more on <a href="https://promptpanel.com/installation/docker-compose-offline/" target="_new">running PromptPanel</a>.
 
 ---
 
