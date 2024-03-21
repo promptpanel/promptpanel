@@ -7,7 +7,16 @@ The Universal AI Interface\
 
 ## Installation
 
-Docker Compose (Recommended):
+### Docker Compose (Recommended):
+
+From pulled repo:
+
+```bash
+docker compose up 
+```
+
+Or save the file to your directory and then run:
+
 ```yaml
 version: "3.9"
 services:
@@ -25,7 +34,7 @@ services:
     restart: always
 ```
 
-Docker Run:
+### Docker Run:
 ```bash
 docker run --name promptpanel -p 4000:4000 promptpanel/promptpanel:latest
 ```

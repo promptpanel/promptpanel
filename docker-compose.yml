@@ -6,3 +6,9 @@ services:
     restart: always
     ports:
       - 4000:4000
+    environment:
+      PROMPT_OLLAMA_HOST: http://ollama:11434
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: always
