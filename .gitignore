@@ -12,7 +12,7 @@ tailwindcss
 
 # Pro folders
 pro
-plugins/__pro*/
+plugins
 entrypoint.sh
 
 # Builds
