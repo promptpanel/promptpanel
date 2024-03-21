@@ -143,15 +143,6 @@ def plugin_static(request, path):
     file_path = os.path.join(base_dir, path)
     if not file_path.startswith(base_dir):
         raise Http404
-    return serve(request, os.path.basename(path), os.path.dirname(file_path))
-
-
-@view_authenticated
-def plugin_static(request, path):
-    base_dir = os.path.join(settings.BASE_DIR, "plugins")
-    file_path = os.path.join(base_dir, path)
-    if not file_path.startswith(base_dir):
-        raise Http404
     # Ensure it's part of static directory
     static_dir_path = os.path.join("/static/")
     # OS differences (if app)
