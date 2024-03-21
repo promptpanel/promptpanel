@@ -2,7 +2,7 @@
 
 **PromptPanel**\
 The Universal AI Interface\
-<a href="https://promptpanel.com/docs">Documentation</a> | <a href="https://hub.docker.com/r/promptpanel/promptpanel">DockerHub</a> | <a href="https://github.com/promptpanel/plugins">Plugins</a>
+<a href="https://promptpanel.com/docs">Documentation</a> | <a href="https://hub.docker.com/r/promptpanel/promptpanel">DockerHub</a> | <a href="https://github.com/promptpanel/promptpanel">PromptPanel</a> | <a href="https://github.com/promptpanel/plugins">Plugins</a>
 
 
 ## Installation
@@ -54,9 +54,6 @@ We're looking to change that.
 - <a target="_new" href="https://promptpanel.com/server-setup/accessing-your-data/">Move and use your data</a> - we're pro data accessibility and portability.
 
 ---
-Preview:
-
-https://github.com/promptpanel/promptpanel/assets/161855417/713fe35c-fac3-4b90-ba39-2d2b5f2085bd
 
 ## Want to chat?
 Feel free to get in contact with us at:\
