@@ -13,7 +13,7 @@ tailwindcss
 # Pro folders
 /promptpanel/
 /pro/
-/plugins/__pro*/
+/plugins/
 
 # Builds
 _build/
