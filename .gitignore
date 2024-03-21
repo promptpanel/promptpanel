@@ -11,9 +11,9 @@ tailwindcss
 *.log
 
 # Pro folders
-/promptpanel/
-/pro/
-/plugins/__pro*/
+pro
+plugins/__pro*/
+entrypoint.sh
 
 # Builds
 _build/

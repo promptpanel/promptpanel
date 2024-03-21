@@ -1,0 +1,62 @@
+<!-- prettier-ignore -->
+{% extends "base.html" %}
+{% block title %}User Profile{% endblock title %}
+{% block content %}
+<script>
+  document.addEventListener("alpine:init", () => {
+    Alpine.store("active", {
+      user_id: Number("{{user_id}}"),
+      initialEmail: "{{user_email}}",
+      email: "{{user_email}}",
+      username: "{{user_username}}",
+      currentSetting: "profile",
+    });
+  });
+</script>
+<script is:inline src="/static/promptpanel/stores/user.js"></script>
+<div x-cloak x-data="userState()">
+  {% include "components/nav-profile.html" %}
+
+  <div class="absolute w-[calc(100%-20rem)] h-full right-0 overflow-y-auto -lg:relative -lg:block -lg:w-full">
+    <div class="my-20 max-w-md mx-auto px-4">
+      <h1 class="font-serif text-3xl mb-6">User Profile</h1>
+      <form class="mb-6" @submit.prevent="updateUser()">
+        <div class="mb-3">
+          <label for="email" class="block text-stone-500 mb-1">Username</label>
+          <input x-model="username" @input.debounce="checkUser()" type="username" disabled id="username" name="username" placeholder="Username..." class="cursor-not-allowed w-full px-2.5 h-9 py-1 rounded-md bg-stone-100 border border-transparent outline-none transition text-stone-500" />
+        </div>
+        <div class="mb-1">
+          <label for="email" class="block text-stone-500 mb-1">Email</label>
+          <input x-model="email" @input.debounce="checkUser()" type="email" required id="email" name="email" placeholder="Email..." class="cursor-text w-full px-2.5 h-9 py-1 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
+        </div>
+        <div class="mb-3">
+          <template x-if="!userState.emailChanged">
+            <div class="flex items-center">
+              <div class="flex items-center justify-center bg-stone-500/50 w-2 h-2 mr-1.5 rounded-full"></div>
+              <p class="text-stone-500">Current email address</p>
+            </div>
+          </template>
+          <template x-if="!userState.email && userState.emailChanged">
+            <div class="flex items-center">
+              <div class="flex items-center justify-center bg-stone-300 w-2 h-2 mr-1.5 rounded-full"></div>
+              <p class="text-stone-500">Email address is not valid</p>
+            </div>
+          </template>
+          <template x-if="userState.email && userState.emailChanged">
+            <div class="flex items-center">
+              <div class="flex items-center justify-center bg-emerald-600 w-2 h-2 mr-1.5 rounded-full"></div>
+              <p class="">Email address is valid</p>
+            </div>
+          </template>
+        </div>
+        <template x-if="userState.email && userState.emailChanged">
+          <button type="submit" class="ml-auto flex items-center justify-center font-semibold bg-primary px-2.5 h-9 rounded-md shadow-sm text-stone-50 transition duration-500 hover:border-stone-900 hover:shadow-lg focus:shadow-none">Update Profile</button>
+        </template>
+        <template x-if="!userState.email || !userState.emailChanged">
+          <button class="ml-auto cursor-not-allowed flex items-center justify-center font-semibold bg-stone-100 px-2.5 h-9 rounded-md text-stone-400">Update Profile</button>
+        </template>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock content %}

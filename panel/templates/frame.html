@@ -1,0 +1,34 @@
+<!-- prettier-ignore -->
+{% extends "base.html" %}
+{% block title %}Panel{% endblock title %}
+{% block content %}
+<script>
+  document.addEventListener("alpine:init", () => {
+    const hostname = window.location.origin;
+    let iframe = document.getElementById("panelIframe");
+    let url = `${hostname}/panel/`;
+    let activeStore = Alpine.store("active");
+    if (activeStore.panelId) {
+      url += `${activeStore.panelId}/`;
+    }
+    if (activeStore.threadId) {
+      url += `${activeStore.threadId}/`;
+    }
+    if (activeStore.messageId) {
+      url += `${activeStore.messageId}/`;
+    }
+    iframe.src = url;
+  });
+
+  // Catch iframe URL update history state
+  window.addEventListener("message", function (event) {
+    if (event.origin !== window.location.origin) {
+      return;
+    }
+    if (event.data.action === "updateUrl") {
+      window.history.pushState({}, "", event.data.newUrl);
+    }
+  });
+</script>
+<iframe id="panelIframe" class="w-full h-full"></iframe>
+{% endblock content %}

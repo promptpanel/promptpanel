@@ -1,0 +1,96 @@
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" href="/static/logo.svg">
+<script>
+  // Set Alpine.store "active" ids
+  document.addEventListener("alpine:init", () => {
+    Alpine.store("active", {
+      panelId: "{{ panel_id }}" ? parseInt("{{ panel_id }}") : null,
+      threadId: "{{ thread_id }}" ? parseInt("{{ thread_id }}") : null,
+      messageId: "{{ message_id }}" ? parseInt("{{ message_id }}") : null,
+    });
+    if (window !== window.parent) {
+      const hostname = window.location.origin;
+      let activeStore = Alpine.store("active");
+      // Construct URL
+      let urlParts = [hostname, "app"];
+      if (activeStore.panelId) urlParts.push(activeStore.panelId);
+      if (activeStore.threadId) urlParts.push(activeStore.threadId);
+      if (activeStore.messageId) urlParts.push(activeStore.messageId);
+      const urlUpdateFrame = urlParts.join("/") + "/";
+      window.parent.postMessage(
+        {
+          action: "updateUrl",
+          newUrl: urlUpdateFrame,
+        },
+        "*",
+      );
+    }
+  });
+</script>
+<script defer src="/static/promptpanel/js/alpinejs.3.13.3.js"></script>
+<script is:inline src="/static/promptpanel/stores/base.js"></script>
+<link rel="stylesheet" href="/static/promptpanel/css/defaults.css" />
+<script src="/static/promptpanel/js/tailwindcdn.3.4.1.js"></script>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          primary: {
+            DEFAULT: "{{ color_primary }}",
+            dark: "{{ color_primary }}",
+          },
+        },
+        screens: {
+          "-2xl": { max: "1536px" },
+          "-xl": { max: "1280px" },
+          "-lg": { max: "1024px" },
+          "-md": { max: "768px" },
+          "-sm": { max: "640px" },
+        },
+        fontFamily: {
+          sans: ["-apple-system, ui-sans-serif,  system-ui"],
+        },
+        listStyleType: {
+          square: "square",
+        },
+      },
+    },
+  };
+</script>
+{% if env_head %}
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-8M77JPC8Y1"></script>
+<script type="text/javascript">
+  // Clarity
+  (function (c, l, a, r, i, t, y) {
+    c[a] =
+      c[a] ||
+      function () {
+        (c[a].q = c[a].q || []).push(arguments);
+      };
+    t = l.createElement(r);
+    t.async = 1;
+    t.src = "https://www.clarity.ms/tag/" + i;
+    y = l.getElementsByTagName(r)[0];
+    y.parentNode.insertBefore(t, y);
+    clarity("set", "appId", "{{ app_id }}");
+    clarity("set", "userId", "{{ app_id }}_{{ user_id }}");
+    clarity("set", "plan", "{{ plan }}");
+  })(window, document, "clarity", "script", "hwwl1cwzps");
+  // GA
+  window.dataLayer = window.dataLayer || [];
+  function gtag() {
+    dataLayer.push(arguments);
+  }
+  gtag("js", new Date());
+  gtag("config", "G-8M77JPC8Y1");
+  gtag("set", {
+    app_id: "{{ app_id }}",
+    user_id: "{{ app_id }}_{{ user_id }}",
+    plan: "{{ plan }}",
+  });
+</script>
+{% endif %}
