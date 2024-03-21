@@ -42,9 +42,6 @@ docker run --name promptpanel -p 4000:4000 promptpanel/promptpanel:latest
 Read more on <a href="https://promptpanel.com/installation/docker-compose-offline/" target="_new">running PromptPanel</a>.
 
 ---
-
-<video src="https://promptpanel.com/assets/promptpanel-intro.mp4"></video>
-
 AI interfaces are limited and restrictive.
 
 Your models, conversations, and logic are locked in walled-gardens.
@@ -55,6 +52,11 @@ We're looking to change that.
 - <a target="_new" href="https://promptpanel.com/plugin-authoring/building-plugins/">Create custom plugins</a> and tailor the system to your unique needs.
 - <a target="_new" href="https://promptpanel.com/overview/packaged-plugins-models/#llm-document">Bring your own data</a> - host and run models locally using any engine.
 - <a target="_new" href="https://promptpanel.com/server-setup/accessing-your-data/">Move and use your data</a> - we're pro data accessibility and portability.
+
+---
+Preview:
+
+https://github.com/promptpanel/promptpanel/assets/161855417/713fe35c-fac3-4b90-ba39-2d2b5f2085bd
 
 ## Want to chat?
 Feel free to get in contact with us at:\
