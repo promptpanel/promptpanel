@@ -15,8 +15,8 @@ class ChatConfig(AppConfig):
 
         logger = logging.getLogger("app")
         try:
-            lic_email = os.environ.get("PROMPT_LICENCE_EMAIL", "")
-            lic_key = os.environ.get("PROMPT_LICENCE_KEY", "")
+            lic_email = os.environ.get("PROMPT_LICENSE_EMAIL", "")
+            lic_key = os.environ.get("PROMPT_LICENSE_KEY", "")
             if lic_email != "" and lic_key != "":
                 base_url = os.environ.get("PROMPT_OPS_BASE")
                 response = requests.post(
