@@ -58,3 +58,7 @@ We're looking to change that.
 ## Want to chat?
 Feel free to get in contact with us at:\
 info@promptpanel.com
+
+---
+
+https://github.com/promptpanel/promptpanel/assets/161855417/5b27d014-ac43-42f8-a645-b3773ae011fa
