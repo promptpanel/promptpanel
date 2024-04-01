@@ -97,6 +97,7 @@ def user_onboard(request):
                 response = requests.post(
                     f"{base_url}/api/v1/onboard/",
                     json={"app_id": settings.APP_ID, "email": email},
+                    timeout=2,
                 )
                 data = response.json()
             except Exception as e:
@@ -164,8 +165,7 @@ def licence_trial(request):
         base_url = os.environ.get("PROMPT_OPS_BASE")
         logger.info(lic_trial)
         response = requests.post(
-            f"{base_url}/api/v1/licence/trial/",
-            json=lic_trial,
+            f"{base_url}/api/v1/licence/trial/", json=lic_trial, timeout=4
         )
         data = response.json()
         if data["status"] == "deactivated":
@@ -224,7 +224,9 @@ def licence_set(request):
         lic_new["email"] = data["email"]
         lic_new["key"] = data["licence_key"]
         base_url = os.environ.get("PROMPT_OPS_BASE")
-        response = requests.post(f"{base_url}/api/v1/licence/get/", json=lic_new)
+        response = requests.post(
+            f"{base_url}/api/v1/licence/get/", json=lic_new, timeout=4
+        )
         data = response.json()
         if data["status"] == "deactivated":
             with open("/app/licence.json", "r") as file:

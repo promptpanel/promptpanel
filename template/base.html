@@ -36,15 +36,13 @@
           <a href="javascript:history.back()" x-show="isEditPage" class="mr-1.5 flex items-center justify-center text-sm font-semibold text-stone-500 h-8 w-8 rounded hover:text-stone-900 hover:bg-stone-200 -lg:min-h-9 -lg:min-w-9 -lg:hidden">
             <svg class="w-4 h-4 -lg:w-5 -lg:h-5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M11.03 3.97a.75.75 0 010 1.06l-6.22 6.22H21a.75.75 0 010 1.5H4.81l6.22 6.22a.75.75 0 11-1.06 1.06l-7.5-7.5a.75.75 0 010-1.06l7.5-7.5a.75.75 0 011.06 0z" clip-rule="evenodd"></path></svg>
           </a>
-
           <div class="flex items-center justify-center rounded-md h-8 w-8 overflow-hidden">
-            <img :src="`/plugins/${panelData.plugin}/static/icon.png`" @error="event.target.src='/static/promptpanel/img/default-chat.png'" class="w-full" />
+            <img :src="panelData.display_image" alt="Panel Display Image" class="w-full" />
           </div>
           <div class="ml-1.5 flex items-center">
             <p class="text-stone-900 font-semibold line-clamp-1" x-text="panelData.name">Panel Name</p>
             <p class="ml-2 text-stone-500 line-clamp-1" x-text="panelData.plugin_name"></p>
           </div>
-
           <a :href="`/panel/edit/${panelId}`" x-show="!isEditPage" class="ml-1.5 flex items-center justify-center text-sm font-semibold text-stone-500 h-8 w-8 rounded hover:text-stone-900 hover:bg-stone-200 -lg:min-h-9 -lg:min-w-9 -lg:hidden">
             <svg class="w-5 h-5 -lg:w-6 -lg:h-6" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M6 12a.75.75 0 01-.75-.75v-7.5a.75.75 0 111.5 0v7.5A.75.75 0 016 12zM18 12a.75.75 0 01-.75-.75v-7.5a.75.75 0 011.5 0v7.5A.75.75 0 0118 12zM6.75 20.25v-1.5a.75.75 0 00-1.5 0v1.5a.75.75 0 001.5 0zM18.75 18.75v1.5a.75.75 0 01-1.5 0v-1.5a.75.75 0 011.5 0zM12.75 5.25v-1.5a.75.75 0 00-1.5 0v1.5a.75.75 0 001.5 0zM12 21a.75.75 0 01-.75-.75v-7.5a.75.75 0 011.5 0v7.5A.75.75 0 0112 21zM3.75 15a2.25 2.25 0 104.5 0 2.25 2.25 0 00-4.5 0zM12 11.25a2.25 2.25 0 110-4.5 2.25 2.25 0 010 4.5zM15.75 15a2.25 2.25 0 104.5 0 2.25 2.25 0 00-4.5 0z"></path></svg>
           </a>
@@ -90,7 +88,7 @@
       <template x-for="panel in filteredPanels" :key="panel.id">
         <a :href="`/app/${panel.id}`" class="flex items-center w-full p-1 mb-1 text-stone-500 rounded-md transition duration-500 hover:text-stone-900 -lg:p-3" :class="{'bg-stone-200 !text-stone-900': $store.active.panelId === panel.id}">
           <div class="flex items-center justify-center w-7 h-7 rounded-md bg-stone-200 overflow-hidden">
-            <img :src="`/plugins/${panel.plugin}/static/icon.png`" onerror="this.onerror=null; this.src='/static/promptpanel/img/default-chat.png';" class="w-full" />
+            <img :src="panel.display_image" alt="Panel Display Image" class="w-full" />
           </div>
           <p x-text="panel.name" class="font-semibold ml-1.5 line-clamp-1"></p>
         </a>
@@ -114,6 +112,6 @@
     </div>
 
     <!-- Content -->
-    <div class="fixed left-80 top-12 w-[calc(100%-21rem)] h-[calc(100%-4rem)] bg-white border border-stone-200 rounded shadow-sm overflow-y-scroll z-[50] -lg:rounded-none -lg:h-[calc(100%-3rem)] -lg:left-0 -lg:w-full">{% block content %} {% endblock content %}</div>
+    <div class="fixed left-80 top-12 w-[calc(100%-21rem)] h-[calc(100%-4rem)] bg-white border border-stone-200 rounded shadow-sm overflow-y-auto z-[50] -lg:rounded-none -lg:h-[calc(100%-3rem)] -lg:left-0 -lg:w-full">{% block content %} {% endblock content %}</div>
   </body>
 </html>

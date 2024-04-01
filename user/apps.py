@@ -26,6 +26,7 @@ class ChatConfig(AppConfig):
                         "email": lic_email,
                         "key": lic_key,
                     },
+                    timeout=4,
                 )
                 data = response.json()
                 if data["status"] == "deactivated":
@@ -64,5 +65,5 @@ class ChatConfig(AppConfig):
                         json.dump(system, file)
         except Exception as e:
             logger.error(
-                "❌ Licence check did not succeed. Please contact licence@promptpanel.com to resolve. (startup)"
+                "Licence check did not succeed. Please contact licence@promptpanel.com to resolve. (startup)"
             )

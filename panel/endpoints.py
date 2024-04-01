@@ -152,6 +152,13 @@ def panel_list(request):
                 for key, value in panel.metadata.items()
                 if key not in private_settings
             }
+            # Get display_image
+            display_image = panel.display_image if panel.display_image else None
+            plugin_icon_path = os.path.join(plugin_dir, "static", "icon.png")
+            if not display_image and os.path.exists(plugin_icon_path):
+                display_image = f"/plugins/{panel.plugin}/static/icon.png"
+            elif not display_image:
+                display_image = "/static/promptpanel/img/default-chat.png"
             # Get last_active
             last_message = panel.messages_x_panel.aggregate(Max("created_on"))[
                 "created_on__max"
@@ -179,6 +186,7 @@ def panel_list(request):
                 "updated_at": panel.updated_at,
                 "metadata": filtered_metadata,
                 "last_active": panel.last_active,
+                "display_image": display_image,
             }
             for panel in sorted_panels
         ]
@@ -207,6 +215,13 @@ def panel_detail(request, panel_id):
                 for setting in manifest_data.get("settings", []):
                     if setting.get("private", False):
                         private_settings.append(setting.get("name"))
+        # Get display_image
+        display_image = panel.display_image if panel.display_image else None
+        plugin_icon_path = os.path.join(plugin_dir, "static", "icon.png")
+        if not display_image and os.path.exists(plugin_icon_path):
+            display_image = f"/plugins/{panel.plugin}/static/icon.png"
+        elif not display_image:
+            display_image = "/static/promptpanel/img/default-chat.png"
         # Filter metadata to exclude private settings
         filtered_metadata = {
             key: value
@@ -216,6 +231,7 @@ def panel_detail(request, panel_id):
         panel_data = {
             "id": panel.id,
             "name": panel.name,
+            "display_image": display_image,
             "plugin": panel.plugin,
             "plugin_name": plugin_name,
             "created_by": panel.created_by.username,
@@ -236,10 +252,12 @@ def panel_create(request):
         data = json.loads(request.body.decode("utf-8"))
         name = data.get("name", None)
         plugin = data.get("plugin", None)
+        display_image = data.get("display_image", None)
         metadata = data.get("metadata", False)
         new_panel = Panel(
             name=name,
             plugin=plugin,
+            display_image=display_image,
             metadata=metadata,
             created_by=request.user,
         )
@@ -249,6 +267,7 @@ def panel_create(request):
             "message": "Panel created successfully",
             "id": new_panel.id,
             "name": new_panel.name,
+            "display_image": new_panel.display_image,
             "plugin": new_panel.plugin,
             "created_by": new_panel.created_by.username,
             "created_on": new_panel.created_on,
@@ -269,6 +288,7 @@ def panel_update(request, panel_id):
         panel = get_object_or_404(Panel, id=panel_id, created_by=request.user)
         panel.name = data.get("name", panel.name)
         panel.plugin = data.get("plugin", panel.plugin)
+        panel.display_image = data.get("display_image", panel.display_image)
         panel.metadata = data.get("metadata", panel.metadata)
         panel.save()
         response_data = {
@@ -277,6 +297,7 @@ def panel_update(request, panel_id):
             "id": panel.id,
             "name": panel.name,
             "plugin": panel.plugin,
+            "display_image": panel.display_image,
             "created_by": panel.created_by.username,
             "created_on": panel.created_on,
             "updated_at": panel.updated_at,
