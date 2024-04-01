@@ -30,6 +30,7 @@ class CommonInfo(models.Model):
 class Panel(CommonInfo):
     name = models.TextField()
     is_global = models.BooleanField(default=False)
+    display_image = models.TextField(blank=True, null=True)
     plugin = models.TextField()
 
 
