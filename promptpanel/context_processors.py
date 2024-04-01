@@ -18,13 +18,16 @@ def update_stats():
         with open("/app/updated.log", "r") as file:
             last_updated_str = file.read().strip()
             last_updated = datetime.fromisoformat(last_updated_str)
+            logger.info("updated.log created")
     except Exception as e:
-        last_updated = datetime.min
+        logger.info("Issue creating updated.log: ", str(e))
+        last_updated = datetime.now()
         pass
     try:
-        if datetime.now() - last_updated > timedelta(hours=24):
+        with open("/app/updated.log", "w") as file:
+            file.write(datetime.now().isoformat())
+        if datetime.now() - last_updated > timedelta(minutes=1440):
             licence = get_licence()
-            # Telem
             try:
                 counter = {}
                 counter["app_id"] = settings.APP_ID
@@ -51,7 +54,9 @@ def update_stats():
                 )["max_id"]
                 counter["count_users"] = User.objects.filter(is_active=True).count()
                 base_url = os.environ.get("PROMPT_OPS_BASE")
-                response = requests.post(f"{base_url}/api/v1/telemetry/", json=counter)
+                response = requests.post(
+                    f"{base_url}/api/v1/telemetry/", json=counter, timeout=4
+                )
                 data = response.json()
             except Exception as e:
                 logger.info("Could not connect to version check: ", str(e))
@@ -67,6 +72,7 @@ def update_stats():
                             "email": licence["email"],
                             "key": licence["key"],
                         },
+                        timeout=4,
                     )
                     data = response.json()
                     if data["status"] == "deactivated":
@@ -103,11 +109,9 @@ def update_stats():
                         system["lic_state"] = "success"
                         with open("/app/licence.json", "w") as file:
                             json.dump(system, file)
-                    with open("/app/updated.log", "w") as file:
-                        file.write(datetime.now().isoformat())
             except Exception as e:
                 logger.info(
-                    "❌ Licence check did not succeed. Please contact licence@promptpanel.com to resolve.",
+                    "Licence check did not succeed. Please contact licence@promptpanel.com to resolve.",
                     str(e),
                 )
         else:
