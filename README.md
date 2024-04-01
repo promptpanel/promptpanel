@@ -55,7 +55,7 @@ We're looking to change that.
 
 ---
 
-## Want to chat?
+## Questions?
 Feel free to get in contact with us at:\
 info@promptpanel.com
 

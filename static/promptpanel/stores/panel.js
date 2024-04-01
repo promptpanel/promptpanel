@@ -142,7 +142,6 @@ var panelUpdateState = () => {
         .split("; ")
         .find((row) => row.startsWith("authToken="))
         .split("=")[1];
-      console.log("Deleting panel...");
       fetch(url, {
         method: "DELETE",
         headers: {
@@ -232,7 +231,6 @@ var panelUpdateState = () => {
       })
         .then((response) => response.json())
         .then((data) => {
-          console.log(data);
           this.plugins = data;
           this.pluginCategories = [...new Set(data.map((plugin) => plugin.category))].sort((a, b) => a.localeCompare(b));
           this.setActivePlugin();
