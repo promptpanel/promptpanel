@@ -26,6 +26,7 @@ var baseState = () => {
         })
           .then((response) => response.json())
           .then((data) => {
+            console.log(data);
             this.panelData = data;
           })
           .catch((error) => {

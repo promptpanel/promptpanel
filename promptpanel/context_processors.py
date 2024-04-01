@@ -20,7 +20,7 @@ def update_stats():
             last_updated = datetime.fromisoformat(last_updated_str)
             logger.info("updated.log created")
     except Exception as e:
-        logger.info("Issue creating updated.log: ", str(e))
+        logger.info("No updated.log found, creating new...")
         last_updated = datetime.now()
         pass
     try:

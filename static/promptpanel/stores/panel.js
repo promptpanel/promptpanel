@@ -4,6 +4,7 @@ var panelUpdateState = () => {
     activeMobileTab: "pluginSelect",
     // Panel State
     createName: "",
+    createDisplayImg: null,
     createSetting: {},
     showAdvanced: false,
     // Plugin State
@@ -31,6 +32,7 @@ var panelUpdateState = () => {
         .then((data) => {
           this.getPlugins();
           this.createName = data.name;
+          this.createDisplayImg = data.display_image;
           this.createSetting = data.metadata;
           this.activePluginID = data.plugin;
           this.setActivePlugin();
@@ -53,6 +55,7 @@ var panelUpdateState = () => {
         .split("=")[1];
       const panelData = {
         name: this.createName,
+        display_image: this.createDisplayImg,
         plugin: this.activePluginID,
         metadata: this.createSetting,
       };
@@ -95,6 +98,7 @@ var panelUpdateState = () => {
         .split("=")[1];
       const panelData = {
         name: this.createName,
+        display_image: this.createDisplayImg,
         plugin: this.activePluginID,
         metadata: this.createSetting,
       };
@@ -175,6 +179,25 @@ var panelUpdateState = () => {
           Alpine.store("toastStore").addToast(failToast);
         });
     },
+    displayImgUpload(event){
+      const file = event.target.files[0];
+      if (file) {
+          if (!file.type.startsWith('image/')) {
+              failToast = {
+                  type: "error",
+                  header: "Invalid File Type",
+                  message: "Please upload an image file."
+              };
+              Alpine.store("toastStore").addToast(failToast);
+              return;
+          }
+          const reader = new FileReader();
+          reader.onloadend = () => {
+              this.createDisplayImg = reader.result;
+          };
+          reader.readAsDataURL(file);
+      }
+    },
     setInitialSettings(settings) {
       settings.forEach((setting) => {
         if (typeof this.createSetting[setting.name] === "undefined") {
@@ -209,6 +232,7 @@ var panelUpdateState = () => {
       })
         .then((response) => response.json())
         .then((data) => {
+          console.log(data);
           this.plugins = data;
           this.pluginCategories = [...new Set(data.map((plugin) => plugin.category))].sort((a, b) => a.localeCompare(b));
           this.setActivePlugin();
