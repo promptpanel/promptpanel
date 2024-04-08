@@ -1,8 +1,8 @@
 <img src="https://promptpanel.com/images/logo.svg" alt="logo" style="width:64px;">
 
-**PromptPanel**\
+**Prompt Panel**\
 The Universal AI Interface\
-<a href="https://promptpanel.com/docs">Documentation</a> | <a href="https://hub.docker.com/r/promptpanel/promptpanel">DockerHub</a> | <a href="https://github.com/promptpanel/promptpanel">PromptPanel App</a> | <a href="https://github.com/promptpanel/plugins">Plugins</a>
+<a href="https://promptpanel.com/docs">Documentation</a> | <a href="https://hub.docker.com/r/promptpanel/promptpanel">DockerHub</a> | <a href="https://github.com/promptpanel/promptpanel">Prompt Panel App</a> | <a href="https://github.com/promptpanel/plugins">Plugins</a>
 
 
 ## Installation
@@ -39,7 +39,7 @@ services:
 docker run --name promptpanel -p 4000:4000 promptpanel/promptpanel:latest
 ```
 
-Read more on <a href="https://promptpanel.com/installation/docker-compose-offline/" target="_new">running PromptPanel</a>.
+Read more on <a href="https://promptpanel.com/installation/docker-compose-offline/" target="_new">running Prompt Panel</a>.
 
 ---
 AI interfaces are limited and restrictive.

@@ -159,6 +159,7 @@ def panel_list(request):
                 display_image = f"/plugins/{panel.plugin}/static/icon.png"
             elif not display_image:
                 display_image = "/static/promptpanel/img/default-chat.png"
+            panel.display_image = display_image
             # Get last_active
             last_message = panel.messages_x_panel.aggregate(Max("created_on"))[
                 "created_on__max"
@@ -186,7 +187,7 @@ def panel_list(request):
                 "updated_at": panel.updated_at,
                 "metadata": filtered_metadata,
                 "last_active": panel.last_active,
-                "display_image": display_image,
+                "display_image": panel.display_image,
             }
             for panel in sorted_panels
         ]
@@ -222,6 +223,7 @@ def panel_detail(request, panel_id):
             display_image = f"/plugins/{panel.plugin}/static/icon.png"
         elif not display_image:
             display_image = "/static/promptpanel/img/default-chat.png"
+        panel.display_image = display_image
         # Filter metadata to exclude private settings
         filtered_metadata = {
             key: value
@@ -231,7 +233,7 @@ def panel_detail(request, panel_id):
         panel_data = {
             "id": panel.id,
             "name": panel.name,
-            "display_image": display_image,
+            "display_image": panel.display_image,
             "plugin": panel.plugin,
             "plugin_name": plugin_name,
             "created_by": panel.created_by.username,
