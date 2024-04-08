@@ -42,11 +42,10 @@ docker run --name promptpanel -p 4000:4000 promptpanel/promptpanel:latest
 Read more on <a href="https://promptpanel.com/installation/docker-compose-offline/" target="_new">running PromptPanel</a>.
 
 ---
-AI interfaces are limited and restrictive.
 
 Your models, conversations, and logic are locked in walled-gardens.
 
-We're looking to change that.
+We're going to free them.
 
 - <a target="_new" href="https://promptpanel.com/overview/packaged-plugins-models/">Run any large language model</a>, across any inference provider, any way you want. We're un-opinionated.
 - <a target="_new" href="https://promptpanel.com/plugin-authoring/building-plugins/">Create custom plugins</a> and tailor the system to your unique needs.
