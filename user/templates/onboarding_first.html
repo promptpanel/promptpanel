@@ -1,63 +1,99 @@
 <!-- prettier-ignore -->
 {% extends "base-blank.html" %}
-{% block title %}Get Started with PromptPanel{% endblock title %}
+{% block title %}Get Started with Prompt Panel{% endblock title %}
 {% block content %}
 <div class="flex items-center justify-center h-[100vh] w-full antialiased text-stone-900 bg-stone-100 overflow-y-auto">
   <div class="w-full max-w-lg h-full pt-24 p-6">
     <div class="flex items-start mb-6">
-      {% if env_ollama %}
       <div class="w-full">
-        <img src="/static/promptpanel/img/logo-gemini-transparent.png" class="mb-3 h-[2.5rem]" />
         <h1 class="font-serif text-3xl">Getting started</h1>
+        <p class="text-2xl text-stone-500 mb-3">Your first model</p>
 
-        <p x-show="!$store.onboardStore.runningGetStarted" class="text-2xl text-stone-500 mb-3">Let's load up your first model</p>
-        <p x-show="$store.onboardStore.runningGetStarted" class="text-2xl text-stone-500 mb-3">Your model is warming up...</p>
+        <div class="flex items-center space-x-1.5 mb-3">
+          <button 
+            :class="{'border-primary ring-2 ring-primary/10': $store.onboardStore.modelSelected == 'openai', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': $store.onboardStore.modelSelected != 'openai'}"  
+            @click="$store.onboardStore.modelSelected = 'openai'" class="flex items-center justify-center w-16 h-16 rounded-md bg-white border border-stone-300"
+          >
+            <img src="/static/promptpanel/img/logo-openai-transparent.png" class="h-[2rem]" />
+          </button>
+          <button 
+            :class="{'border-primary ring-2 ring-primary/10': $store.onboardStore.modelSelected == 'anthropic', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': $store.onboardStore.modelSelected != 'anthropic'}"  
+            @click="$store.onboardStore.modelSelected = 'anthropic'" class="flex items-center justify-center w-16 h-16 rounded-md bg-white border border-stone-300"
+          >
+            <img src="/static/promptpanel/img/logo-anthropic-transparent.png" class="h-[1.624rem]" />
+          </button>
+          <button 
+            :class="{'border-primary ring-2 ring-primary/10': $store.onboardStore.modelSelected == 'ollama', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': $store.onboardStore.modelSelected != 'ollama'}"  
+            @click="$store.onboardStore.modelSelected = 'ollama'" class="flex items-center justify-center w-16 h-16 rounded-md bg-white border border-stone-300"
+          >
+            <img src="/static/promptpanel/img/logo-ollama-transparent.png" class="h-[2.4rem]" />
+          </button>
+        </div>
 
-        <p x-show="!$store.onboardStore.runningGetStarted" class="mb-3">Get started with Gemma, a small local model by Google.</p>
-        <p x-show="$store.onboardStore.runningGetStarted" class="mb-3">Gemma is a great small model for getting started - but using a larger, more resource intensive model can yield better results. <a href="https://promptpanel.com/models/overview" target="_new" class="text-sm underline hover:text-primary">Learn more</a></p>
+        <div x-show="$store.onboardStore.modelSelected == 'openai'">
+          <p class="mb-3">OpenAI is one of the most powerful models currently on the market. Enter your API key to get started with GPT-4.</p>
+          <p class="mb-3">You can find your API key information at: <a href="https://platform.openai.com/api-keys" class="text-primary underline hover:text-primary/80" target="_new">https://platform.openai.com/api-keys</a></p>  
 
-        <div class="flex items-center mb-3">
-          <a href="/app/" class="flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 mr-3 rounded-md transition duration-500 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300">Skip</a>
-          <button x-show="!$store.onboardStore.runningGetStarted" @click="$store.onboardStore.getStartedOllama()" class="flex items-center justify-center w-full font-semibold bg-primary px-2.5 h-9 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">Get Started</button>
-          <div x-show="$store.onboardStore.runningGetStarted" class="flex items-center justify-center w-full font-semibold bg-primary px-2.5 h-9 rounded-md text-stone-50">
-            <svg class="animate-spin mr-1.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <p>Loading Model</p>
+          <div class="mb-3">
+            <p class="text-stone-500 mb-0.5 text-sm font-semibold">API Key</p>
+            <input x-model="$store.onboardStore.apiKey" required id="apikey" name="apikey" placeholder="OpenAI API Key..." class="cursor-text w-full px-2.5 h-9 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
+          </div>
+  
+          <div class="flex items-center mb-3">
+            <a href="/app/" class="flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 mr-3 rounded-md transition duration-500 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300">Skip</a>
+            <button @click="$store.onboardStore.getStarted()" class="flex ml-auto w-max items-center justify-center font-semibold bg-primary px-3 h-9 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">Get Started</button>
+          </div>  
+        </div>
+
+        <div x-show="$store.onboardStore.modelSelected == 'anthropic'">
+          <p class="mb-3">Anthropic specializes in having models at every power tier, as well as having compatibility for extra-long context. Enter your API key to get started with Claude Opus.</p>
+          <p class="mb-3">You can find your API key information at: <a href="https://console.anthropic.com/settings/keys" class="text-primary underline hover:text-primary/80" target="_new">https://console.anthropic.com/settings/keys</a></p>  
+
+          <div class="mb-3">
+            <p class="text-stone-500 mb-0.5 text-sm font-semibold">API Key</p>
+            <input x-model="$store.onboardStore.apiKey" required id="apikey" name="apikey" placeholder="Anthropic API Key..." class="cursor-text w-full px-2.5 h-9 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
+          </div>
+  
+          <div class="flex items-center mb-3">
+            <a href="/app/" class="flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 mr-3 rounded-md transition duration-500 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300">Skip</a>
+            <button @click="$store.onboardStore.getStarted()" class="flex ml-auto w-max items-center justify-center font-semibold bg-primary px-3 h-9 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">Get Started</button>
+          </div>  
+        </div>
+
+        <div x-show="$store.onboardStore.modelSelected == 'ollama'">
+          <p x-show="!$store.onboardStore.runningGetStarted" class="mb-3">Get started with Ollama for hosting models locally and offline.</p>
+          <p x-show="!$store.onboardStore.runningGetStarted" class="mb-3">We can get started by downloading and running Gemma 2B a very small, local model by Google.</p>  
+
+          <p x-show="$store.onboardStore.runningGetStarted" class="mb-3">Your model is warming up...</p>
+          <p x-show="$store.onboardStore.runningGetStarted" class="mb-3">Gemma is a great small model for getting started - but using a larger, more resource intensive model can yield better results. <a href="https://promptpanel.com/models/overview" target="_new" class="text-sm underline hover:text-primary">Learn more</a></p>
+
+          <div class="flex items-center mb-3">
+            <a href="/app/" class="flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 mr-3 rounded-md transition duration-500 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300">Skip</a>
+            {% if env_ollama %}
+              <button x-show="!$store.onboardStore.runningGetStarted" @click="$store.onboardStore.getStartedOllama()" class="flex items-center justify-center ml-auto w-max font-semibold bg-primary px-3 h-9 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">Download & Get Started</button>
+            {% endif %} 
+            {% if not env_ollama %}
+              <p class="text-stone-400 text-sm ml-auto">Ollama is not currently enabled on your instance. <br /><a class="underline hover:text-stone-800" href="https://promptpanel.com/installation/docker-compose-offline/" target="_new">Learn More</a></p>
+            {% endif %} 
+            <div x-show="$store.onboardStore.runningGetStarted" class="flex items-center justify-center ml-auto w-max font-semibold bg-primary px-3 h-9 rounded-md text-stone-50">
+              <svg class="animate-spin mr-1.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <p>Loading Model</p>
+            </div>
           </div>
         </div>
 
-        <p x-show="$store.onboardStore.runningGetStarted" class="text-sm text-stone-500 mb-1.5">This could take a minute depending on your network connection.</p>
       </div>
-      {% endif %} {% if not env_ollama %}
-      <div class="w-full">
-        <img src="/static/promptpanel/img/logo-openai-transparent.png" class="mb-3 h-[2rem]" />
-        <h1 class="font-serif text-3xl">Getting started</h1>
-
-        <p class="text-2xl text-stone-500 mb-3">Let's load up your first model</p>
-        <p class="mb-3">Enter your API key below to get started learning PromptPanel with OpenAI's GPT-4 - one of the most powerful large language models currently on the market. </p>
-        <p class="mb-3">You can find your API key information at: <a href="https://platform.openai.com/api-keys" class="text-primary underline hover:text-primary/80" target="_new">https://platform.openai.com/api-keys</a></p>
-
-        <div class="mb-3">
-          <input x-model="$store.onboardStore.openAIKey" required id="apikey" name="apikey" placeholder="OpenAI API Key..." class="cursor-text w-full px-2.5 h-9 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
-        </div>
-
-        <div class="flex items-center mb-3">
-          <a href="/app/" class="flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 mr-3 rounded-md transition duration-500 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300">Skip</a>
-          <button @click="$store.onboardStore.getStartedOpenAI()" class="flex w-full items-center justify-center font-semibold bg-primary px-2.5 h-9 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">Get Started</button>
-        </div>
-
-        <p class="text-sm text-stone-500 mb-3">*Please note the associated <a href="https://openai.com/pricing" target="_new" class="underline hover:text-primary">costs</a> with your model provider.</p>
-      </div>
-      {% endif %}
     </div>
     <script>
       document.addEventListener("alpine:init", () => {
         Alpine.store("onboardStore", {
+          modelSelected: "openai",
           runningGetStarted: false,
-          openAIKey: "",
-          getStartedOpenAI() {
+          apiKey: "",
+          getStarted() {
             this.runningGetStarted = true;
             const hostname = window.location.origin;
             const createURL = hostname + "/api/v1/app/panel/create/";
@@ -69,17 +105,29 @@
               "Content-Type": "application/json",
               Authorization: "Bearer " + authToken,
             };
-            const panelData = {
-              name: "My First AI",
-              plugin: "llm_chat",
-              metadata: {
-                "Model": "gpt-4-0125-preview",
-                "Simple Model": "gpt-3.5-turbo-0125",
-                "Context Size": "4096",
-                "System Message": "You are a helpful AI assistant.",
-                "API Key": this.openAIKey,
-              },
-            };
+            let panelData = {}
+            if (this.modelSelected == "openai"){
+              panelData = {
+                name: "My First AI Panel",
+                plugin: "starter_openai",
+                metadata: {
+                  "Model": "GPT-4",
+                  "System Message": "You are a helpful AI assistant.",
+                  "API Key": this.apiKey,
+                },
+              };
+            }
+            if (this.modelSelected == "anthropic"){
+              panelData = {
+                name: "My First AI Panel",
+                plugin: "starter_anthropic",
+                metadata: {
+                  "Model": "Opus",
+                  "System Message": "You are a helpful AI assistant.",
+                  "API Key": this.apiKey,
+                },
+              };
+            }
             fetch(createURL, {
               method: "POST",
               headers: headers,
@@ -90,7 +138,7 @@
                 if (data.status === "success") {
                   successToast = {
                     type: "success",
-                    header: "OpenAI panel created successfully.",
+                    header: "Your first panel created successfully.",
                   };
                   Alpine.store("toastStore").addToast(successToast);
                   setTimeout(function () {
@@ -162,7 +210,7 @@
                     .then(() => {
                       successToast = {
                         type: "success",
-                        header: "Local model loaded successfully.",
+                        header: "Offline model loaded successfully.",
                       };
                       Alpine.store("toastStore").addToast(successToast);
                       setTimeout(function () {

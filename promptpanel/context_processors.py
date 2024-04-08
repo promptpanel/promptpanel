@@ -18,11 +18,9 @@ def update_stats():
         with open("/app/updated.log", "r") as file:
             last_updated_str = file.read().strip()
             last_updated = datetime.fromisoformat(last_updated_str)
-            logger.info("updated.log created")
     except Exception as e:
-        logger.info("No updated.log found, creating new...")
+        logger.info("updated.log defaulting to now: ", str(e))
         last_updated = datetime.now()
-        pass
     try:
         with open("/app/updated.log", "w") as file:
             file.write(datetime.now().isoformat())
@@ -59,8 +57,7 @@ def update_stats():
                 )
                 data = response.json()
             except Exception as e:
-                logger.info("Could not connect to version check: ", str(e))
-                pass
+                logger.info("Could not aggregate for check: ", str(e))
             # Check / update licence
             try:
                 if licence["email"] != "" and licence["key"] != "":
@@ -87,6 +84,7 @@ def update_stats():
                         with open("/app/licence.json", "w") as file:
                             json.dump(system, file)
                     if data["status"] == "warning":
+                        licence_data = data["data"]
                         with open("/app/licence.json", "r") as file:
                             system = json.load(file)
                         system["lic_key"] = licence["key"]
@@ -110,14 +108,11 @@ def update_stats():
                         with open("/app/licence.json", "w") as file:
                             json.dump(system, file)
             except Exception as e:
-                logger.info(
-                    "Licence check did not succeed. Please contact licence@promptpanel.com to resolve.",
-                    str(e),
-                )
+                logger.info("Could not send for check: ", str(e))
         else:
             pass
     except Exception as e:
-        logger.error(e, exc_info=True)
+        pass
 
 
 def global_context(request):
