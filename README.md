@@ -45,12 +45,12 @@ Read more on <a href="https://promptpanel.com/installation/docker-compose-offlin
 
 Your models, conversations, and logic are locked in walled-gardens.
 
-We're going to free them.
+Let's free your AI interface.
 
 - <a target="_new" href="https://promptpanel.com/overview/packaged-plugins-models/">Run any large language model</a>, across any inference provider, any way you want. We're un-opinionated.
-- <a target="_new" href="https://promptpanel.com/plugin-authoring/building-plugins/">Create custom plugins</a> and tailor the system to your unique needs.
-- <a target="_new" href="https://promptpanel.com/overview/packaged-plugins-models/#llm-document">Bring your own data</a> - host and run models locally using any engine.
-- <a target="_new" href="https://promptpanel.com/server-setup/accessing-your-data/">Move and use your data</a> - we're pro data accessibility and portability.
+- <a target="_new" href="https://promptpanel.com/plugin-authoring/building-plugins/">Create custom plugins</a> and tailor the system to your unique personal needs.
+- <a target="_new" href="https://promptpanel.com/overview/packaged-plugins-models/#llm-document">Use your own data safely</a> by running models offline or online using any inference engine, paired with your data.
+- <a target="_new" href="https://promptpanel.com/server-setup/accessing-your-data/">Your data is yours</a>, free it by moving it and using it however you see fit.
 
 ---
 
