@@ -60,4 +60,7 @@ info@promptpanel.com
 
 ---
 
+![screenshot](https://github.com/promptpanel/promptpanel/assets/161855417/6e7a303d-0fbc-4896-870d-19700b579e71)
+
+
 https://github.com/promptpanel/promptpanel/assets/161855417/5b27d014-ac43-42f8-a645-b3773ae011fa
