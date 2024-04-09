@@ -7,7 +7,12 @@ The Universal AI Interface\
 
 ## Installation
 
-### Docker Compose (Recommended):
+### Docker Run:
+```bash
+docker run --name promptpanel -p 4000:4000 promptpanel/promptpanel:latest
+```
+
+### or via Docker Compose:
 
 From pulled repo:
 
@@ -32,11 +37,6 @@ services:
     image: ollama/ollama:latest
     container_name: ollama
     restart: always
-```
-
-### Docker Run:
-```bash
-docker run --name promptpanel -p 4000:4000 promptpanel/promptpanel:latest
 ```
 
 Read more on <a href="https://promptpanel.com/installation/docker-compose-offline/" target="_new">running Prompt Panel</a>.
