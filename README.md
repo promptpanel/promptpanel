@@ -2,7 +2,7 @@
 
 **Prompt Panel**\
 The Universal AI Interface\
-<a href="https://promptpanel.com/docs">Documentation</a> | <a href="https://hub.docker.com/r/promptpanel/promptpanel">DockerHub</a> | <a href="https://github.com/promptpanel/promptpanel">Prompt Panel App</a> | <a href="https://github.com/promptpanel/plugins">Plugins</a>
+<a href="https://github.com/promptpanel/promptpanel">Prompt Panel App</a> | <a href="https://github.com/promptpanel/plugins">Plugins</a> | <a href="https://promptpanel.com/docs">Documentation</a> | <a href="https://hub.docker.com/r/promptpanel/promptpanel">DockerHub</a> 
 
 
 ## Installation
