@@ -2,25 +2,17 @@
 
 **Prompt Panel**\
 The Universal AI Interface\
-<a href="https://github.com/promptpanel/promptpanel">Prompt Panel App</a> | <a href="https://github.com/promptpanel/plugins">Plugins</a> | <a href="https://promptpanel.com/docs">Documentation</a> | <a href="https://hub.docker.com/r/promptpanel/promptpanel">DockerHub</a> 
+<a href="https://promptpanel.com/docs">Documentation</a> | <a href="https://hub.docker.com/r/promptpanel/promptpanel">DockerHub</a> | <a href="https://github.com/promptpanel/promptpanel">Prompt Panel App</a> | <a href="https://github.com/promptpanel/plugins">Agent Plugins</a>
 
 
 ## Installation
 
-### Docker Run:
+### Via Docker Compose:
 ```bash
-docker run --name promptpanel -p 4000:4000 promptpanel/promptpanel:latest
+curl -sSL https://promptpanel.com/manifest/docker-compose.yml | docker compose -f - up
 ```
 
-### or via Docker Compose:
-
-From pulled repo:
-
-```bash
-docker compose up 
-```
-
-Or save the file to your directory and then run:
+which runs the following `docker-compose.yml`:
 
 ```yaml
 version: "3.9"
@@ -29,6 +21,9 @@ services:
     image: promptpanel/promptpanel:latest
     container_name: promptpanel
     restart: always
+    volumes:
+      - ./database:/app/database
+      - ./media:/app/media
     ports:
       - 4000:4000
     environment:
@@ -48,9 +43,9 @@ Your models, conversations, and logic are locked in walled-gardens.
 Let's free your AI interface.
 
 - <a target="_new" href="https://promptpanel.com/overview/packaged-plugins-models/">Run any large language model</a>, across any inference provider, any way you want. We're un-opinionated.
-- <a target="_new" href="https://promptpanel.com/plugin-authoring/building-plugins/">Create custom plugins</a> and tailor the system to your unique personal needs.
-- <a target="_new" href="https://promptpanel.com/overview/packaged-plugins-models/#llm-document">Use your own data safely</a> by running models offline or online using any inference engine, paired with your data.
-- <a target="_new" href="https://promptpanel.com/server-setup/accessing-your-data/">Your data is yours</a>, free it by moving it and using it however you see fit.
+- <a target="_new" href="https://promptpanel.com/plugin-agent-authoring/building-plugin-agents/">Create custom plugin agents</a> and tailor the system to your unique needs.
+- <a target="_new" href="https://promptpanel.com/overview/packaged-plugins-models/#llm-document">Bring your own data</a> - host and run models locally using any engine.
+- <a target="_new" href="https://promptpanel.com/server-setup/accessing-your-data/">Move and use your data</a> - we're pro data accessibility and portability.
 
 ---
 
