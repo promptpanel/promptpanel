@@ -4,5 +4,8 @@ services:
     image: promptpanel/promptpanel:latest
     container_name: promptpanel
     restart: always
+    volumes:
+      - ./database:/app/database
+      - ./media:/app/media
     ports:
       - 4000:4000
