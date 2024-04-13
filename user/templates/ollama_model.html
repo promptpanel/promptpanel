@@ -131,67 +131,77 @@
   <!-- Model List -->
   <div class="absolute w-[calc(100%-20rem)] h-full right-0 overflow-y-auto -lg:relative -lg:block -lg:w-full">
     <div class="my-20 max-w-4xl mx-auto px-4">
-      <div class="flex items-center mb-6">
-        <div>
-          <h1 class="font-serif text-3xl">Manage Ollama</h1>
-          <p class="text-stone-500">Local model inference powered by Ollama.</p>
+      {% if env_ollama %}
+        <div class="flex items-center mb-6">
+          <div>
+            <h1 class="font-serif text-3xl">Manage Ollama</h1>
+            <p class="text-stone-500">Local model inference powered by Ollama.</p>
+          </div>
+            <button @click="modalCreateModel = true" class="ml-auto flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 rounded-md transition duration-500 border border-stone-200 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300">
+              <svg class="mr-1 w-4.5 h-4.5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 20 20" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z"></path></svg>
+              Pull Model
+            </button>
         </div>
-        <button @click="modalCreateModel = true" class="ml-auto flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 rounded-md transition duration-500 border border-stone-200 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300">
-          <svg class="mr-1 w-4.5 h-4.5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 20 20" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z"></path></svg>
-          Pull Model
-        </button>
-      </div>
-
-      <div class="border border-stone-200 rounded-md shadow-sm overflow-x-auto">
-        <table class="w-full text-left">
-          <thead class="bg-stone-100 border-b-2 border-stone-200">
-            <tr>
-              <th class="px-2 py-1 text-sm font-semibold text-stone-600">Name</th>
-              <th class="px-2 py-1 text-sm font-semibold text-stone-600">Model</th>
-              <th class="px-2 py-1 text-sm font-semibold text-stone-600">Size</th>
-              <th class="px-2 py-1 text-sm font-semibold text-stone-600">Parameters</th>
-              <th class="px-2 py-1 text-sm font-semibold text-stone-600">Quantization</th>
-              <th class="px-2 py-1 text-sm font-semibold text-stone-600"></th>
-            </tr>
-          </thead>
-          <tbody>
-            <template x-for="model in models" :key="model.name">
-              <tr class="border-b border-stone-200 last:border-transparent">
-                <td class="px-2 py-1" x-text="model.name">Name</td>
-                <td class="px-2 py-1" x-text="model.model">Model</td>
-                <td class="px-2 py-1" x-text="`${(model.size / 1073741824).toFixed(2)} GB`">Size</td>
-                <td class="px-2 py-1" x-text="model.details.parameter_size">Parameters</td>
-                <td class="px-2 py-1" x-text="model.details.quantization_level">Quantization</td>
-                <td class="px-2 py-1">
-                  <div @click="removeModel(model.name)" class="cursor-pointer text-sm font-semibold flex items-center text-rose-600 hover:text-rose-800">
-                    <svg class="mr-1" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z" clip-rule="evenodd"></path></svg>
-                    <p>Remove</p>
-                  </p>
-                </div>
+        <div class="border border-stone-200 rounded-md shadow-sm overflow-x-auto">
+          <table class="w-full text-left">
+            <thead class="bg-stone-100 border-b-2 border-stone-200">
+              <tr>
+                <th class="px-2 py-1 text-sm font-semibold text-stone-600">Name</th>
+                <th class="px-2 py-1 text-sm font-semibold text-stone-600">Model</th>
+                <th class="px-2 py-1 text-sm font-semibold text-stone-600">Size</th>
+                <th class="px-2 py-1 text-sm font-semibold text-stone-600">Parameters</th>
+                <th class="px-2 py-1 text-sm font-semibold text-stone-600">Quantization</th>
+                <th class="px-2 py-1 text-sm font-semibold text-stone-600"></th>
               </tr>
-            </template>
-            <template x-for="model in modelsDownloading">
-              <tr class="border-b border-stone-200 last:border-transparent">
-                <td class="px-2 py-1 text-stone-500" x-text="model">Name</td>
-                <td class="px-2 py-1 text-stone-500" colspan="5">
-                  <div class="flex items-center">
-                    <svg class="animate-spin mr-1 h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <p>Downloading and loading...</p>
+            </thead>
+            <tbody>
+              <template x-for="model in models" :key="model.name">
+                <tr class="border-b border-stone-200 last:border-transparent">
+                  <td class="px-2 py-1" x-text="model.name">Name</td>
+                  <td class="px-2 py-1" x-text="model.model">Model</td>
+                  <td class="px-2 py-1" x-text="`${(model.size / 1073741824).toFixed(2)} GB`">Size</td>
+                  <td class="px-2 py-1" x-text="model.details.parameter_size">Parameters</td>
+                  <td class="px-2 py-1" x-text="model.details.quantization_level">Quantization</td>
+                  <td class="px-2 py-1">
+                    <div @click="removeModel(model.name)" class="cursor-pointer text-sm font-semibold flex items-center text-rose-600 hover:text-rose-800">
+                      <svg class="mr-1" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z" clip-rule="evenodd"></path></svg>
+                      <p>Remove</p>
+                    </p>
                   </div>
+                </tr>
+              </template>
+              <template x-for="model in modelsDownloading">
+                <tr class="border-b border-stone-200 last:border-transparent">
+                  <td class="px-2 py-1 text-stone-500" x-text="model">Name</td>
+                  <td class="px-2 py-1 text-stone-500" colspan="5">
+                    <div class="flex items-center">
+                      <svg class="animate-spin mr-1 h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <p>Downloading and loading...</p>
+                    </div>
+                  </td>
+                </tr>
+              </template>
+              <tr x-show="models.length == 0 && modelsDownloading.length == 0">
+                <td colspan="6" class="text-center text-stone-500 px-2 py-10">
+                  <p>No local AI models added. <a href="#!" @click="modalCreateModel = true" class="underline hover:text-stone-900">Pull one</a> to continue.</p>
                 </td>
               </tr>
-            </template>
-            <tr x-show="models.length == 0 && modelsDownloading.length == 0">
-              <td colspan="6" class="text-center text-stone-500 px-2 py-10">
-                <p>No local AI models added. <a href="#!" @click="modalCreateModel = true" class="underline hover:text-stone-900">Pull one</a> to continue.</p>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+            </tbody>
+          </table>
+        </div>
+      {% endif %} 
+      {% if not env_ollama %}
+      <div class="flex items-center justify-center mt-6">
+        <div class="max-w-md">
+          <img src="/static/promptpanel/img/logo-ollama-transparent.png" class="mb-3 w-7" />
+          <p class="text-stone-500 font-semibold mb-1.5">Ollama is not configured for offline inference.</p>
+          <p class="text-stone-500">Read more on how to <a class="underline hover:text-primary" href="https://promptpanel.com/installation/docker-run/#upgrading-from-a-standalone-container-to-offline-inference-with-ollama" target="_new">upgrade your container</a> to include inference, or run our <a class="underline hover:text-primary" href="https://promptpanel.com/installation/docker-compose-offline/" target="_new">docker compose</a> which includes offline inference built-in.</p>
+        </div>
+      </div>  
+      {% endif %} 
 
     </div>
   </div>
