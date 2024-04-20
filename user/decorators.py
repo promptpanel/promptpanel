@@ -4,6 +4,7 @@ from django.conf import settings
 from django.http import JsonResponse, HttpResponseRedirect
 from functools import wraps
 from urllib.parse import urlencode
+from user.models import TokenLog
 
 
 def api_authenticated(view_func):
@@ -19,6 +20,15 @@ def api_authenticated(view_func):
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
             user_id = payload["user_id"]
             user = User.objects.get(id=user_id)
+            token_log = TokenLog.objects.get(token=token)
+            if token_log.disabled:
+                return JsonResponse(
+                    {
+                        "status": "error",
+                        "message": "Authentication token has been disabled.",
+                    },
+                    status=403,
+                )
             if not user.is_active:
                 return JsonResponse(
                     {"status": "error", "message": "User is not active."}, status=403
@@ -52,6 +62,14 @@ def view_authenticated(view_func):
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
             user_id = payload["user_id"]
             user = User.objects.get(id=user_id)
+            if token_log.disabled:
+                return JsonResponse(
+                    {
+                        "status": "error",
+                        "message": "Authentication token has been disabled.",
+                    },
+                    status=403,
+                )
             if user.is_active:
                 request.user = user
             else:

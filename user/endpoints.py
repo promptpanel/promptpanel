@@ -11,17 +11,26 @@ from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
 from user.decorators import api_authenticated
+from user.models import TokenLog
 
 logger = logging.getLogger("app")
 
 
-def generate_jwt_token(user):
+def generate_jwt_login(user):
+    expires_at = datetime.utcnow() + timedelta(days=365)
     payload = {
         "user_id": user.id,
-        "exp": datetime.utcnow() + timedelta(days=365),
+        "exp": expires_at,
         "iat": datetime.utcnow(),
     }
-    return jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
+    token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
+    TokenLog.objects.create(
+        token=token,
+        token_type="login",
+        created_by=user,
+        expires_at=expires_at,
+    )
+    return token
 
 
 @require_http_methods(["POST"])
@@ -43,7 +52,7 @@ def user_login(request):
                 )
         if user is not None:
             if user.is_active:
-                token = generate_jwt_token(user)
+                token = generate_jwt_login(user)
                 return JsonResponse(
                     {
                         "status": "success",
@@ -85,7 +94,7 @@ def user_onboard(request):
                 is_active=is_first_user,
             )
             user = authenticate(request, username=username, password=password)
-            token = generate_jwt_token(user)
+            token = generate_jwt_login(user)
             try:
                 app_id = settings.APP_ID
                 base_url = os.environ.get("PROMPT_OPS_BASE")
