@@ -19,11 +19,11 @@ def api_authenticated(view_func):
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
             user_id = payload["user_id"]
             user = User.objects.get(id=user_id)
-
             if not user.is_active:
                 return JsonResponse(
                     {"status": "error", "message": "User is not active."}, status=403
                 )
+            request.user = user
         except jwt.ExpiredSignatureError:
             return JsonResponse(
                 {"status": "error", "message": "Token has expired."}, status=401
@@ -52,7 +52,9 @@ def view_authenticated(view_func):
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
             user_id = payload["user_id"]
             user = User.objects.get(id=user_id)
-            if not user.is_active:
+            if user.is_active:
+                request.user = user
+            else:
                 return HttpResponseRedirect(f"/login/?{query_string}")
         except jwt.ExpiredSignatureError:
             return HttpResponseRedirect(f"/login/?{query_string}")

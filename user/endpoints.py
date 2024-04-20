@@ -5,7 +5,7 @@ import requests
 import logging
 from datetime import datetime, timedelta
 from django.conf import settings
-from django.contrib.auth import authenticate, login as auth_login, get_user_model
+from django.contrib.auth import authenticate, get_user_model
 from django.http import JsonResponse
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
@@ -21,7 +21,6 @@ def generate_jwt_token(user):
         "exp": datetime.utcnow() + timedelta(days=365),
         "iat": datetime.utcnow(),
     }
-
     return jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
 
 
@@ -32,10 +31,9 @@ def user_login(request):
         username = data.get("username")
         password = data.get("password")
         user = authenticate(request, username=username, password=password)
-        # Check email login if username not found
         if user is None:
             try:
-                user_obj = get_object_or_404(User, email=username)
+                user_obj = get_object_or_404(get_user_model(), email=username)
                 user = authenticate(
                     request, username=user_obj.username, password=password
                 )
@@ -43,10 +41,8 @@ def user_login(request):
                 return JsonResponse(
                     {"status": "error", "message": "Invalid credentials"}, status=400
                 )
-        # User is good, return token
         if user is not None:
             if user.is_active:
-                auth_login(request, user)
                 token = generate_jwt_token(user)
                 return JsonResponse(
                     {
@@ -64,7 +60,7 @@ def user_login(request):
                 {"status": "error", "message": "Invalid credentials"}, status=400
             )
     except Exception as e:
-        logger.error(e, exc_info=True)
+        logger.error(str(e), exc_info=True)
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
@@ -89,7 +85,6 @@ def user_onboard(request):
                 is_active=is_first_user,
             )
             user = authenticate(request, username=username, password=password)
-            auth_login(request, user)
             token = generate_jwt_token(user)
             try:
                 app_id = settings.APP_ID
