@@ -12,7 +12,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
 from markdown import markdown
-from user.decorators import api_authenticated
+from user.decorators import user_authenticated
 from promptpanel.utils import get_licence
 
 logger = logging.getLogger("app")
@@ -32,7 +32,7 @@ def run_plugin_function(context_type, payload, thread, panel):
 
 
 ## -- Endpoints
-@api_authenticated
+@user_authenticated
 @require_http_methods(["GET"])
 def plugin_list(request):
     try:
@@ -83,7 +83,7 @@ def plugin_list(request):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["GET"])
 def plugin_detail(request, plugin_name):
     try:
@@ -118,7 +118,7 @@ def plugin_detail(request, plugin_name):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["GET"])
 def panel_list(request):
     try:
@@ -197,7 +197,7 @@ def panel_list(request):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["GET"])
 def panel_detail(request, panel_id):
     try:
@@ -247,7 +247,7 @@ def panel_detail(request, panel_id):
         return JsonResponse({"status": "error", "message": f"{e}"}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["POST"])
 def panel_create(request):
     try:
@@ -282,7 +282,7 @@ def panel_create(request):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["PUT"])
 def panel_update(request, panel_id):
     try:
@@ -311,7 +311,7 @@ def panel_update(request, panel_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["POST"])
 def panel_retry(request, panel_id):
     try:
@@ -335,7 +335,7 @@ def panel_retry(request, panel_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["DELETE"])
 def panel_delete(request, panel_id):
     try:
@@ -349,7 +349,7 @@ def panel_delete(request, panel_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["GET"])
 def thread_list(request):
     try:
@@ -389,7 +389,7 @@ def thread_list(request):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["GET"])
 def thread_list_panel(request, panel_id):
     try:
@@ -429,7 +429,7 @@ def thread_list_panel(request, panel_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["GET"])
 def thread_detail(request, thread_id):
     try:
@@ -449,7 +449,7 @@ def thread_detail(request, thread_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["POST"])
 def thread_create(request):
     try:
@@ -482,7 +482,7 @@ def thread_create(request):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["POST"])
 def thread_clone(request, thread_id):
     try:
@@ -542,7 +542,7 @@ def thread_clone(request, thread_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["PUT"])
 def thread_update(request, thread_id):
     try:
@@ -571,7 +571,7 @@ def thread_update(request, thread_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["POST"])
 def thread_retry(request, thread_id):
     try:
@@ -595,7 +595,7 @@ def thread_retry(request, thread_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["DELETE"])
 def thread_delete(request, thread_id):
     try:
@@ -609,7 +609,7 @@ def thread_delete(request, thread_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["GET"])
 def message_list_panel(request, panel_id):
     try:
@@ -638,7 +638,7 @@ def message_list_panel(request, panel_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["GET"])
 def message_list_thread(request, thread_id):
     try:
@@ -667,7 +667,7 @@ def message_list_thread(request, thread_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["POST"])
 def message_create(request):
     try:
@@ -695,7 +695,7 @@ def message_create(request):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["PUT"])
 def message_update(request, message_id):
     try:
@@ -728,7 +728,7 @@ def message_update(request, message_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["DELETE"])
 def message_delete(request, message_id):
     try:
@@ -742,7 +742,7 @@ def message_delete(request, message_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["GET"])
 def file_list_panel(request, panel_id):
     try:
@@ -766,7 +766,7 @@ def file_list_panel(request, panel_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["GET"])
 def file_list_thread(request, thread_id):
     try:
@@ -790,7 +790,7 @@ def file_list_thread(request, thread_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["POST"])
 def file_create(request):
     try:
@@ -847,7 +847,7 @@ def file_create(request):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["DELETE"])
 def file_delete(request, file_id):
     try:
@@ -863,7 +863,7 @@ def file_delete(request, file_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 def ollama_proxy(request, route):
     prompt_ollama_host = os.getenv("PROMPT_OLLAMA_HOST")
     ## Check Ollama host setup

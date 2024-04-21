@@ -10,7 +10,7 @@ from django.http import JsonResponse
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
-from user.decorators import api_authenticated
+from user.decorators import user_authenticated
 from user.models import TokenLog
 
 logger = logging.getLogger("app")
@@ -127,7 +127,7 @@ def user_onboard(request):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["PUT"])
 def user_update(request, user_id):
     try:
@@ -158,7 +158,7 @@ def user_update(request, user_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["POST"])
 def licence_trial(request):
     try:
@@ -218,7 +218,7 @@ def licence_trial(request):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["POST"])
 def licence_set(request):
     try:
@@ -278,7 +278,7 @@ def licence_set(request):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["POST"])
 def licence_downgrade(request):
     try:
