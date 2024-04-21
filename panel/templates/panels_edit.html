@@ -65,8 +65,8 @@
             <label for="display-picture-upload" class="cursor-pointer w-full h-9 px-2.5 py-1 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none overflow-hidden transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10">
               <p x-show="!createDisplayImg" class="text-stone-400">Upload Display Picture...</p>
               <p x-show="createDisplayImg" x-text="createDisplayImg" class="text-stone-700"></p>
-            </label>      
-            <input id="display-picture-upload" type="file" @change="displayImgUpload" class="hidden" />  
+            </label>
+            <input id="display-picture-upload" type="file" @change="displayImgUpload" class="hidden" />
             <button @click="createDisplayImg = null" type="button" class="ml-1.5 h-9 px-2.5 py-1 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10">Clear</button>
           </div>
         </div>
@@ -90,9 +90,9 @@
               </div>
               <template x-if="setting.type === 'text'">
                 <div
-                    @click.outside="isOpen = false"
-                    class="relative w-full"
-                    x-data="{
+                  @click.outside="isOpen = false"
+                  class="relative w-full"
+                  x-data="{
                     isOpen: false,
                     filteredOptions() {
                         // Check if selections exists and is an array, default to empty array if not
@@ -124,18 +124,18 @@
                     }
                     }"
                 >
-                    <input type="search" autocomplete="off" x-model="createSetting[setting.name]" @focus="isOpen = true" @input="isOpen = true" :name="setting.name" :required="setting.required && !setting.private" class="w-full h-9 px-2.5 py-1 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
-                    <!-- Only show dropdown if isOpen is true and there are filtered options to show -->
-                    <div x-show="isOpen && filteredOptions().length > 0" class="absolute w-full bg-white mt-1 p-1 border border-stone-300 max-h-[50vh] rounded-md shadow-lg overflow-auto z-10">
+                  <input type="search" autocomplete="off" x-model="createSetting[setting.name]" @focus="isOpen = true" @input="isOpen = true" :name="setting.name" :required="setting.required && !setting.private" class="w-full h-9 px-2.5 py-1 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
+                  <!-- Only show dropdown if isOpen is true and there are filtered options to show -->
+                  <div x-show="isOpen && filteredOptions().length > 0" class="absolute w-full bg-white mt-1 p-1 border border-stone-300 max-h-[50vh] rounded-md shadow-lg overflow-auto z-10">
                     <template x-for="(groupedOption, index) in filteredOptions()" :key="index">
-                        <div class="">
+                      <div class="">
                         <div x-text="groupedOption.group" class="font-semibold text-xs text-stone-500 uppercase tracking-wider mx-2 mt-1.5 mb-1"></div>
                         <template x-for="value in groupedOption.values" :key="value">
-                            <div x-text="value" @click="createSetting[setting.name] = value, isOpen = false" class="cursor-pointer px-2 py-1 rounded-md hover:bg-stone-200 focus:text-stone-800 -lg:p-3"></div>
+                          <div x-text="value" @click="createSetting[setting.name] = value, isOpen = false" class="cursor-pointer px-2 py-1 rounded-md hover:bg-stone-200 focus:text-stone-800 -lg:p-3"></div>
                         </template>
-                        </div>
+                      </div>
                     </template>
-                    </div>
+                  </div>
                 </div>
               </template>
               <template x-if="setting.type === 'textarea'">
@@ -183,9 +183,9 @@
                         </div>
                         <template x-if="setting.type === 'text'">
                           <div
-                              @click.outside="isOpen = false"
-                              class="relative w-full"
-                              x-data="{
+                            @click.outside="isOpen = false"
+                            class="relative w-full"
+                            x-data="{
                               isOpen: false,
                               filteredOptions() {
                                   // Check if selections exists and is an array, default to empty array if not
@@ -217,18 +217,18 @@
                               }
                               }"
                           >
-                              <input type="text" x-model="createSetting[setting.name]" @focus="isOpen = true" @input="isOpen = true" :name="setting.name" :required="setting.required && !setting.private" class="w-full h-9 px-2.5 py-1 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
-                              <!-- Only show dropdown if isOpen is true and there are filtered options to show -->
-                              <div x-show="isOpen && filteredOptions().length > 0" class="absolute w-full bg-white mt-1 p-1 border border-stone-300 max-h-[50vh] rounded-md shadow-lg overflow-auto z-10">
+                            <input type="text" x-model="createSetting[setting.name]" @focus="isOpen = true" @input="isOpen = true" :name="setting.name" :required="setting.required && !setting.private" class="w-full h-9 px-2.5 py-1 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
+                            <!-- Only show dropdown if isOpen is true and there are filtered options to show -->
+                            <div x-show="isOpen && filteredOptions().length > 0" class="absolute w-full bg-white mt-1 p-1 border border-stone-300 max-h-[50vh] rounded-md shadow-lg overflow-auto z-10">
                               <template x-for="(groupedOption, index) in filteredOptions()" :key="index">
-                                  <div class="">
+                                <div class="">
                                   <div x-text="groupedOption.group" class="font-semibold text-xs text-stone-500 uppercase tracking-wider mx-2 mt-1.5 mb-1"></div>
                                   <template x-for="value in groupedOption.values" :key="value">
-                                      <div x-text="value" @click="createSetting[setting.name] = value, isOpen = false" class="cursor-pointer px-2 py-1 rounded-md hover:bg-stone-200 focus:text-stone-800 -lg:p-3"></div>
+                                    <div x-text="value" @click="createSetting[setting.name] = value, isOpen = false" class="cursor-pointer px-2 py-1 rounded-md hover:bg-stone-200 focus:text-stone-800 -lg:p-3"></div>
                                   </template>
-                                  </div>
+                                </div>
                               </template>
-                              </div>
+                            </div>
                           </div>
                         </template>
                         <template x-if="setting.type === 'textarea'">
