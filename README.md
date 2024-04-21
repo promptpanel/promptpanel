@@ -4,10 +4,10 @@
 Accelerating your AI agent adoption\
 <a href="https://promptpanel.com/docs">Documentation</a> | <a href="https://hub.docker.com/r/promptpanel/promptpanel">DockerHub</a> | <a href="https://github.com/promptpanel/promptpanel">Prompt Panel Platform</a> | <a href="https://github.com/promptpanel/plugins">Agent Plugins</a>
 
-
 ## Installation
 
 ### Via Docker Compose:
+
 ```bash
 curl -sSL https://promptpanel.com/manifest/docker-compose.yml | docker compose -f - up
 ```
@@ -50,6 +50,7 @@ Let's free your AI interface.
 ---
 
 ## Questions?
+
 Feel free to get in contact with us at:\
 info@promptpanel.com
 
