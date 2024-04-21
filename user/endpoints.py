@@ -53,13 +53,9 @@ def user_login(request):
         if user is not None:
             if user.is_active:
                 token = generate_jwt_login(user)
-                return JsonResponse(
-                    {
-                        "status": "success",
-                        "message": "Logged in successfully",
-                        "token": token,
-                    }
-                )
+                response = HttpResponseRedirect("/app/")
+                response.set_cookie("authToken", token, httponly=True, path="/")
+                return response
             else:
                 return JsonResponse(
                     {"status": "error", "message": "Account is not active"}, status=403
@@ -107,13 +103,10 @@ def user_onboard(request):
             except Exception as e:
                 logger.info("Could not connect to ops host")
                 pass
-            return JsonResponse(
-                {
-                    "status": "success",
-                    "message": "User onboarded and activated",
-                    "token": token,
-                }
-            )
+
+            response = HttpResponseRedirect("/onboarding/first/")
+            response.set_cookie("authToken", token, httponly=True, path="/")
+            return response
         else:
             return JsonResponse(
                 {

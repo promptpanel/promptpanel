@@ -57,29 +57,33 @@
                   "Content-Type": "application/json",
                 },
                 body: JSON.stringify(data),
+                redirect: 'manual'
               })
-                .then((response) => response.json())
-                .then((data) => {
-                  if (data.status === "success") {
-                    document.cookie = `authToken=${data.token}; path=/`;
-                    window.location.href = "/onboarding/first/";
-                  } else {
-                    failToast = {
-                      type: "error",
-                      header: "We had a problem creating your account. Please try again.",
-                      message: data.message,
-                    };
-                    Alpine.store("toastStore").addToast(failToast);
-                  }
-                })
-                .catch((error) => {
-                  failToast = {
+              .then((response) => {
+                if (response.redirected) {
+                  window.location.href = response.url;
+                } else {
+                  return response.json();
+                }
+              })
+              .then((data) => {
+                if (data && data.status !== "success") {
+                  let failToast = {
                     type: "error",
-                    header: "We had a problem creating your account. Please try again.",
-                    message: error.message,
+                    header: "We had a problem creating your initial user. Please try again.",
+                    message: data.message,
                   };
                   Alpine.store("toastStore").addToast(failToast);
-                });
+                }
+              })
+              .catch((error) => {
+                let failToast = {
+                  type: "error",
+                  header: "We had a problem creating your initial user. Please try again.",
+                  message: error.message,
+                };
+                Alpine.store("toastStore").addToast(failToast);
+              });
             } else {
               failToast = {
                 type: "error",
