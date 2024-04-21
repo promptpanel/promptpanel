@@ -18,8 +18,8 @@ var systemState = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer " + authToken,
         },
+        credentials: "include",
         body: JSON.stringify(data),
       })
         .then((response) => response.json())
@@ -66,8 +66,8 @@ var systemState = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer " + authToken,
         },
+        credentials: "include",
         body: JSON.stringify(data),
       })
         .then((response) => response.json())
@@ -114,8 +114,8 @@ var systemState = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer " + authToken,
         },
+        credentials: "include",
       })
         .then((response) => response.json())
         .then((data) => {

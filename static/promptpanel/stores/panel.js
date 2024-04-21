@@ -25,8 +25,8 @@ var panelUpdateState = () => {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer " + authToken,
         },
+        credentials: "include",
       })
         .then((response) => response.json())
         .then((data) => {
@@ -63,8 +63,8 @@ var panelUpdateState = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer " + authToken,
         },
+        credentials: "include",
         body: JSON.stringify(panelData),
       })
         .then((response) => response.json())
@@ -106,8 +106,8 @@ var panelUpdateState = () => {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer " + authToken,
         },
+        credentials: "include",
         body: JSON.stringify(panelData),
       })
         .then((response) => response.json())
@@ -146,8 +146,8 @@ var panelUpdateState = () => {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer " + authToken,
         },
+        credentials: "include",
       })
         .then((response) => response.json())
         .then((data) => {
@@ -178,23 +178,23 @@ var panelUpdateState = () => {
           Alpine.store("toastStore").addToast(failToast);
         });
     },
-    displayImgUpload(event){
+    displayImgUpload(event) {
       const file = event.target.files[0];
       if (file) {
-          if (!file.type.startsWith('image/')) {
-              failToast = {
-                  type: "error",
-                  header: "Invalid File Type",
-                  message: "Please upload an image file."
-              };
-              Alpine.store("toastStore").addToast(failToast);
-              return;
-          }
-          const reader = new FileReader();
-          reader.onloadend = () => {
-              this.createDisplayImg = reader.result;
+        if (!file.type.startsWith("image/")) {
+          failToast = {
+            type: "error",
+            header: "Invalid File Type",
+            message: "Please upload an image file.",
           };
-          reader.readAsDataURL(file);
+          Alpine.store("toastStore").addToast(failToast);
+          return;
+        }
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          this.createDisplayImg = reader.result;
+        };
+        reader.readAsDataURL(file);
       }
     },
     setInitialSettings(settings) {
@@ -226,8 +226,8 @@ var panelUpdateState = () => {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer " + authToken,
         },
+        credentials: "include",
       })
         .then((response) => response.json())
         .then((data) => {

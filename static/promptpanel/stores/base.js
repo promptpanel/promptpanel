@@ -21,8 +21,8 @@ var baseState = () => {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            Authorization: "Bearer " + authToken,
           },
+          credentials: "include",
         })
           .then((response) => response.json())
           .then((data) => {
@@ -49,8 +49,8 @@ var baseState = () => {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer " + authToken,
         },
+        credentials: "include",
       })
         .then((response) => response.json())
         .then((data) => {

@@ -37,8 +37,8 @@ var userState = () => {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            Authorization: "Bearer " + authToken,
           },
+          credentials: "include",
           body: JSON.stringify(data),
         })
           .then((response) => response.json())
@@ -103,8 +103,8 @@ var userState = () => {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            Authorization: "Bearer " + authToken,
           },
+          credentials: "include",
           body: JSON.stringify(data),
         })
           .then((response) => response.json())
