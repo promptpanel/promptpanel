@@ -15,7 +15,7 @@ class UserConfig(AppConfig):
 
         logger = logging.getLogger("app")
         try:
-            logger.info("Running licence check (@startup)")
+            logger.info("Running system startup (@startup)")
             lic_email = os.environ.get("PROMPT_LICENSE_EMAIL", "")
             lic_key = os.environ.get("PROMPT_LICENSE_KEY", "")
             if lic_email != "" and lic_key != "":
@@ -65,6 +65,4 @@ class UserConfig(AppConfig):
                     with open("/app/licence.json", "w") as file:
                         json.dump(system, file)
         except Exception as e:
-            logger.error(
-                "Licence check did not succeed. Please contact licence@promptpanel.com to resolve. (@startup)"
-            )
+            logger.info("There was an issue with system startup (@startup).")
