@@ -6,7 +6,12 @@ var panelUpdateState = () => {
     createName: "",
     createDisplayImg: null,
     createSetting: {},
+    createUserMode: "adminOnly",
+    createUsers: [],
     showAdvanced: false,
+    showAccessControls: false,
+    // User State
+    users: [],
     // Plugin State
     activePluginID: "",
     activePlugin: {},
@@ -14,10 +19,32 @@ var panelUpdateState = () => {
     pluginCategories: [],
     pluginSearchInput: "",
     // Panel Funcs
+    getUsers() {
+      const hostname = window.location.origin;
+      const url = hostname + "/api/v1/users/list/";
+      fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          this.users = data;
+        })
+        .catch((error) => {
+          failToast = {
+            type: "error",
+            header: "We had a problem retrieving your users. Please try again.",
+            message: error.message,
+          };
+          Alpine.store("toastStore").addToast(failToast);
+        });
+    },
     getPanel() {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/app/panel/" + Alpine.store("active").panelId + "/";
-      
       fetch(url, {
         method: "GET",
         headers: {
@@ -31,6 +58,15 @@ var panelUpdateState = () => {
           this.createName = data.name;
           this.createDisplayImg = data.display_image;
           this.createSetting = data.metadata;
+          this.createUsers = data.users_with_access.map(user => user.id);
+          const isGlobal = data.is_global;
+          if(isGlobal == true){
+            this.createUserMode = 'global'
+          } else if(this.createUsers.length > 1){
+            this.createUserMode = 'selectUsers'
+          } else {
+            this.createUserMode = 'adminOnly'
+          }
           this.activePluginID = data.plugin;
           this.setActivePlugin();
         })
@@ -46,13 +82,16 @@ var panelUpdateState = () => {
     createPanel() {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/app/panel/create/";
-      
       const panelData = {
         name: this.createName,
         display_image: this.createDisplayImg,
         plugin: this.activePluginID,
         metadata: this.createSetting,
+        user_access_ids: this.createUsers,
       };
+      if (this.createUserMode == 'global') {
+        panelData.is_global = true;
+      }
       fetch(url, {
         method: "POST",
         headers: {
@@ -86,13 +125,16 @@ var panelUpdateState = () => {
     updatePanel() {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/app/panel/update/" + Alpine.store("active").panelId + "/";
-      
       const panelData = {
         name: this.createName,
         display_image: this.createDisplayImg,
         plugin: this.activePluginID,
         metadata: this.createSetting,
+        user_access_ids: this.createUsers,
       };
+      if (this.createUserMode == 'global') {
+        panelData.is_global = true;
+      }
       fetch(url, {
         method: "PUT",
         headers: {
