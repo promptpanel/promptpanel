@@ -47,7 +47,7 @@ def panels_edit(request, panel_id):
 
 @user_authenticated
 def panel_expanded(request, panel_id):
-    panel = get_object_or_404(Panel, pk=panel_id, created_by=request.user)
+    panel = get_object_or_404(Panel, pk=panel_id)
     template_path = os.path.join(
         BASE_DIR, f"plugins/{panel.plugin}/templates/panel.html"
     )
@@ -72,7 +72,7 @@ def panel_expanded(request, panel_id):
 
 @user_authenticated
 def thread_expanded(request, panel_id, thread_id):
-    panel = get_object_or_404(Panel, pk=panel_id, created_by=request.user)
+    panel = get_object_or_404(Panel, pk=panel_id)
     template_path = os.path.join(
         BASE_DIR, f"plugins/{panel.plugin}/templates/thread.html"
     )
@@ -97,7 +97,7 @@ def thread_expanded(request, panel_id, thread_id):
 
 @user_authenticated
 def message_expanded(request, panel_id, thread_id, message_id):
-    panel = get_object_or_404(Panel, pk=panel_id, created_by=request.user)
+    panel = get_object_or_404(Panel, pk=panel_id)
     template_path = os.path.join(
         BASE_DIR, f"plugins/{panel.plugin}/templates/message.html"
     )
@@ -124,7 +124,7 @@ def message_expanded(request, panel_id, thread_id, message_id):
 def media_protected(request, path):
     file_path = os.path.join(settings.MEDIA_ROOT, path)
     if os.path.exists(file_path):
-        file_obj = get_object_or_404(File, filename=file_path, created_by=request.user)
+        file_obj = get_object_or_404(File, filename=file_path)
         with open(file_path, "rb") as file:
             response = HttpResponse(
                 file.read(), content_type="application/octet-stream"
