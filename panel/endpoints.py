@@ -6,6 +6,7 @@ import requests
 from importlib import import_module
 from panel.models import File, Message, Panel, Thread
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.core.files.storage import FileSystemStorage
 from django.db.models import Q, Max
 from django.http import HttpResponse, JsonResponse
@@ -184,6 +185,7 @@ def panel_list(request):
                 "name": panel.name,
                 "plugin": panel.plugin,
                 "plugin_name": plugin_name,
+                "is_global": panel.is_global,
                 "created_by": panel.created_by.username,
                 "created_on": panel.created_on,
                 "updated_at": panel.updated_at,
@@ -254,6 +256,7 @@ def panel_detail(request, panel_id):
             "display_image": display_image,
             "plugin": panel.plugin,
             "plugin_name": plugin_name,
+            "is_global": panel.is_global,
             "created_by": panel.created_by.username,
             "created_on": panel.created_on,
             "updated_at": panel.updated_at,
@@ -279,17 +282,19 @@ def panel_create(request):
         name = data.get("name", None)
         plugin = data.get("plugin", None)
         display_image = data.get("display_image", None)
+        is_global = data.get("is_global", False)
         metadata = data.get("metadata", False)
         new_panel = Panel(
             name=name,
             plugin=plugin,
             display_image=display_image,
+            is_global=is_global,
             metadata=metadata,
             created_by=request.user,
         )
         new_panel.save()
         # Update panel with access controls
-        user_ids = data.get("user_ids", [])
+        user_ids = data.get("user_access_ids", [])
         users_with_access = User.objects.filter(id__in=user_ids)
         if users_with_access.count() != len(user_ids):
             return JsonResponse(
@@ -311,6 +316,7 @@ def panel_create(request):
             "name": new_panel.name,
             "display_image": new_panel.display_image,
             "plugin": new_panel.plugin,
+            "is_global": new_panel.is_global,
             "created_by": new_panel.created_by.username,
             "created_on": new_panel.created_on,
             "updated_at": new_panel.updated_at,
@@ -333,8 +339,9 @@ def panel_update(request, panel_id):
         panel.name = data.get("name", panel.name)
         panel.plugin = data.get("plugin", panel.plugin)
         panel.display_image = data.get("display_image", panel.display_image)
+        panel.is_global = data.get("is_global", panel.is_global)
         panel.metadata = data.get("metadata", panel.metadata)
-        user_ids = data.get("user_ids")
+        user_ids = data.get("user_access_ids")
         panel.save()
         if user_ids is not None:
             users_with_access = User.objects.filter(id__in=user_ids)
@@ -355,6 +362,7 @@ def panel_update(request, panel_id):
             "name": panel.name,
             "plugin": panel.plugin,
             "display_image": panel.display_image,
+            "is_global": panel.is_global,
             "created_by": panel.created_by.username,
             "created_on": panel.created_on,
             "updated_at": panel.updated_at,
@@ -555,7 +563,7 @@ def thread_create(request):
                 Panel,
                 Q(id=panel_id)
                 & (
-                    Q(panel__is_global=True)
+                    Q(is_global=True)
                     | Q(created_by=request.user)
                     | Q(users_with_access=request.user)
                 ),
@@ -664,7 +672,7 @@ def thread_update(request, thread_id):
                 Panel,
                 Q(id=panel_id)
                 & (
-                    Q(panel__is_global=True)
+                    Q(is_global=True)
                     | Q(created_by=request.user)
                     | Q(users_with_access=request.user),
                 ),
@@ -831,7 +839,7 @@ def message_create(request):
                 Panel,
                 Q(id=panel_id)
                 & (
-                    Q(panel__is_global=True)
+                    Q(is_global=True)
                     | Q(created_by=request.user)
                     | Q(users_with_access=request.user)
                 ),
@@ -870,7 +878,7 @@ def message_update(request, message_id):
                 Panel,
                 Q(id=panel_id)
                 & (
-                    Q(panel__is_global=True)
+                    Q(is_global=True)
                     | Q(created_by=request.user)
                     | Q(users_with_access=request.user)
                 ),
@@ -1006,7 +1014,7 @@ def file_create(request):
                     Panel,
                     Q(id=panel_id)
                     & (
-                        Q(panel__is_global=True)
+                        Q(is_global=True)
                         | Q(created_by=request.user)
                         | Q(users_with_access=request.user)
                     ),
