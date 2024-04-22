@@ -126,9 +126,10 @@ def panel_list(request):
             panels = Panel.objects.all()
         else:
             panels = Panel.objects.filter(
-                Q(created_by=request.user) | Q(users_with_access=request.user)
+                Q(is_global=True)
+                | Q(created_by=request.user)
+                | Q(users_with_access=request.user)
             ).distinct()
-
         panel_data_list = []
         for panel in panels:
             # Plugin info and settings
@@ -216,7 +217,11 @@ def panel_detail(request, panel_id):
             panel = get_object_or_404(
                 Panel,
                 Q(id=panel_id)
-                & (Q(created_by=request.user) | Q(users_with_access=request.user)),
+                & (
+                    Q(is_global=True)
+                    | Q(created_by=request.user)
+                    | Q(users_with_access=request.user)
+                ),
             )
         # Plugin info and settings
         plugins_dir = os.path.join(os.path.dirname(__file__), "..", "plugins")
@@ -387,7 +392,11 @@ def panel_retry(request, panel_id):
             panel = get_object_or_404(
                 Panel,
                 Q(id=panel_id)
-                & (Q(created_by=request.user) | Q(users_with_access=request.user)),
+                & (
+                    Q(is_global=True)
+                    | Q(created_by=request.user)
+                    | Q(users_with_access=request.user)
+                ),
             )
         messages = Message.objects.filter(panel=panel).order_by("-created_on")[:2]
         if not messages:
@@ -419,7 +428,9 @@ def thread_list(request):
             threads = Thread.objects.filter(created_by=request.user)
         else:
             threads = Thread.objects.filter(
-                Q(created_by=request.user) | Q(panel__users_with_access=request.user)
+                Q(panel__is_global=True)
+                | Q(created_by=request.user)
+                | Q(panel__users_with_access=request.user)
             ).distinct()
         for thread in threads:
             last_message = thread.messages_x_thread.aggregate(Max("created_on"))[
@@ -467,7 +478,9 @@ def thread_list_panel(request, panel_id):
             threads = Thread.objects.filter(created_by=request.user, panel_id=panel_id)
         else:
             threads = Thread.objects.filter(
-                Q(created_by=request.user) | Q(panel__users_with_access=request.user),
+                Q(panel__is_global=True)
+                | Q(created_by=request.user)
+                | Q(panel__users_with_access=request.user),
                 panel_id=panel_id,
             ).distinct()
         for thread in threads:
@@ -541,7 +554,11 @@ def thread_create(request):
             panel = get_object_or_404(
                 Panel,
                 Q(id=panel_id)
-                & (Q(created_by=request.user) | Q(users_with_access=request.user)),
+                & (
+                    Q(panel__is_global=True)
+                    | Q(created_by=request.user)
+                    | Q(users_with_access=request.user)
+                ),
             )
         metadata = data.get("metadata", None)
         new_thread = Thread(
@@ -646,7 +663,11 @@ def thread_update(request, thread_id):
             panel = get_object_or_404(
                 Panel,
                 Q(id=panel_id)
-                & (Q(created_by=request.user) | Q(users_with_access=request.user)),
+                & (
+                    Q(panel__is_global=True)
+                    | Q(created_by=request.user)
+                    | Q(users_with_access=request.user),
+                ),
             )
         thread.panel = panel
         thread.title = data.get("title", thread.title)
@@ -726,7 +747,9 @@ def message_list_panel(request, panel_id):
             )
         else:
             panel_messages = Message.objects.filter(
-                Q(created_by=request.user) | Q(panel__users_with_access=request.user),
+                Q(panel__is_global=True)
+                | Q(created_by=request.user)
+                | Q(panel__users_with_access=request.user),
                 panel_id=panel_id,
             ).distinct()
         message_list = [
@@ -764,7 +787,9 @@ def message_list_thread(request, thread_id):
             )
         else:
             thread_messages = Message.objects.filter(
-                Q(created_by=request.user) | Q(panel__users_with_access=request.user),
+                Q(panel__is_global=True)
+                | Q(created_by=request.user)
+                | Q(panel__users_with_access=request.user),
                 thread_id=thread_id,
             ).distinct()
         message_list = [
@@ -805,7 +830,11 @@ def message_create(request):
             panel = get_object_or_404(
                 Panel,
                 Q(id=panel_id)
-                & (Q(created_by=request.user) | Q(users_with_access=request.user)),
+                & (
+                    Q(panel__is_global=True)
+                    | Q(created_by=request.user)
+                    | Q(users_with_access=request.user)
+                ),
             )
         if request.user.is_staff:
             thread = get_object_or_404(Thread, id=thread_id)
@@ -840,7 +869,11 @@ def message_update(request, message_id):
             panel = get_object_or_404(
                 Panel,
                 Q(id=panel_id)
-                & (Q(created_by=request.user) | Q(users_with_access=request.user)),
+                & (
+                    Q(panel__is_global=True)
+                    | Q(created_by=request.user)
+                    | Q(users_with_access=request.user)
+                ),
             )
         if request.user.is_staff:
             thread = get_object_or_404(Thread, id=thread_id)
@@ -897,7 +930,9 @@ def file_list_panel(request, panel_id):
             files = File.objects.filter(created_by=request.user, panel_id=panel_id)
         else:
             files = File.objects.filter(
-                Q(created_by=request.user) | Q(panel__users_with_access=request.user),
+                Q(panel__is_global=True)
+                | Q(created_by=request.user)
+                | Q(panel__users_with_access=request.user),
                 panel_id=panel_id,
             ).distinct()
         file_list = [
@@ -930,7 +965,9 @@ def file_list_thread(request, thread_id):
             files = File.objects.filter(created_by=request.user, thread_id=thread_id)
         else:
             files = File.objects.filter(
-                Q(created_by=request.user) | Q(panel__users_with_access=request.user),
+                Q(panel__is_global=True)
+                | Q(created_by=request.user)
+                | Q(panel__users_with_access=request.user),
                 thread_id=thread_id,
             ).distinct()
         file_list = [
@@ -968,7 +1005,11 @@ def file_create(request):
                 panel = get_object_or_404(
                     Panel,
                     Q(id=panel_id)
-                    & (Q(created_by=request.user) | Q(users_with_access=request.user)),
+                    & (
+                        Q(panel__is_global=True)
+                        | Q(created_by=request.user)
+                        | Q(users_with_access=request.user)
+                    ),
                 )
             if thread_id:
                 if request.user.is_staff:
