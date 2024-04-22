@@ -21,10 +21,7 @@ var userManageState = () => {
     createUser() {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/users/create/";
-      const authToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("authToken="))
-        .split("=")[1];
+      
       const data = {
         username: this.userForCreate.username,
         email: this.userForCreate.email,
@@ -71,10 +68,7 @@ var userManageState = () => {
     modifyUser() {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/users/update/" + this.userForModify.userId + "/";
-      const authToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("authToken="))
-        .split("=")[1];
+      
       const data = {
         username: this.userForModify.username,
         email: this.userForModify.email,
@@ -123,10 +117,7 @@ var userManageState = () => {
     getUsers() {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/users/list/";
-      const authToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("authToken="))
-        .split("=")[1];
+      
       fetch(url, {
         method: "GET",
         headers: {

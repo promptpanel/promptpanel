@@ -17,10 +17,7 @@ var panelUpdateState = () => {
     getPanel() {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/app/panel/" + Alpine.store("active").panelId + "/";
-      const authToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("authToken="))
-        .split("=")[1];
+      
       fetch(url, {
         method: "GET",
         headers: {
@@ -49,10 +46,7 @@ var panelUpdateState = () => {
     createPanel() {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/app/panel/create/";
-      const authToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("authToken="))
-        .split("=")[1];
+      
       const panelData = {
         name: this.createName,
         display_image: this.createDisplayImg,
@@ -92,10 +86,7 @@ var panelUpdateState = () => {
     updatePanel() {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/app/panel/update/" + Alpine.store("active").panelId + "/";
-      const authToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("authToken="))
-        .split("=")[1];
+      
       const panelData = {
         name: this.createName,
         display_image: this.createDisplayImg,
@@ -138,10 +129,7 @@ var panelUpdateState = () => {
       }
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/app/panel/delete/" + Alpine.store("active").panelId + "/";
-      const authToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("authToken="))
-        .split("=")[1];
+      
       fetch(url, {
         method: "DELETE",
         headers: {
@@ -218,10 +206,7 @@ var panelUpdateState = () => {
     getPlugins() {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/app/plugins/";
-      const authToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("authToken="))
-        .split("=")[1];
+      
       fetch(url, {
         method: "GET",
         headers: {

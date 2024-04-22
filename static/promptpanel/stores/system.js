@@ -7,10 +7,7 @@ var systemState = () => {
     activateTrial() {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/users/licence/trial/";
-      const authToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("authToken="))
-        .split("=")[1];
+      
       const data = {
         email: this.email,
       };
@@ -54,10 +51,7 @@ var systemState = () => {
     setLicence() {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/users/licence/set/";
-      const authToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("authToken="))
-        .split("=")[1];
+      
       const data = {
         email: this.licence_email,
         licence_key: this.licence_key,
@@ -106,10 +100,7 @@ var systemState = () => {
       }
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/users/licence/downgrade/";
-      const authToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("authToken="))
-        .split("=")[1];
+      
       fetch(url, {
         method: "POST",
         headers: {

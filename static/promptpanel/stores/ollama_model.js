@@ -10,10 +10,7 @@ var localModelState = () => {
     createModel() {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/app/ollama/pull/";
-      const authToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("authToken="))
-        .split("=")[1];
+      
       const data = {
         name: this.modelForCreate.modelName,
         stream: false,
@@ -64,10 +61,7 @@ var localModelState = () => {
     removeModel(modelName) {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/app/ollama/delete/";
-      const authToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("authToken="))
-        .split("=")[1];
+      
       const data = {
         name: modelName,
       };
@@ -100,10 +94,7 @@ var localModelState = () => {
     getModels() {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/app/ollama/tags";
-      const authToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("authToken="))
-        .split("=")[1];
+      
       fetch(url, {
         method: "GET",
         headers: {
