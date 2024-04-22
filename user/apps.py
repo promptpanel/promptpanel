@@ -15,7 +15,6 @@ class UserConfig(AppConfig):
 
         logger = logging.getLogger("app")
         try:
-            logger.info("Running system startup (@startup)")
             lic_email = os.environ.get("PROMPT_LICENSE_EMAIL", "")
             lic_key = os.environ.get("PROMPT_LICENSE_KEY", "")
             if lic_email != "" and lic_key != "":
