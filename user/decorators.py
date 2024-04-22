@@ -97,7 +97,7 @@ def licence_active(view_func):
     def _wrapped_view(request, *args, **kwargs):
         licence = get_licence()
         allowed_plans = ["trial", "pro", "team", "business"]
-        if not request.user.is_staff or licence["plan"] not in allowed_plans:
+        if licence["plan"] not in allowed_plans:
             return JsonResponse(
                 {
                     "status": "error",

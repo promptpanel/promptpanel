@@ -6,9 +6,10 @@ import logging
 from datetime import datetime, timedelta
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
-from django.http import JsonResponse, HttpResponseRedirect
 from django.contrib.auth.models import User
+from django.http import JsonResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from user.decorators import user_authenticated, user_is_staff
 from user.models import TokenLog
@@ -17,11 +18,11 @@ logger = logging.getLogger("app")
 
 
 def generate_jwt_login(user):
-    expires_at = datetime.utcnow() + timedelta(days=365)
+    expires_at = timezone.now() + timedelta(days=365)
     payload = {
         "user_id": user.id,
-        "exp": expires_at,
-        "iat": datetime.utcnow(),
+        "exp": int(expires_at.timestamp()),
+        "iat": int(timezone.now().timestamp()),
     }
     token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
     TokenLog.objects.create(
