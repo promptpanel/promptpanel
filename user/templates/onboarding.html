@@ -63,10 +63,8 @@
                 console.log(response)
                 if (response.redirected) {
                   window.location.href = response.url;
-                } else if (response.ok) {
-                  return response.json();
                 } else {
-                  throw new Error('Network response was not ok.');
+                  return response.json();
                 }
               })
               .then((data) => {
