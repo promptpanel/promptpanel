@@ -10,7 +10,7 @@ from django.http import JsonResponse, HttpResponseRedirect
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
-from user.decorators import user_authenticated
+from user.decorators import user_authenticated, user_is_staff
 from user.models import TokenLog
 
 logger = logging.getLogger("app")
@@ -76,10 +76,24 @@ def user_onboard(request):
         username = data.get("username")
         email = data.get("email")
         password = data.get("password")
-        if get_user_model().objects.filter(username=username).exists():
+        # Check if email is allowed
+        allowed_endings = os.getenv("PROMPT_USER_ALLOWED_DOMAINS", "")
+        allowed_endings = [
+            ending.strip().lower()
+            for ending in allowed_endings.split(",")
+            if ending.strip()
+        ]
+        if allowed_endings and not any(
+            email.endswith(ending) for ending in allowed_endings
+        ):
             return JsonResponse(
-                {"status": "error", "message": "Username already exists"}, status=400
+                {
+                    "status": "error",
+                    "message": "PROMPT_USER_ALLOWED_DOMAINS is active. The account email does not end with any allowed domains or emails.",
+                },
+                status=400,
             )
+        # Create if first user
         is_first_user = get_user_model().objects.count() == 0
         if is_first_user:
             user_create = get_user_model().objects.create_user(
@@ -125,12 +139,30 @@ def user_update(request, user_id):
     try:
         data = json.loads(request.body.decode("utf-8"))
         target_user = get_user_model().objects.get(pk=user_id)
+        # Check if the updated email is allowed
+        new_email = data.get("email", target_user.email)
+        allowed_endings = os.getenv("PROMPT_USER_ALLOWED_DOMAINS", "")
+        allowed_endings = [
+            ending.strip().lower()
+            for ending in allowed_endings.split(",")
+            if ending.strip()
+        ]
+        if allowed_endings and not any(
+            new_email.endswith(ending) for ending in allowed_endings
+        ):
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "message": "PROMPT_USER_ALLOWED_DOMAINS is active. The account email does not end with any allowed domains or emails.",
+                },
+                status=400,
+            )
         # Check if the requesting user is the target user or an admin
         if request.user != target_user and not request.user.is_staff:
             return JsonResponse(
                 {
                     "status": "error",
-                    "message": "You do not have permission to edit this user.",
+                    "message": "You do not have permission to edit this user. Please contact your administrator.",
                 },
                 status=403,
             )
@@ -151,6 +183,7 @@ def user_update(request, user_id):
 
 
 @user_authenticated
+@user_is_staff
 @require_http_methods(["POST"])
 def licence_trial(request):
     try:
@@ -211,6 +244,7 @@ def licence_trial(request):
 
 
 @user_authenticated
+@user_is_staff
 @require_http_methods(["POST"])
 def licence_set(request):
     try:
@@ -271,6 +305,7 @@ def licence_set(request):
 
 
 @user_authenticated
+@user_is_staff
 @require_http_methods(["POST"])
 def licence_downgrade(request):
     try:
