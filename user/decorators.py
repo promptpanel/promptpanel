@@ -7,6 +7,7 @@ from django.http import JsonResponse, HttpResponseRedirect
 from functools import wraps
 from urllib.parse import urlencode
 from user.models import TokenLog
+from promptpanel.utils import get_licence
 
 logger = logging.getLogger("app")
 
@@ -71,5 +72,23 @@ def user_authenticated(view_func):
             logger.error(str(e), exc_info=True)
             query_string = urlencode({"next": request.get_full_path()})
             return HttpResponseRedirect(f"/login/?{query_string}")
+
+    return _wrapped_view
+
+
+def licence_active(view_func):
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        licence = get_licence()
+        allowed_plans = ["trial", "pro", "team", "business"]
+        if not request.user.is_staff or licence["plan"] not in allowed_plans:
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "message": "A licence is required to access this content. Please go to Settings to view your current status.",
+                },
+                status=403,
+            )
+        return view_func(request, *args, **kwargs)
 
     return _wrapped_view
