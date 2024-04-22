@@ -1,7 +1,7 @@
 from django.apps import AppConfig
 
 
-class ChatConfig(AppConfig):
+class UserConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "user"
 
@@ -15,6 +15,7 @@ class ChatConfig(AppConfig):
 
         logger = logging.getLogger("app")
         try:
+            logger.info("Running licence check (@startup)")
             lic_email = os.environ.get("PROMPT_LICENSE_EMAIL", "")
             lic_key = os.environ.get("PROMPT_LICENSE_KEY", "")
             if lic_email != "" and lic_key != "":
@@ -65,5 +66,5 @@ class ChatConfig(AppConfig):
                         json.dump(system, file)
         except Exception as e:
             logger.error(
-                "Licence check did not succeed. Please contact licence@promptpanel.com to resolve. (startup)"
+                "Licence check did not succeed. Please contact licence@promptpanel.com to resolve. (@startup)"
             )
