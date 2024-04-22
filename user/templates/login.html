@@ -112,6 +112,13 @@
       </div>
       <button type="submit" class="flex items-center justify-center w-full font-semibold bg-primary px-2.5 h-9 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">Sign In</button>
     </form>
+
+    {% if env_oidc_display %}
+      <a href="/oauth/login" class="flex items-center justify-center w-full font-semibold bg-primary px-2.5 h-9 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">
+        Sign in with {{ env_oidc_display }}
+      </a>
+    {% endif %}    
+    
     <!-- <p class="text-stone-500">Need a new account? <a class="font-semibold text-emerald-600 hover:text-emerald-800" href="#!">Sign up</a> here.</p> -->
   </div>
 </div>
