@@ -86,10 +86,6 @@
             this.runningGetStarted = true;
             const hostname = window.location.origin;
             const createURL = hostname + "/api/v1/app/panel/create/";
-            const authToken = document.cookie
-              .split("; ")
-              .find((row) => row.startsWith("authToken="))
-              .split("=")[1];
             const headers = {
               "Content-Type": "application/json",
             };
@@ -162,10 +158,6 @@
             const hostname = window.location.origin;
             const createURL = hostname + "/api/v1/app/panel/create/";
             const modelURL = hostname + "/api/v1/app/ollama/pull/";
-            const authToken = document.cookie
-              .split("; ")
-              .find((row) => row.startsWith("authToken="))
-              .split("=")[1];
             const headers = {
               "Content-Type": "application/json",
             };
