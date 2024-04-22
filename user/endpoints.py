@@ -6,7 +6,7 @@ import logging
 from datetime import datetime, timedelta
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
@@ -103,7 +103,6 @@ def user_onboard(request):
             except Exception as e:
                 logger.info("Could not connect to ops host")
                 pass
-
             response = HttpResponseRedirect("/onboarding/first/")
             response.set_cookie("authToken", token, httponly=True, path="/")
             return response

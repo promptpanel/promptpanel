@@ -66,33 +66,36 @@
                 "Content-Type": "application/json",
               },
               body: JSON.stringify(data),
-              redirect: 'manual'
+              redirect: 'follow'
             })
             .then((response) => {
-              if (response.redirected) {
-                window.location.href = response.url;
-              } else {
-                return response.json();
-              }
-            })
-            .then((data) => {
-              if (data && data.status !== "success") {
+                console.log(response)
+                if (response.redirected) {
+                  window.location.href = response.url;
+                } else if (response.ok) {
+                  return response.json();
+                } else {
+                  throw new Error('Network response was not ok.');
+                }
+              })
+              .then((data) => {
+                if (data && data.status !== "success") {
+                  let failToast = {
+                    type: "error",
+                    header: "We had a problem logging into your account. Please try again.",
+                    message: data.message,
+                  };
+                  Alpine.store("toastStore").addToast(failToast);
+                }
+              })
+              .catch((error) => {
                 let failToast = {
                   type: "error",
-                  header: "We had a problem logging you into your account. Please try again.",
-                  message: data.message,
+                  header: "We had a problem logging into your account. Please try again.",
+                  message: error.message,
                 };
                 Alpine.store("toastStore").addToast(failToast);
-              }
-            })
-            .catch((error) => {
-              let failToast = {
-                type: "error",
-                header: "We had a problem logging you into your account. Please try again.",
-                message: error.message,
-              };
-              Alpine.store("toastStore").addToast(failToast);
-            });
+              });
           },
         });
       });

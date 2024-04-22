@@ -57,13 +57,16 @@
                   "Content-Type": "application/json",
                 },
                 body: JSON.stringify(data),
-                redirect: 'manual'
+                redirect: 'follow'
               })
               .then((response) => {
+                console.log(response)
                 if (response.redirected) {
                   window.location.href = response.url;
-                } else {
+                } else if (response.ok) {
                   return response.json();
+                } else {
+                  throw new Error('Network response was not ok.');
                 }
               })
               .then((data) => {
@@ -85,13 +88,13 @@
                 Alpine.store("toastStore").addToast(failToast);
               });
             } else {
-              failToast = {
+              let failToast = {
                 type: "error",
                 header: "There was a problem validating the account information you've entered. Please try again.",
               };
               Alpine.store("toastStore").addToast(failToast);
             }
-          },
+          }
         });
       });
     </script>
@@ -180,7 +183,7 @@
         </template>
       </div>
       <template x-if="$store.registerStore.userState.username && $store.registerStore.userState.email && $store.registerStore.userState.length && $store.registerStore.userState.special && $store.registerStore.userState.match">
-        <button type="submit" class="flex items-center justify-center w-full font-semibold bg-primary px-2.5 h-9 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">Create Account</button>
+        <button type="submit" class="flex items-center justify-center w-full font-semibold bg-primary px-2.5 h-9 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:opacity-80 focus:shadow-none">Create Account</button>
       </template>
       <template x-if="!$store.registerStore.userState.username || !$store.registerStore.userState.email || !$store.registerStore.userState.length || !$store.registerStore.userState.special || !$store.registerStore.userState.match">
         <button class="cursor-not-allowed flex items-center justify-center w-full font-semibold bg-stone-200 px-2.5 h-9 rounded-md text-stone-400">Create Account</button>
