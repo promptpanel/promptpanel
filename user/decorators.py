@@ -76,6 +76,22 @@ def user_authenticated(view_func):
     return _wrapped_view
 
 
+def user_is_staff(view_func):
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.user.is_staff:
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "message": "Admin permissions are required for accessing or updating this content.",
+                },
+                status=403,
+            )
+        return view_func(request, *args, **kwargs)
+
+    return _wrapped_view
+
+
 def licence_active(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
