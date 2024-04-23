@@ -47,20 +47,20 @@
           </div>
         </div>
 
-        <div @click="modelForCreate.modelName = 'llama2:7b'" class="mb-3 cursor-pointer group flex items-start bg-white rounded-md border p-3" :class="{'border-primary ring-2 ring-primary/10': modelForCreate.modelName == 'llama2:7b', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': modelForCreate.modelName != 'llama2:7b'}">
+        <div @click="modelForCreate.modelName = 'llama3:8b'" class="mb-3 cursor-pointer group flex items-start bg-white rounded-md border p-3" :class="{'border-primary ring-2 ring-primary/10': modelForCreate.modelName == 'llama2:7b', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': modelForCreate.modelName != 'llama2:7b'}">
           <div>
             <img src="/static/promptpanel/img/logo-meta.png" class="w-14 -ml-3" />
-            <p class="font-semibold mb-0.5">Llama2 7B</p>
+            <p class="font-semibold mb-0.5">Llama3 8B</p>
             <div class="flex items-start">
               <p class="text-sm">Foundation language models by Meta.</p>
             </div>
           </div>
         </div>
 
-        <div @click="modelForCreate.modelName = 'mistral:v0.2'" class="mb-3 cursor-pointer group flex items-start bg-white rounded-md border p-3" :class="{'border-primary ring-2 ring-primary/10': modelForCreate.modelName == 'mistral:v0.2', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': modelForCreate.modelName != 'mistral:v0.2'}">
+        <div @click="modelForCreate.modelName = 'mistral:7b'" class="mb-3 cursor-pointer group flex items-start bg-white rounded-md border p-3" :class="{'border-primary ring-2 ring-primary/10': modelForCreate.modelName == 'mistral:v0.2', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': modelForCreate.modelName != 'mistral:v0.2'}">
           <div>
             <img src="/static/promptpanel/img/logo-mistral.png" class="w-14 -ml-3" />
-            <p class="font-semibold mb-0.5">Mistral v0.2 7B</p>
+            <p class="font-semibold mb-0.5">Mistral 7B</p>
             <div class="flex items-start">
               <p class="text-sm">Open language model by Mistral AI.</p>
             </div>
@@ -87,6 +87,16 @@
           </div>
         </div>
 
+        <div @click="modelForCreate.modelName = 'llama3:70b'" class="mb-3 cursor-pointer group flex items-start bg-white rounded-md border p-3" :class="{'border-primary ring-2 ring-primary/10': modelForCreate.modelName == 'llama2:70b', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': modelForCreate.modelName != 'llama2:70b'}">
+          <div>
+            <img src="/static/promptpanel/img/logo-meta.png" class="w-14 -ml-3" />
+            <p class="font-semibold mb-0.5">Llama3 70B</p>
+            <div class="flex items-start">
+              <p class="text-sm">Foundation language models by Meta.</p>
+            </div>
+          </div>
+        </div>
+
         <div @click="modelForCreate.modelName = 'mixtral:8x7b'" class="mb-3 cursor-pointer group flex items-start bg-white rounded-md border p-3" :class="{'border-primary ring-2 ring-primary/10': modelForCreate.modelName == 'mixtral:8x7b', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': modelForCreate.modelName != 'mixtral:8x7b'}">
           <div>
             <img src="/static/promptpanel/img/logo-mistral.png" class="w-14 -ml-3" />
@@ -97,15 +107,6 @@
           </div>
         </div>
 
-        <div @click="modelForCreate.modelName = 'llama2:70b'" class="mb-3 cursor-pointer group flex items-start bg-white rounded-md border p-3" :class="{'border-primary ring-2 ring-primary/10': modelForCreate.modelName == 'llama2:70b', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': modelForCreate.modelName != 'llama2:70b'}">
-          <div>
-            <img src="/static/promptpanel/img/logo-meta.png" class="w-14 -ml-3" />
-            <p class="font-semibold mb-0.5">Llama2 70B</p>
-            <div class="flex items-start">
-              <p class="text-sm">Foundation language models by Meta.</p>
-            </div>
-          </div>
-        </div>
       </div>
 
       <div class="mb-3">

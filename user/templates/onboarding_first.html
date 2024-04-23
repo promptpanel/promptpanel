@@ -53,10 +53,10 @@
 
         <div x-show="$store.onboardStore.modelSelected == 'ollama'">
           <p x-show="!$store.onboardStore.runningGetStarted" class="mb-3">Get started with Ollama for hosting models locally and offline.</p>
-          <p x-show="!$store.onboardStore.runningGetStarted" class="mb-3">We can get started by downloading and running Gemma 2B a very small, local model by Google.</p>
+          <p x-show="!$store.onboardStore.runningGetStarted" class="mb-3">We can get started by downloading and running Llama-3 a small, local model by Facebook.</p>
 
           <p x-show="$store.onboardStore.runningGetStarted" class="mb-3">Your model is warming up...</p>
-          <p x-show="$store.onboardStore.runningGetStarted" class="mb-3">Gemma is a great small model for getting started - but using a larger, more resource intensive model can yield better results. <a href="https://promptpanel.com/models/overview" target="_new" class="text-sm underline hover:text-primary">Learn more</a></p>
+          <p x-show="$store.onboardStore.runningGetStarted" class="mb-3">Llama-3 is a great small model for getting started - but using a larger, more resource intensive model can yield better results. <a href="https://promptpanel.com/models/overview" target="_new" class="text-sm underline hover:text-primary">Learn more</a></p>
 
           <div class="flex items-center mb-3">
             <a href="/app/" class="flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 mr-3 rounded-md transition duration-500 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300">Skip</a>
@@ -170,7 +170,7 @@
               },
             };
             const modelData = {
-              name: "gemma:2b",
+              name: "llama3",
               stream: false,
             };
             fetch(createURL, {
