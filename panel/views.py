@@ -47,11 +47,11 @@ def panels_edit(request, panel_id):
 
 @user_authenticated
 def panel_expanded(request, panel_id):
-    panel = get_object_or_404(Panel, pk=panel_id)
-    template_path = os.path.join(
-        BASE_DIR, f"plugins/{panel.plugin}/templates/panel.html"
-    )
     try:
+        panel = get_object_or_404(Panel, pk=panel_id)
+        template_path = os.path.join(
+            BASE_DIR, f"plugins/{panel.plugin}/templates/panel.html"
+        )
         with open(template_path, "r") as file:
             template = Template(file.read())
         local_context = {
@@ -72,11 +72,11 @@ def panel_expanded(request, panel_id):
 
 @user_authenticated
 def thread_expanded(request, panel_id, thread_id):
-    panel = get_object_or_404(Panel, pk=panel_id)
-    template_path = os.path.join(
-        BASE_DIR, f"plugins/{panel.plugin}/templates/thread.html"
-    )
     try:
+        panel = get_object_or_404(Panel, pk=panel_id)
+        template_path = os.path.join(
+            BASE_DIR, f"plugins/{panel.plugin}/templates/thread.html"
+        )
         with open(template_path, "r") as file:
             template = Template(file.read())
         local_context = {
@@ -97,11 +97,11 @@ def thread_expanded(request, panel_id, thread_id):
 
 @user_authenticated
 def message_expanded(request, panel_id, thread_id, message_id):
-    panel = get_object_or_404(Panel, pk=panel_id)
-    template_path = os.path.join(
-        BASE_DIR, f"plugins/{panel.plugin}/templates/message.html"
-    )
     try:
+        panel = get_object_or_404(Panel, pk=panel_id)
+        template_path = os.path.join(
+            BASE_DIR, f"plugins/{panel.plugin}/templates/message.html"
+        )
         with open(template_path, "r") as file:
             template = Template(file.read())
         local_context = {
