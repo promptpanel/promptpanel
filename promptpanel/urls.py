@@ -14,6 +14,7 @@ urlpatterns = [
     path("onboarding/first/", user_views.onboarding_first, name="view_user_onboarding_first"),
     path("profile/", user_views.profile, name="view_user_profile"),
     path("update_password/", user_views.update_password, name="view_update_password"),
+    path("logout/", user_views.logout, name="view_user_logout"),
     ## System settings
     path("system/", user_views.system, name="view_system"),
     path("system/ollama/", user_views.ollama_model, name="view_ollama"),

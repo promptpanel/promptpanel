@@ -127,10 +127,6 @@ var userState = () => {
         };
         Alpine.store("toastStore").addToast(failToast);
       }
-    },
-    logoutUser() {
-      const hostname = window.location.origin;
-      window.location.href = hostname + "/login/?logged_out=true";
-    },
+    }
   };
 };

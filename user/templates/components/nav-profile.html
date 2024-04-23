@@ -6,7 +6,7 @@
   <a href="/update_password/" :class="{ 'bg-stone-200 text-stone-900': $store.active.currentSetting == 'update_password' }" class="group cursor-pointer group flex items-center w-full py-1 px-2.5 mb-1 rounded-md font-semibold text-stone-500 transition duration-500 hover:text-stone-900 -lg:p-3">
     <p>Update Password</p>
   </a>
-  <a @click="logoutUser()" class="group cursor-pointer group flex items-center w-full py-1 px-2.5 mb-1 rounded-md font-semibold text-stone-500 transition duration-500 hover:text-stone-900 -lg:p-3">
+  <a href="/logout/" class="group cursor-pointer group flex items-center w-full py-1 px-2.5 mb-1 rounded-md font-semibold text-stone-500 transition duration-500 hover:text-stone-900 -lg:p-3">
     <p>Logout</p>
   </a>
   {% if user_is_admin %}

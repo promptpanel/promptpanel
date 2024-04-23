@@ -1,5 +1,6 @@
-from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
+from django.http import HttpResponseRedirect
+from django.shortcuts import render, redirect
 from user.decorators import user_authenticated
 
 
@@ -45,3 +46,9 @@ def system(request):
 def ollama_model(request):
     context = {}
     return render(request, "ollama_model.html", context)
+
+
+def logout(request):
+    response = HttpResponseRedirect("/login/?logged_out=true")
+    response.delete_cookie("authToken", path="/")
+    return response
