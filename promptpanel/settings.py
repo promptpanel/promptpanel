@@ -145,12 +145,34 @@ WSGI_APPLICATION = "promptpanel.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "database/db.sqlite3",
+if all(
+    [
+        os.environ.get("PROMPT_LICENSE_EMAIL", "").strip(),
+        os.environ.get("PROMPT_LICENSE_KEY", "").strip(),
+        os.environ.get("PROMPT_PG_HOST", "").strip(),
+        os.environ.get("PROMPT_PG_PORT", "").strip(),
+        os.environ.get("PROMPT_PG_DBNAME", "").strip(),
+        os.environ.get("PROMPT_PG_USER", "").strip(),
+        os.environ.get("PROMPT_PG_PASS", "").strip(),
+    ]
+):
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "HOST": os.environ.get("PROMPT_PG_HOST"),
+            "PORT": os.environ.get("PROMPT_PG_PORT"),
+            "NAME": os.environ.get("PROMPT_PG_DBNAME"),
+            "USER": os.environ.get("PROMPT_PG_USER"),
+            "PASSWORD": os.environ.get("PROMPT_PG_PASS"),
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "database/db.sqlite3",
+        }
+    }
 
 
 # Password validation

@@ -1,6 +1,7 @@
-from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
-from user.decorators import view_authenticated
+from django.http import HttpResponseRedirect
+from django.shortcuts import render, redirect
+from user.decorators import user_authenticated
 
 
 def login(request):
@@ -17,31 +18,37 @@ def onboarding(request):
     return render(request, "onboarding.html", context)
 
 
-@view_authenticated
+@user_authenticated
 def onboarding_first(request):
     context = {}
     return render(request, "onboarding_first.html", context)
 
 
-@view_authenticated
+@user_authenticated
 def profile(request):
     context = {}
     return render(request, "profile.html", context)
 
 
-@view_authenticated
+@user_authenticated
 def update_password(request):
     context = {}
     return render(request, "update_password.html", context)
 
 
-@view_authenticated
+@user_authenticated
 def system(request):
     context = {}
     return render(request, "system.html", context)
 
 
-@view_authenticated
+@user_authenticated
 def ollama_model(request):
     context = {}
     return render(request, "ollama_model.html", context)
+
+
+def logout(request):
+    response = HttpResponseRedirect("/login/?logged_out=true")
+    response.delete_cookie("authToken", path="/")
+    return response

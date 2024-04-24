@@ -129,6 +129,7 @@ def global_context(request):
             "color_primary": os.getenv("PROMPT_BRAND_COLOR"),
             "env_pro": os.getenv("PROMPT_DISTRO") == "PRO",
             "env_head": os.getenv("PROMPT_HEAD") == "ENABLED",
+            "env_oidc_display": os.getenv("PROMPT_OIDC_DISPLAY_NAME"),
             "env_ollama": os.getenv("PROMPT_OLLAMA_HOST") != "",
             "user_id": user.id,
             "user_username": user.username,
@@ -149,6 +150,7 @@ def global_context(request):
             "color_primary": os.getenv("PROMPT_BRAND_COLOR"),
             "env_head": os.getenv("PROMPT_HEAD") == "ENABLED",
             "env_ollama": os.getenv("PROMPT_OLLAMA_HOST") != "",
+            "env_oidc_display": os.getenv("PROMPT_OIDC_DISPLAY_NAME"),
             "env_pro": os.getenv("PROMPT_DISTRO") == "PRO",
         }
     return context

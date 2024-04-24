@@ -1,7 +1,7 @@
 from django.apps import AppConfig
 
 
-class ChatConfig(AppConfig):
+class UserConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "user"
 
@@ -64,6 +64,4 @@ class ChatConfig(AppConfig):
                     with open("/app/licence.json", "w") as file:
                         json.dump(system, file)
         except Exception as e:
-            logger.error(
-                "Licence check did not succeed. Please contact licence@promptpanel.com to resolve. (startup)"
-            )
+            logger.info("There was an issue with system startup (@startup).")

@@ -10,10 +10,7 @@ var localModelState = () => {
     createModel() {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/app/ollama/pull/";
-      const authToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("authToken="))
-        .split("=")[1];
+      
       const data = {
         name: this.modelForCreate.modelName,
         stream: false,
@@ -38,8 +35,8 @@ var localModelState = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer " + authToken,
         },
+        credentials: "include",
         body: JSON.stringify(data),
       })
         .then((response) => response.json())
@@ -64,10 +61,7 @@ var localModelState = () => {
     removeModel(modelName) {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/app/ollama/delete/";
-      const authToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("authToken="))
-        .split("=")[1];
+      
       const data = {
         name: modelName,
       };
@@ -75,8 +69,8 @@ var localModelState = () => {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer " + authToken,
         },
+        credentials: "include",
         body: JSON.stringify(data),
       })
         .then((response) => response.json())
@@ -100,16 +94,13 @@ var localModelState = () => {
     getModels() {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/app/ollama/tags";
-      const authToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("authToken="))
-        .split("=")[1];
+      
       fetch(url, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer " + authToken,
         },
+        credentials: "include",
       })
         .then((response) => response.json())
         .then((data) => {

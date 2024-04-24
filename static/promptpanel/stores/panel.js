@@ -6,7 +6,12 @@ var panelUpdateState = () => {
     createName: "",
     createDisplayImg: null,
     createSetting: {},
+    createUserMode: "adminOnly",
+    createUsers: [],
     showAdvanced: false,
+    showAccessControls: false,
+    // User State
+    users: [],
     // Plugin State
     activePluginID: "",
     activePlugin: {},
@@ -14,19 +19,38 @@ var panelUpdateState = () => {
     pluginCategories: [],
     pluginSearchInput: "",
     // Panel Funcs
-    getPanel() {
+    getUsers() {
       const hostname = window.location.origin;
-      const url = hostname + "/api/v1/app/panel/" + Alpine.store("active").panelId + "/";
-      const authToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("authToken="))
-        .split("=")[1];
+      const url = hostname + "/api/v1/users/list/";
       fetch(url, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer " + authToken,
         },
+        credentials: "include",
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          this.users = data;
+        })
+        .catch((error) => {
+          failToast = {
+            type: "error",
+            header: "We had a problem retrieving your users. Please try again.",
+            message: error.message,
+          };
+          Alpine.store("toastStore").addToast(failToast);
+        });
+    },
+    getPanel() {
+      const hostname = window.location.origin;
+      const url = hostname + "/api/v1/app/panel/" + Alpine.store("active").panelId + "/";
+      fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
       })
         .then((response) => response.json())
         .then((data) => {
@@ -34,6 +58,15 @@ var panelUpdateState = () => {
           this.createName = data.name;
           this.createDisplayImg = data.display_image;
           this.createSetting = data.metadata;
+          this.createUsers = data.users_with_access.map(user => user.id);
+          const isGlobal = data.is_global;
+          if(isGlobal == true){
+            this.createUserMode = 'global'
+          } else if(this.createUsers.length > 1){
+            this.createUserMode = 'selectUsers'
+          } else {
+            this.createUserMode = 'adminOnly'
+          }
           this.activePluginID = data.plugin;
           this.setActivePlugin();
         })
@@ -49,22 +82,22 @@ var panelUpdateState = () => {
     createPanel() {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/app/panel/create/";
-      const authToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("authToken="))
-        .split("=")[1];
       const panelData = {
         name: this.createName,
         display_image: this.createDisplayImg,
         plugin: this.activePluginID,
         metadata: this.createSetting,
+        user_access_ids: this.createUsers,
       };
+      if (this.createUserMode == 'global') {
+        panelData.is_global = true;
+      }
       fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer " + authToken,
         },
+        credentials: "include",
         body: JSON.stringify(panelData),
       })
         .then((response) => response.json())
@@ -92,22 +125,22 @@ var panelUpdateState = () => {
     updatePanel() {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/app/panel/update/" + Alpine.store("active").panelId + "/";
-      const authToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("authToken="))
-        .split("=")[1];
       const panelData = {
         name: this.createName,
         display_image: this.createDisplayImg,
         plugin: this.activePluginID,
         metadata: this.createSetting,
+        user_access_ids: this.createUsers,
       };
+      if (this.createUserMode == 'global') {
+        panelData.is_global = true;
+      }
       fetch(url, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer " + authToken,
         },
+        credentials: "include",
         body: JSON.stringify(panelData),
       })
         .then((response) => response.json())
@@ -138,16 +171,13 @@ var panelUpdateState = () => {
       }
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/app/panel/delete/" + Alpine.store("active").panelId + "/";
-      const authToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("authToken="))
-        .split("=")[1];
+      
       fetch(url, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer " + authToken,
         },
+        credentials: "include",
       })
         .then((response) => response.json())
         .then((data) => {
@@ -178,23 +208,23 @@ var panelUpdateState = () => {
           Alpine.store("toastStore").addToast(failToast);
         });
     },
-    displayImgUpload(event){
+    displayImgUpload(event) {
       const file = event.target.files[0];
       if (file) {
-          if (!file.type.startsWith('image/')) {
-              failToast = {
-                  type: "error",
-                  header: "Invalid File Type",
-                  message: "Please upload an image file."
-              };
-              Alpine.store("toastStore").addToast(failToast);
-              return;
-          }
-          const reader = new FileReader();
-          reader.onloadend = () => {
-              this.createDisplayImg = reader.result;
+        if (!file.type.startsWith("image/")) {
+          failToast = {
+            type: "error",
+            header: "Invalid File Type",
+            message: "Please upload an image file.",
           };
-          reader.readAsDataURL(file);
+          Alpine.store("toastStore").addToast(failToast);
+          return;
+        }
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          this.createDisplayImg = reader.result;
+        };
+        reader.readAsDataURL(file);
       }
     },
     setInitialSettings(settings) {
@@ -218,16 +248,13 @@ var panelUpdateState = () => {
     getPlugins() {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/app/plugins/";
-      const authToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("authToken="))
-        .split("=")[1];
+      
       fetch(url, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer " + authToken,
         },
+        credentials: "include",
       })
         .then((response) => response.json())
         .then((data) => {

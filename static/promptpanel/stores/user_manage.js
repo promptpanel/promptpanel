@@ -21,10 +21,7 @@ var userManageState = () => {
     createUser() {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/users/create/";
-      const authToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("authToken="))
-        .split("=")[1];
+      
       const data = {
         username: this.userForCreate.username,
         email: this.userForCreate.email,
@@ -36,8 +33,8 @@ var userManageState = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer " + authToken,
         },
+        credentials: "include",
         body: JSON.stringify(data),
       })
         .then((response) => response.json())
@@ -71,10 +68,7 @@ var userManageState = () => {
     modifyUser() {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/users/update/" + this.userForModify.userId + "/";
-      const authToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("authToken="))
-        .split("=")[1];
+      
       const data = {
         username: this.userForModify.username,
         email: this.userForModify.email,
@@ -86,8 +80,8 @@ var userManageState = () => {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer " + authToken,
         },
+        credentials: "include",
         body: JSON.stringify(data),
       })
         .then((response) => response.json())
@@ -123,16 +117,13 @@ var userManageState = () => {
     getUsers() {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/users/list/";
-      const authToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("authToken="))
-        .split("=")[1];
+      
       fetch(url, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer " + authToken,
         },
+        credentials: "include",
       })
         .then((response) => response.json())
         .then((data) => {

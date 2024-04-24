@@ -29,9 +29,10 @@ class CommonInfo(models.Model):
 
 class Panel(CommonInfo):
     name = models.TextField()
-    is_global = models.BooleanField(default=False)
     display_image = models.TextField(blank=True, null=True)
     plugin = models.TextField()
+    is_global = models.BooleanField(default=False)
+    users_with_access = models.ManyToManyField(User, related_name="panel_access")
 
 
 class Thread(CommonInfo):

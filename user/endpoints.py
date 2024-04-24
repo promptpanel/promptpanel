@@ -5,24 +5,33 @@ import requests
 import logging
 from datetime import datetime, timedelta
 from django.conf import settings
-from django.contrib.auth import authenticate, login as auth_login, get_user_model
-from django.http import JsonResponse
+from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.models import User
+from django.http import JsonResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from django.views.decorators.http import require_http_methods
-from user.decorators import api_authenticated
+from user.decorators import user_authenticated, user_is_staff
+from user.models import TokenLog
 
 logger = logging.getLogger("app")
 
 
-def generate_jwt_token(user):
+def generate_jwt_login(user):
+    expires_at = timezone.now() + timedelta(days=365)
     payload = {
         "user_id": user.id,
-        "exp": datetime.utcnow() + timedelta(days=365),
-        "iat": datetime.utcnow(),
+        "exp": int(expires_at.timestamp()),
+        "iat": int(timezone.now().timestamp()),
     }
-
-    return jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
+    token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
+    TokenLog.objects.create(
+        token=token,
+        token_type="login",
+        created_by=user,
+        expires_at=expires_at,
+    )
+    return token
 
 
 @require_http_methods(["POST"])
@@ -32,10 +41,9 @@ def user_login(request):
         username = data.get("username")
         password = data.get("password")
         user = authenticate(request, username=username, password=password)
-        # Check email login if username not found
         if user is None:
             try:
-                user_obj = get_object_or_404(User, email=username)
+                user_obj = get_object_or_404(get_user_model(), email=username)
                 user = authenticate(
                     request, username=user_obj.username, password=password
                 )
@@ -43,18 +51,12 @@ def user_login(request):
                 return JsonResponse(
                     {"status": "error", "message": "Invalid credentials"}, status=400
                 )
-        # User is good, return token
         if user is not None:
             if user.is_active:
-                auth_login(request, user)
-                token = generate_jwt_token(user)
-                return JsonResponse(
-                    {
-                        "status": "success",
-                        "message": "Logged in successfully",
-                        "token": token,
-                    }
-                )
+                token = generate_jwt_login(user)
+                response = HttpResponseRedirect("/app/")
+                response.set_cookie("authToken", token, httponly=True, path="/")
+                return response
             else:
                 return JsonResponse(
                     {"status": "error", "message": "Account is not active"}, status=403
@@ -64,7 +66,7 @@ def user_login(request):
                 {"status": "error", "message": "Invalid credentials"}, status=400
             )
     except Exception as e:
-        logger.error(e, exc_info=True)
+        logger.error(str(e), exc_info=True)
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
@@ -75,10 +77,24 @@ def user_onboard(request):
         username = data.get("username")
         email = data.get("email")
         password = data.get("password")
-        if get_user_model().objects.filter(username=username).exists():
+        # Check if email is allowed
+        allowed_endings = os.getenv("PROMPT_USER_ALLOWED_DOMAINS", "")
+        allowed_endings = [
+            ending.strip().lower()
+            for ending in allowed_endings.split(",")
+            if ending.strip()
+        ]
+        if allowed_endings and not any(
+            email.endswith(ending) for ending in allowed_endings
+        ):
             return JsonResponse(
-                {"status": "error", "message": "Username already exists"}, status=400
+                {
+                    "status": "error",
+                    "message": "PROMPT_USER_ALLOWED_DOMAINS is active. The account email does not end with any allowed domains or emails.",
+                },
+                status=400,
             )
+        # Create if first user
         is_first_user = get_user_model().objects.count() == 0
         if is_first_user:
             user_create = get_user_model().objects.create_user(
@@ -89,8 +105,7 @@ def user_onboard(request):
                 is_active=is_first_user,
             )
             user = authenticate(request, username=username, password=password)
-            auth_login(request, user)
-            token = generate_jwt_token(user)
+            token = generate_jwt_login(user)
             try:
                 app_id = settings.APP_ID
                 base_url = os.environ.get("PROMPT_OPS_BASE")
@@ -103,13 +118,9 @@ def user_onboard(request):
             except Exception as e:
                 logger.info("Could not connect to ops host")
                 pass
-            return JsonResponse(
-                {
-                    "status": "success",
-                    "message": "User onboarded and activated",
-                    "token": token,
-                }
-            )
+            response = HttpResponseRedirect("/onboarding/first/")
+            response.set_cookie("authToken", token, httponly=True, path="/")
+            return response
         else:
             return JsonResponse(
                 {
@@ -123,18 +134,36 @@ def user_onboard(request):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["PUT"])
 def user_update(request, user_id):
     try:
         data = json.loads(request.body.decode("utf-8"))
         target_user = get_user_model().objects.get(pk=user_id)
+        # Check if the updated email is allowed
+        new_email = data.get("email", target_user.email)
+        allowed_endings = os.getenv("PROMPT_USER_ALLOWED_DOMAINS", "")
+        allowed_endings = [
+            ending.strip().lower()
+            for ending in allowed_endings.split(",")
+            if ending.strip()
+        ]
+        if allowed_endings and not any(
+            new_email.endswith(ending) for ending in allowed_endings
+        ):
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "message": "PROMPT_USER_ALLOWED_DOMAINS is active. The account email does not end with any allowed domains or emails.",
+                },
+                status=400,
+            )
         # Check if the requesting user is the target user or an admin
         if request.user != target_user and not request.user.is_staff:
             return JsonResponse(
                 {
                     "status": "error",
-                    "message": "You do not have permission to edit this user.",
+                    "message": "You do not have permission to edit this user. Please contact your administrator.",
                 },
                 status=403,
             )
@@ -154,7 +183,8 @@ def user_update(request, user_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
+@user_is_staff
 @require_http_methods(["POST"])
 def licence_trial(request):
     try:
@@ -214,7 +244,8 @@ def licence_trial(request):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
+@user_is_staff
 @require_http_methods(["POST"])
 def licence_set(request):
     try:
@@ -274,7 +305,8 @@ def licence_set(request):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
+@user_is_staff
 @require_http_methods(["POST"])
 def licence_downgrade(request):
     try:

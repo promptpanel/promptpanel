@@ -6,13 +6,14 @@ import requests
 from importlib import import_module
 from panel.models import File, Message, Panel, Thread
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.core.files.storage import FileSystemStorage
-from django.db.models import Max
+from django.db.models import Q, Max
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
 from markdown import markdown
-from user.decorators import api_authenticated
+from user.decorators import user_authenticated, user_is_staff
 from promptpanel.utils import get_licence
 
 logger = logging.getLogger("app")
@@ -32,7 +33,7 @@ def run_plugin_function(context_type, payload, thread, panel):
 
 
 ## -- Endpoints
-@api_authenticated
+@user_authenticated
 @require_http_methods(["GET"])
 def plugin_list(request):
     try:
@@ -83,7 +84,7 @@ def plugin_list(request):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["GET"])
 def plugin_detail(request, plugin_name):
     try:
@@ -118,13 +119,21 @@ def plugin_detail(request, plugin_name):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["GET"])
 def panel_list(request):
     try:
-        panels = Panel.objects.filter(created_by=request.user)
+        if request.user.is_staff:
+            panels = Panel.objects.all()
+        else:
+            panels = Panel.objects.filter(
+                Q(is_global=True)
+                | Q(created_by=request.user)
+                | Q(users_with_access=request.user)
+            ).distinct()
+        panel_data_list = []
         for panel in panels:
-            # Get plugin name and settings
+            # Plugin info and settings
             plugins_dir = os.path.join(os.path.dirname(__file__), "..", "plugins")
             plugin_dir = os.path.join(plugins_dir, panel.plugin)
             manifest_path = os.path.join(plugin_dir, "manifest.json")
@@ -142,67 +151,81 @@ def panel_list(request):
                 with open(manifest_path, "r") as file:
                     manifest_data = json.load(file)
                     plugin_name = manifest_data.get("name", "Unnamed Plugin")
-                    # Extract private settings names
                     for setting in manifest_data.get("settings", []):
                         if setting.get("private", False):
                             private_settings.append(setting.get("name"))
-            # Filter metadata to exclude private settings
+
             filtered_metadata = {
                 key: value
                 for key, value in panel.metadata.items()
                 if key not in private_settings
             }
-            # Get display_image
-            display_image = panel.display_image if panel.display_image else None
+            # Display image
+            display_image = (
+                panel.display_image
+                if panel.display_image
+                else "/static/promptpanel/img/default-chat.png"
+            )
             plugin_icon_path = os.path.join(plugin_dir, "static", "icon.png")
-            if not display_image and os.path.exists(plugin_icon_path):
+            if not panel.display_image and os.path.exists(plugin_icon_path):
                 display_image = f"/plugins/{panel.plugin}/static/icon.png"
-            elif not display_image:
-                display_image = "/static/promptpanel/img/default-chat.png"
-            panel.display_image = display_image
-            # Get last_active
+            # Calculate last_active
             last_message = panel.messages_x_panel.aggregate(Max("created_on"))[
                 "created_on__max"
             ]
             last_file = panel.file_x_panel.aggregate(Max("created_on"))[
                 "created_on__max"
             ]
-            if last_message and last_file:
-                panel.last_active = max(last_message, last_file)
-            elif last_message:
-                panel.last_active = last_message
-            elif last_file:
-                panel.last_active = last_file
-            else:
-                panel.last_active = panel.updated_at
-        sorted_panels = sorted(panels, key=lambda x: x.last_active, reverse=True)
-        panel_list = [
-            {
+            last_active = max(
+                last_message if last_message else panel.updated_at,
+                last_file if last_file else panel.updated_at,
+            )
+            panel_data = {
                 "id": panel.id,
                 "name": panel.name,
                 "plugin": panel.plugin,
                 "plugin_name": plugin_name,
+                "is_global": panel.is_global,
                 "created_by": panel.created_by.username,
                 "created_on": panel.created_on,
                 "updated_at": panel.updated_at,
                 "metadata": filtered_metadata,
-                "last_active": panel.last_active,
-                "display_image": panel.display_image,
+                "last_active": last_active,
+                "display_image": display_image,
             }
-            for panel in sorted_panels
-        ]
-        return JsonResponse(panel_list, safe=False)
+            if request.user.is_staff:
+                panel_data["users_with_access"] = [
+                    {"id": user.id, "username": user.username}
+                    for user in panel.users_with_access.all()
+                ]
+            panel_data_list.append(panel_data)
+        # Sort panels by last active timestamp before response
+        sorted_panels = sorted(
+            panel_data_list, key=lambda x: x["last_active"], reverse=True
+        )
+        return JsonResponse(sorted_panels, safe=False)
     except Exception as e:
         logger.error(e, exc_info=True)
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["GET"])
 def panel_detail(request, panel_id):
     try:
-        panel = get_object_or_404(Panel, id=panel_id, created_by=request.user)
-        # Get plugin name and settings
+        if request.user.is_staff:
+            panel = get_object_or_404(Panel, id=panel_id)
+        else:
+            panel = get_object_or_404(
+                Panel,
+                Q(id=panel_id)
+                & (
+                    Q(is_global=True)
+                    | Q(created_by=request.user)
+                    | Q(users_with_access=request.user)
+                ),
+            )
+        # Plugin info and settings
         plugins_dir = os.path.join(os.path.dirname(__file__), "..", "plugins")
         plugin_dir = os.path.join(plugins_dir, panel.plugin)
         manifest_path = os.path.join(plugin_dir, "manifest.json")
@@ -212,19 +235,16 @@ def panel_detail(request, panel_id):
             with open(manifest_path, "r") as file:
                 manifest_data = json.load(file)
                 plugin_name = manifest_data.get("name", "Unnamed Plugin")
-                # Extract private settings names
                 for setting in manifest_data.get("settings", []):
                     if setting.get("private", False):
                         private_settings.append(setting.get("name"))
-        # Get display_image
+        # Display image logic
         display_image = panel.display_image if panel.display_image else None
         plugin_icon_path = os.path.join(plugin_dir, "static", "icon.png")
         if not display_image and os.path.exists(plugin_icon_path):
             display_image = f"/plugins/{panel.plugin}/static/icon.png"
         elif not display_image:
             display_image = "/static/promptpanel/img/default-chat.png"
-        panel.display_image = display_image
-        # Filter metadata to exclude private settings
         filtered_metadata = {
             key: value
             for key, value in panel.metadata.items()
@@ -233,21 +253,28 @@ def panel_detail(request, panel_id):
         panel_data = {
             "id": panel.id,
             "name": panel.name,
-            "display_image": panel.display_image,
+            "display_image": display_image,
             "plugin": panel.plugin,
             "plugin_name": plugin_name,
+            "is_global": panel.is_global,
             "created_by": panel.created_by.username,
             "created_on": panel.created_on,
             "updated_at": panel.updated_at,
             "metadata": filtered_metadata,
         }
+        if request.user.is_staff:
+            panel_data["users_with_access"] = [
+                {"id": user.id, "username": user.username}
+                for user in panel.users_with_access.all()
+            ]
         return JsonResponse(panel_data, safe=False)
     except Exception as e:
         logger.error(e, exc_info=True)
-        return JsonResponse({"status": "error", "message": f"{e}"}, status=400)
+        return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
+@user_is_staff
 @require_http_methods(["POST"])
 def panel_create(request):
     try:
@@ -255,15 +282,33 @@ def panel_create(request):
         name = data.get("name", None)
         plugin = data.get("plugin", None)
         display_image = data.get("display_image", None)
+        is_global = data.get("is_global", False)
         metadata = data.get("metadata", False)
         new_panel = Panel(
             name=name,
             plugin=plugin,
             display_image=display_image,
+            is_global=is_global,
             metadata=metadata,
             created_by=request.user,
         )
         new_panel.save()
+        # Update panel with access controls
+        user_ids = data.get("user_access_ids", [])
+        users_with_access = User.objects.filter(id__in=user_ids)
+        if users_with_access.count() != len(user_ids):
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "message": "Error setting panel permissions. One or more user IDs are invalid.",
+                },
+                status=400,
+            )
+        new_panel.users_with_access.set(users_with_access)
+        users_with_access_data = [
+            {"id": user.id, "username": user.username}
+            for user in new_panel.users_with_access.all()
+        ]
         response_data = {
             "status": "success",
             "message": "Panel created successfully",
@@ -271,9 +316,11 @@ def panel_create(request):
             "name": new_panel.name,
             "display_image": new_panel.display_image,
             "plugin": new_panel.plugin,
+            "is_global": new_panel.is_global,
             "created_by": new_panel.created_by.username,
             "created_on": new_panel.created_on,
             "updated_at": new_panel.updated_at,
+            "users_with_access": users_with_access_data,
             "metadata": new_panel.metadata,
         }
         return JsonResponse(response_data)
@@ -282,7 +329,8 @@ def panel_create(request):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
+@user_is_staff
 @require_http_methods(["PUT"])
 def panel_update(request, panel_id):
     try:
@@ -291,8 +339,22 @@ def panel_update(request, panel_id):
         panel.name = data.get("name", panel.name)
         panel.plugin = data.get("plugin", panel.plugin)
         panel.display_image = data.get("display_image", panel.display_image)
+        panel.is_global = data.get("is_global", panel.is_global)
         panel.metadata = data.get("metadata", panel.metadata)
+        user_ids = data.get("user_access_ids")
         panel.save()
+        if user_ids is not None:
+            users_with_access = User.objects.filter(id__in=user_ids)
+            if users_with_access.count() != len(user_ids):
+                return JsonResponse(
+                    {"status": "error", "message": "One or more user IDs are invalid"},
+                    status=400,
+                )
+            panel.users_with_access.set(users_with_access)
+        users_with_access_data = [
+            {"id": user.id, "username": user.username}
+            for user in panel.users_with_access.all()
+        ]
         response_data = {
             "status": "success",
             "message": "Panel updated successfully",
@@ -300,9 +362,11 @@ def panel_update(request, panel_id):
             "name": panel.name,
             "plugin": panel.plugin,
             "display_image": panel.display_image,
+            "is_global": panel.is_global,
             "created_by": panel.created_by.username,
             "created_on": panel.created_on,
             "updated_at": panel.updated_at,
+            "users_with_access": users_with_access_data,
             "metadata": panel.metadata,
         }
         return JsonResponse(response_data)
@@ -311,11 +375,37 @@ def panel_update(request, panel_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
+@user_is_staff
+@require_http_methods(["DELETE"])
+def panel_delete(request, panel_id):
+    try:
+        panel = get_object_or_404(Panel, id=panel_id)
+        panel.delete()
+        return JsonResponse(
+            {"status": "success", "message": "Panel deleted successfully"}
+        )
+    except Exception as e:
+        logger.error(e, exc_info=True)
+        return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
+
+@user_authenticated
 @require_http_methods(["POST"])
 def panel_retry(request, panel_id):
     try:
-        panel = get_object_or_404(Panel, id=panel_id, created_by=request.user)
+        if request.user.is_staff:
+            panel = get_object_or_404(Panel, id=panel_id)
+        else:
+            panel = get_object_or_404(
+                Panel,
+                Q(id=panel_id)
+                & (
+                    Q(is_global=True)
+                    | Q(created_by=request.user)
+                    | Q(users_with_access=request.user)
+                ),
+            )
         messages = Message.objects.filter(panel=panel).order_by("-created_on")[:2]
         if not messages:
             return JsonResponse(
@@ -335,25 +425,21 @@ def panel_retry(request, panel_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
-@require_http_methods(["DELETE"])
-def panel_delete(request, panel_id):
-    try:
-        panel = get_object_or_404(Panel, id=panel_id, created_by=request.user)
-        panel.delete()
-        return JsonResponse(
-            {"status": "success", "message": "Panel deleted successfully"}
-        )
-    except Exception as e:
-        logger.error(e, exc_info=True)
-        return JsonResponse({"status": "error", "message": str(e)}, status=400)
-
-
-@api_authenticated
+@user_authenticated
 @require_http_methods(["GET"])
 def thread_list(request):
     try:
-        threads = Thread.objects.filter(created_by=request.user)
+        show_all = request.GET.get("show_all") == "true"
+        if request.user.is_staff and show_all:
+            threads = Thread.objects.all()
+        elif request.user.is_staff:
+            threads = Thread.objects.filter(created_by=request.user)
+        else:
+            threads = Thread.objects.filter(
+                Q(panel__is_global=True)
+                | Q(created_by=request.user)
+                | Q(panel__users_with_access=request.user)
+            ).distinct()
         for thread in threads:
             last_message = thread.messages_x_thread.aggregate(Max("created_on"))[
                 "created_on__max"
@@ -389,11 +475,22 @@ def thread_list(request):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["GET"])
 def thread_list_panel(request, panel_id):
     try:
-        threads = Thread.objects.filter(created_by=request.user, panel_id=panel_id)
+        show_all = request.GET.get("show_all") == "true"
+        if request.user.is_staff and show_all:
+            threads = Thread.objects.filter(panel_id=panel_id)
+        elif request.user.is_staff:
+            threads = Thread.objects.filter(created_by=request.user, panel_id=panel_id)
+        else:
+            threads = Thread.objects.filter(
+                Q(panel__is_global=True)
+                | Q(created_by=request.user)
+                | Q(panel__users_with_access=request.user),
+                panel_id=panel_id,
+            ).distinct()
         for thread in threads:
             last_message = thread.messages_x_thread.aggregate(Max("created_on"))[
                 "created_on__max"
@@ -429,11 +526,14 @@ def thread_list_panel(request, panel_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["GET"])
 def thread_detail(request, thread_id):
     try:
-        thread = get_object_or_404(Thread, id=thread_id, created_by=request.user)
+        if request.user.is_staff:
+            thread = get_object_or_404(Thread, id=thread_id)
+        else:
+            thread = get_object_or_404(Thread, id=thread_id, created_by=request.user)
         thread_data = {
             "id": thread.id,
             "title": thread.title,
@@ -449,14 +549,25 @@ def thread_detail(request, thread_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["POST"])
 def thread_create(request):
     try:
         data = json.loads(request.body.decode("utf-8"))
         title = data.get("title", None)
         panel_id = data.get("panel_id", None)
-        panel = Panel.objects.get(id=panel_id, created_by=request.user)
+        if request.user.is_staff:
+            panel = get_object_or_404(Panel, id=panel_id)
+        else:
+            panel = get_object_or_404(
+                Panel,
+                Q(id=panel_id)
+                & (
+                    Q(is_global=True)
+                    | Q(created_by=request.user)
+                    | Q(users_with_access=request.user)
+                ),
+            )
         metadata = data.get("metadata", None)
         new_thread = Thread(
             title=title,
@@ -482,11 +593,16 @@ def thread_create(request):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["POST"])
 def thread_clone(request, thread_id):
     try:
-        original_thread = Thread.objects.get(id=thread_id, created_by=request.user)
+        if request.user.is_staff:
+            original_thread = get_object_or_404(Thread, id=thread_id)
+        else:
+            original_thread = get_object_or_404(
+                Thread, id=thread_id, created_by=request.user
+            )
         new_thread = Thread(
             title=original_thread.title + " (Duplicated)",
             panel=original_thread.panel,
@@ -542,14 +658,25 @@ def thread_clone(request, thread_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["PUT"])
 def thread_update(request, thread_id):
     try:
         data = json.loads(request.body.decode("utf-8"))
         thread = get_object_or_404(Thread, id=thread_id, created_by=request.user)
         panel_id = data.get("panel_id", thread.panel.id)
-        panel = Panel.objects.get(id=panel_id, created_by=request.user)
+        if request.user.is_staff:
+            panel = get_object_or_404(Panel, id=panel_id)
+        else:
+            panel = get_object_or_404(
+                Panel,
+                Q(id=panel_id)
+                & (
+                    Q(is_global=True)
+                    | Q(created_by=request.user)
+                    | Q(users_with_access=request.user),
+                ),
+            )
         thread.panel = panel
         thread.title = data.get("title", thread.title)
         thread.metadata = data.get("metadata", thread.metadata)
@@ -571,11 +698,14 @@ def thread_update(request, thread_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["POST"])
 def thread_retry(request, thread_id):
     try:
-        thread = get_object_or_404(Thread, id=thread_id, created_by=request.user)
+        if request.user.is_staff:
+            thread = get_object_or_404(Thread, id=thread_id)
+        else:
+            thread = get_object_or_404(Thread, id=thread_id, created_by=request.user)
         messages = Message.objects.filter(thread=thread).order_by("-created_on")[:2]
         if not messages:
             return JsonResponse(
@@ -595,11 +725,14 @@ def thread_retry(request, thread_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["DELETE"])
 def thread_delete(request, thread_id):
     try:
-        thread = get_object_or_404(Thread, id=thread_id, created_by=request.user)
+        if request.user.is_staff:
+            thread = get_object_or_404(Thread, id=thread_id)
+        else:
+            thread = get_object_or_404(Thread, id=thread_id, created_by=request.user)
         thread.delete()
         return JsonResponse(
             {"status": "success", "message": "Thread deleted successfully"}
@@ -609,13 +742,24 @@ def thread_delete(request, thread_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["GET"])
 def message_list_panel(request, panel_id):
     try:
-        panel_messages = Message.objects.filter(
-            created_by=request.user, panel_id=panel_id
-        )
+        show_all = request.GET.get("show_all") == "true"
+        if request.user.is_staff and show_all:
+            panel_messages = Message.objects.filter(panel_id=panel_id)
+        elif request.user.is_staff:
+            panel_messages = Message.objects.filter(
+                created_by=request.user, panel_id=panel_id
+            )
+        else:
+            panel_messages = Message.objects.filter(
+                Q(panel__is_global=True)
+                | Q(created_by=request.user)
+                | Q(panel__users_with_access=request.user),
+                panel_id=panel_id,
+            ).distinct()
         message_list = [
             {
                 "id": message.id,
@@ -638,13 +782,24 @@ def message_list_panel(request, panel_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["GET"])
 def message_list_thread(request, thread_id):
     try:
-        thread_messages = Message.objects.filter(
-            created_by=request.user, thread_id=thread_id
-        )
+        show_all = request.GET.get("show_all") == "true"
+        if request.user.is_staff and show_all:
+            thread_messages = Message.objects.filter(thread_id=thread_id)
+        elif request.user.is_staff:
+            thread_messages = Message.objects.filter(
+                created_by=request.user, thread_id=thread_id
+            )
+        else:
+            thread_messages = Message.objects.filter(
+                Q(panel__is_global=True)
+                | Q(created_by=request.user)
+                | Q(panel__users_with_access=request.user),
+                thread_id=thread_id,
+            ).distinct()
         message_list = [
             {
                 "id": message.id,
@@ -667,7 +822,7 @@ def message_list_thread(request, thread_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["POST"])
 def message_create(request):
     try:
@@ -677,9 +832,22 @@ def message_create(request):
         thread_id = data.get("thread_id", None)
         panel_id = data.get("panel_id", None)
         thread = None
-        if thread_id:
+        if request.user.is_staff:
+            panel = get_object_or_404(Panel, id=panel_id)
+        else:
+            panel = get_object_or_404(
+                Panel,
+                Q(id=panel_id)
+                & (
+                    Q(is_global=True)
+                    | Q(created_by=request.user)
+                    | Q(users_with_access=request.user)
+                ),
+            )
+        if request.user.is_staff:
+            thread = get_object_or_404(Thread, id=thread_id)
+        else:
             thread = get_object_or_404(Thread, id=thread_id, created_by=request.user)
-        panel = get_object_or_404(Panel, id=panel_id, created_by=request.user)
         new_message = Message(
             content=content,
             thread=thread,
@@ -695,17 +863,31 @@ def message_create(request):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["PUT"])
 def message_update(request, message_id):
     try:
         data = json.loads(request.body.decode("utf-8"))
         message = get_object_or_404(Message, id=message_id, created_by=request.user)
         panel_id = data.get("panel_id", message.panel.id)
-        panel = Panel.objects.get(id=panel_id, created_by=request.user)
-        message.panel = panel
         thread_id = data.get("thread_id", message.thread.id)
-        thread = Thread.objects.get(id=thread_id, created_by=request.user)
+        if request.user.is_staff:
+            panel = get_object_or_404(Panel, id=panel_id)
+        else:
+            panel = get_object_or_404(
+                Panel,
+                Q(id=panel_id)
+                & (
+                    Q(is_global=True)
+                    | Q(created_by=request.user)
+                    | Q(users_with_access=request.user)
+                ),
+            )
+        if request.user.is_staff:
+            thread = get_object_or_404(Thread, id=thread_id)
+        else:
+            thread = get_object_or_404(Thread, id=thread_id, created_by=request.user)
+        message.panel = panel
         message.thread = thread
         message.content = data.get("content", message.content)
         message.metadata = data.get("metadata", message.metadata)
@@ -728,11 +910,14 @@ def message_update(request, message_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["DELETE"])
 def message_delete(request, message_id):
     try:
-        message = get_object_or_404(Message, id=message_id, created_by=request.user)
+        if request.user.is_staff:
+            message = get_object_or_404(Message, id=message_id)
+        else:
+            message = get_object_or_404(Message, id=message_id, created_by=request.user)
         message.delete()
         return JsonResponse(
             {"status": "success", "message": "Message deleted successfully"}
@@ -742,11 +927,22 @@ def message_delete(request, message_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["GET"])
 def file_list_panel(request, panel_id):
     try:
-        files = File.objects.filter(created_by=request.user, panel_id=panel_id)
+        show_all = request.GET.get("show_all") == "true"
+        if request.user.is_staff and show_all:
+            files = File.objects.filter(panel_id=panel_id)
+        elif request.user.is_staff:
+            files = File.objects.filter(created_by=request.user, panel_id=panel_id)
+        else:
+            files = File.objects.filter(
+                Q(panel__is_global=True)
+                | Q(created_by=request.user)
+                | Q(panel__users_with_access=request.user),
+                panel_id=panel_id,
+            ).distinct()
         file_list = [
             {
                 "id": file.id,
@@ -766,11 +962,22 @@ def file_list_panel(request, panel_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["GET"])
 def file_list_thread(request, thread_id):
     try:
-        files = File.objects.filter(created_by=request.user, thread_id=thread_id)
+        show_all = request.GET.get("show_all") == "true"
+        if request.user.is_staff and show_all:
+            files = File.objects.filter(thread_id=thread_id)
+        elif request.user.is_staff:
+            files = File.objects.filter(created_by=request.user, thread_id=thread_id)
+        else:
+            files = File.objects.filter(
+                Q(panel__is_global=True)
+                | Q(created_by=request.user)
+                | Q(panel__users_with_access=request.user),
+                thread_id=thread_id,
+            ).distinct()
         file_list = [
             {
                 "id": file.id,
@@ -790,7 +997,7 @@ def file_list_thread(request, thread_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["POST"])
 def file_create(request):
     try:
@@ -800,11 +1007,25 @@ def file_create(request):
             thread_id = request.POST.get("thread_id", None)
             metadata = request.POST.get("metadata", None)
             thread = None
-            if thread_id:
-                thread = get_object_or_404(
-                    Thread, id=thread_id, created_by=request.user
+            if request.user.is_staff:
+                panel = get_object_or_404(Panel, id=panel_id)
+            else:
+                panel = get_object_or_404(
+                    Panel,
+                    Q(id=panel_id)
+                    & (
+                        Q(is_global=True)
+                        | Q(created_by=request.user)
+                        | Q(users_with_access=request.user)
+                    ),
                 )
-            panel = Panel.objects.get(id=panel_id, created_by=request.user)
+            if thread_id:
+                if request.user.is_staff:
+                    thread = get_object_or_404(Thread, id=thread_id)
+                else:
+                    thread = get_object_or_404(
+                        Thread, id=thread_id, created_by=request.user
+                    )
             # Upload file
             uploaded_file = request.FILES["file"]
             file_name = uploaded_file.name
@@ -847,11 +1068,14 @@ def file_create(request):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 @require_http_methods(["DELETE"])
 def file_delete(request, file_id):
     try:
-        file = get_object_or_404(File, id=file_id, created_by=request.user)
+        if request.user.is_staff:
+            file = get_object_or_404(File, id=file_id)
+        else:
+            file = get_object_or_404(File, id=file_id, created_by=request.user)
         if os.path.isfile(file.filepath):
             os.remove(file.filepath)
         file.delete()
@@ -863,7 +1087,7 @@ def file_delete(request, file_id):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@api_authenticated
+@user_authenticated
 def ollama_proxy(request, route):
     prompt_ollama_host = os.getenv("PROMPT_OLLAMA_HOST")
     ## Check Ollama host setup

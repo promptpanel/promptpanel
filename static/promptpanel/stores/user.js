@@ -26,10 +26,6 @@ var userState = () => {
       if (this.userState.email && this.userState.emailChanged) {
         const hostname = window.location.origin;
         const url = hostname + "/api/v1/users/update/" + this.user_id + "/";
-        const authToken = document.cookie
-          .split("; ")
-          .find((row) => row.startsWith("authToken="))
-          .split("=")[1];
         const data = {
           email: this.email,
         };
@@ -37,8 +33,8 @@ var userState = () => {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            Authorization: "Bearer " + authToken,
           },
+          credentials: "include",
           body: JSON.stringify(data),
         })
           .then((response) => response.json())
@@ -92,10 +88,6 @@ var userState = () => {
       if (this.userState.length && this.userState.special && this.userState.match) {
         const hostname = window.location.origin;
         const url = hostname + "/api/v1/users/update/" + this.user_id + "/";
-        const authToken = document.cookie
-          .split("; ")
-          .find((row) => row.startsWith("authToken="))
-          .split("=")[1];
         const data = {
           password: this.password,
         };
@@ -103,14 +95,13 @@ var userState = () => {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            Authorization: "Bearer " + authToken,
           },
+          credentials: "include",
           body: JSON.stringify(data),
         })
           .then((response) => response.json())
           .then((data) => {
             if (data.status === "success") {
-              document.cookie = "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
               window.location.href = hostname + "/login/?password_changed=true";
             } else {
               failToast = {
@@ -136,11 +127,6 @@ var userState = () => {
         };
         Alpine.store("toastStore").addToast(failToast);
       }
-    },
-    logoutUser() {
-      const hostname = window.location.origin;
-      document.cookie = "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      window.location.href = hostname + "/login/?logged_out=true";
-    },
+    }
   };
 };

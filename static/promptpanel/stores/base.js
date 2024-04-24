@@ -13,16 +13,12 @@ var baseState = () => {
       if (this.panelId > 0) {
         const hostname = window.location.origin;
         const url = hostname + "/api/v1/app/panel/" + this.panelId + "/";
-        const authToken = document.cookie
-          .split("; ")
-          .find((row) => row.startsWith("authToken="))
-          .split("=")[1];
         fetch(url, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            Authorization: "Bearer " + authToken,
           },
+          credentials: "include",
         })
           .then((response) => response.json())
           .then((data) => {
@@ -41,16 +37,13 @@ var baseState = () => {
     getPanels() {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/app/panels/";
-      const authToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("authToken="))
-        .split("=")[1];
+      
       fetch(url, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer " + authToken,
         },
+        credentials: "include",
       })
         .then((response) => response.json())
         .then((data) => {
