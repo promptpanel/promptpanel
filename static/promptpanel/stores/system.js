@@ -33,7 +33,7 @@ var systemState = () => {
           } else {
             failToast = {
               type: "error",
-              header: "We had a problem activating your trial licence. Please contact licence@promptpanel.com",
+              header: "We had a problem activating your trial licence. Please contact getstarted@promptpanel.com",
               message: data.message,
             };
             Alpine.store("toastStore").addToast(failToast);
@@ -42,7 +42,7 @@ var systemState = () => {
         .catch((error) => {
           failToast = {
             type: "error",
-            header: "We had a problem activating your trial licence. Please contact licence@promptpanel.com",
+            header: "We had a problem activating your trial licence. Please contact getstarted@promptpanel.com",
             message: error.message,
           };
           Alpine.store("toastStore").addToast(failToast);
@@ -78,7 +78,7 @@ var systemState = () => {
           } else {
             failToast = {
               type: "error",
-              header: "We had a problem updating your licence. Please contact licence@promptpanel.com",
+              header: "We had a problem updating your licence. Please contact getstarted@promptpanel.com",
               message: data.message,
             };
             Alpine.store("toastStore").addToast(failToast);
@@ -87,7 +87,7 @@ var systemState = () => {
         .catch((error) => {
           failToast = {
             type: "error",
-            header: "We had a problem updating your licence. Please contact licence@promptpanel.com",
+            header: "We had a problem updating your licence. Please contact getstarted@promptpanel.com",
             message: error.message,
           };
           Alpine.store("toastStore").addToast(failToast);
@@ -122,7 +122,7 @@ var systemState = () => {
           } else {
             failToast = {
               type: "error",
-              header: "We had a problem downgraded your licence. Please contact licence@promptpanel.com",
+              header: "We had a problem downgraded your licence. Please contact getstarted@promptpanel.com",
               message: data.message,
             };
             Alpine.store("toastStore").addToast(failToast);
@@ -131,7 +131,7 @@ var systemState = () => {
         .catch((error) => {
           failToast = {
             type: "error",
-            header: "We had a problem downgraded your licence. Please contact licence@promptpanel.com",
+            header: "We had a problem downgraded your licence. Please contact getstarted@promptpanel.com",
             message: error.message,
           };
           Alpine.store("toastStore").addToast(failToast);
