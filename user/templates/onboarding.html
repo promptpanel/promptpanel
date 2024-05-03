@@ -25,14 +25,11 @@
           checkUser() {
             const usernameRegex = /^[a-zA-Z0-9_]{1,150}$/;
             this.userState.username = usernameRegex.test(this.username);
-
             const emailRegex = /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/;
             this.userState.email = emailRegex.test(this.email);
-
             const specialChars = /[-!@#$%^&*(),.?":{}|<>]/;
             const containsSpecialChar = specialChars.test(this.password);
             this.userState.special = containsSpecialChar;
-
             const lengthCheck = this.password.length > 6;
             this.userState.length = lengthCheck;
 
