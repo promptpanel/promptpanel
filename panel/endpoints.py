@@ -1001,68 +1001,56 @@ def file_list_thread(request, thread_id):
 @require_http_methods(["POST"])
 def file_create(request):
     try:
-        if "file" in request.FILES:
-            # Get other attributes
-            panel_id = request.POST.get("panel_id", None)
-            thread_id = request.POST.get("thread_id", None)
-            metadata = request.POST.get("metadata", None)
-            thread = None
-            if request.user.is_staff:
-                panel = get_object_or_404(Panel, id=panel_id)
-            else:
-                panel = get_object_or_404(
-                    Panel,
-                    Q(id=panel_id)
-                    & (
-                        Q(is_global=True)
-                        | Q(created_by=request.user)
-                        | Q(users_with_access=request.user)
-                    ),
-                )
-            if thread_id:
-                if request.user.is_staff:
-                    thread = get_object_or_404(Thread, id=thread_id)
-                else:
-                    thread = get_object_or_404(
-                        Thread, id=thread_id, created_by=request.user
-                    )
-            # Upload file
-            uploaded_file = request.FILES["file"]
-            file_name = uploaded_file.name
-            save_path_components = [settings.MEDIA_ROOT, str(panel_id)]
-            if thread_id:
-                save_path_components.append(str(thread_id))
-            save_path = os.path.join(*save_path_components)
-            os.makedirs(save_path, exist_ok=True)
-            file_path = os.path.join(save_path, file_name)
-            fs = FileSystemStorage(location=save_path)
-            filepath = fs.save(file_name, uploaded_file)
-            file_full_path = os.path.join(save_path, filepath)
-            # Create db object
-            new_file = File(
-                filepath=file_full_path,
-                thread=thread,
-                panel=panel,
-                metadata=metadata,
-                created_by=request.user,
-            )
-            new_file.save()
-            response_data = {
-                "id": new_file.id,
-                "filepath": new_file.filepath,
-                "panel_id": new_file.panel_id,
-                "thread_id": new_file.thread_id,
-                "created_by": new_file.created_by.username,
-                "created_on": new_file.created_on,
-                "updated_at": new_file.updated_at,
-                "metadata": new_file.metadata,
-            }
-            response = run_plugin_function("file", new_file, thread, panel)
-            return response
-        else:
+        if not "file" in request.FILES:
             return JsonResponse(
-                {"status": "error", "message": "No file provided"}, status=400
+                {"status": "error", "message": "No files provided"}, status=400
             )
+        panel_id = request.POST.get("panel_id", None)
+        thread_id = request.POST.get("thread_id", None)
+        metadata = request.POST.get("metadata", None)
+        thread = None
+        if request.user.is_staff:
+            panel = get_object_or_404(Panel, id=panel_id)
+        else:
+            panel = get_object_or_404(
+                Panel,
+                Q(id=panel_id)
+                & (
+                    Q(is_global=True)
+                    | Q(created_by=request.user)
+                    | Q(users_with_access=request.user)
+                ),
+            )
+        if thread_id:
+            if request.user.is_staff:
+                thread = get_object_or_404(Thread, id=thread_id)
+            else:
+                thread = get_object_or_404(
+                    Thread, id=thread_id, created_by=request.user
+                )
+        # Upload file
+        uploaded_file = request.FILES["file"]
+        file_name = uploaded_file.name
+        save_path_components = [settings.MEDIA_ROOT, str(panel_id)]
+        if thread_id:
+            save_path_components.append(str(thread_id))
+        save_path = os.path.join(*save_path_components)
+        os.makedirs(save_path, exist_ok=True)
+        file_path = os.path.join(save_path, file_name)
+        fs = FileSystemStorage(location=save_path)
+        filepath = fs.save(file_name, uploaded_file)
+        file_full_path = os.path.join(save_path, filepath)
+        new_file = File(
+            filename=file_name,
+            filepath=file_full_path,
+            thread=thread,
+            panel=panel,
+            metadata=metadata,
+            created_by=request.user,
+        )
+        new_file.save()
+        response = run_plugin_function("file", new_file, thread, panel)
+        return response
     except Exception as e:
         logger.error(e, exc_info=True)
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
