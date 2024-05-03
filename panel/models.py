@@ -59,8 +59,8 @@ class Message(CommonInfo):
 
 
 class File(CommonInfo):
-    filename = models.TextField()
-    filepath = models.TextField()
+    filename = models.TextField(default="")
+    filepath = models.TextField(default="")
     ## Relationships
     thread = models.ForeignKey(
         Thread,
