@@ -868,7 +868,10 @@ def message_create(request):
 def message_update(request, message_id):
     try:
         data = json.loads(request.body.decode("utf-8"))
-        message = get_object_or_404(Message, id=message_id, created_by=request.user)
+        if request.user.is_staff:
+            message = get_object_or_404(Message, id=message_id)
+        else:
+            message = get_object_or_404(Message, id=message_id, created_by=request.user)
         panel_id = data.get("panel_id", message.panel.id)
         thread_id = data.get("thread_id", message.thread.id)
         if request.user.is_staff:
@@ -1052,6 +1055,58 @@ def file_create(request):
         new_file.save()
         response = run_plugin_function("file", new_file, thread, panel)
         return response
+    except Exception as e:
+        logger.error(e, exc_info=True)
+        return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
+
+@user_authenticated
+@require_http_methods(["PUT"])
+def file_update(request, file_id):
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+        if request.user.is_staff:
+            file = get_object_or_404(File, id=file_id)
+        else:
+            file = get_object_or_404(File, id=file_id, created_by=request.user)
+
+        panel_id = data.get("panel_id", file.panel.id)
+        thread_id = data.get("thread_id", file.thread.id)
+        if request.user.is_staff:
+            panel = get_object_or_404(Panel, id=panel_id)
+        else:
+            panel = get_object_or_404(
+                Panel,
+                Q(id=panel_id)
+                & (
+                    Q(is_global=True)
+                    | Q(created_by=request.user)
+                    | Q(users_with_access=request.user)
+                ),
+            )
+        if request.user.is_staff:
+            thread = get_object_or_404(Thread, id=thread_id)
+        else:
+            thread = get_object_or_404(Thread, id=thread_id, created_by=request.user)
+        file.panel = panel
+        file.thread = thread
+        file.metadata = data.get("metadata", file.metadata)
+        file.filename = data.get("filename", file.filename)
+        file.save()
+        response_data = {
+            "status": "success",
+            "message": "File updated successfully",
+            "id": file.id,
+            "filename": file.filename,
+            "panel_id": file.panel_id,
+            "thread_id": file.thread_id,
+            "created_by": file.created_by.username,
+            "created_on": file.created_on,
+            "updated_at": file.updated_at,
+            "metadata": file.metadata,
+            "filepath": file.filepath,
+        }
+        return JsonResponse(response_data)
     except Exception as e:
         logger.error(e, exc_info=True)
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
