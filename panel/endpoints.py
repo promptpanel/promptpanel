@@ -981,7 +981,8 @@ def file_list_thread(request, thread_id):
         file_list = [
             {
                 "id": file.id,
-                "filepath": file.filepath,
+                "filename": file.filename,
+                "filepath": file.filepath.replace("/app/", "/"),
                 "panel_id": file.panel_id,
                 "thread_id": file.thread_id,
                 "created_by": file.created_by.username,
