@@ -7,7 +7,6 @@ var systemState = () => {
     activateTrial() {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/users/licence/trial/";
-      
       const data = {
         email: this.email,
       };
