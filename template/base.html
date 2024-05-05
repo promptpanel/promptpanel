@@ -93,6 +93,13 @@
         {% endif %}
       </div>
 
+      <template x-if="!loadedPanels">
+        <div>
+          <p class="font-semibold mb-1 py-1 line-clamp-1 rounded-md text-stone-200 bg-stone-200">--------------------</p>
+          <p class="font-semibold mb-1 py-1 line-clamp-1 rounded-md text-stone-200 bg-stone-200">--------------------</p>
+          <p class="font-semibold mb-1 py-1 line-clamp-1 rounded-md text-stone-200 bg-stone-200">--------------------</p>  
+        </div>
+      </template>
       <template x-for="panel in filteredPanels" :key="panel.id">
         <a :href="`/app/${panel.id}`" class="flex items-center w-full p-1 mb-1 text-stone-500 rounded-md transition duration-500 hover:text-stone-900 -lg:p-3" :class="{'bg-stone-200 !text-stone-900': $store.active.panelId === panel.id}">
           <div class="flex items-center justify-center w-7 h-7 rounded-md bg-stone-200 overflow-hidden">
