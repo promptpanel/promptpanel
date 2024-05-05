@@ -8,6 +8,7 @@ class CommonInfo(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     created_on = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    meta = models.JSONField(default={})
     _metadata = models.TextField(db_column="metadata", default="{}")
 
     class Meta:
