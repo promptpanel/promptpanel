@@ -1,0 +1,36 @@
+{
+  "name": "Anthropic",
+  "category": " Starter Agents",
+  "settings": [
+    {
+      "name": "Model",
+      "description": "The Anthropic model you would like to use.",
+      "default": "",
+      "type": "text",
+      "selections": [
+        {
+          "group": "Anthropic",
+          "values": [
+            "Haiku",
+            "Sonnet",
+            "Opus"
+          ]
+        }
+      ],
+      "required": true
+    },
+    {
+      "name": "System Message",
+      "description": "A message to help instruct the model on it's usage and how to behave.",
+      "type": "textarea",
+      "default": "You are a helpful AI assistant.",
+      "required": true
+    },
+    {
+      "name": "API Key",
+      "description": "API access key for connecting to API. You can find or create your key here: https://console.anthropic.com/settings/keys",
+      "type": "text",
+      "required": true
+    }
+  ]
+}

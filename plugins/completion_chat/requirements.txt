@@ -1,0 +1,3 @@
+litellm==1.35.38
+openai==1.25.
+unstructured[all-docs]==0.13.6
