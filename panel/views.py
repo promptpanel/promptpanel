@@ -52,6 +52,11 @@ def panel_expanded(request, panel_id):
         template_path = os.path.join(
             BASE_DIR, f"plugins/{panel.plugin}/templates/panel.html"
         )
+        if not os.path.exists(template_path):
+            template_path = os.path.join(
+                settings.BASE_DIR, "panel/default_templates/panel.html"
+            )
+
         with open(template_path, "r") as file:
             template = Template(file.read())
         local_context = {
@@ -77,6 +82,11 @@ def thread_expanded(request, panel_id, thread_id):
         template_path = os.path.join(
             BASE_DIR, f"plugins/{panel.plugin}/templates/thread.html"
         )
+        if not os.path.exists(template_path):
+            template_path = os.path.join(
+                settings.BASE_DIR, "panel/default_templates/thread.html"
+            )
+
         with open(template_path, "r") as file:
             template = Template(file.read())
         local_context = {
@@ -102,6 +112,11 @@ def message_expanded(request, panel_id, thread_id, message_id):
         template_path = os.path.join(
             BASE_DIR, f"plugins/{panel.plugin}/templates/message.html"
         )
+        if not os.path.exists(template_path):
+            template_path = os.path.join(
+                settings.BASE_DIR, "panel/default_templates/message.html"
+            )
+
         with open(template_path, "r") as file:
             template = Template(file.read())
         local_context = {
