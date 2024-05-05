@@ -127,9 +127,9 @@
             if (this.modelSelected == "openai") {
               panelData = {
                 name: "My First AI Panel",
-                plugin: "starter_openai",
+                plugin: "openai",
                 meta: {
-                  Model: "GPT-4",
+                  "Model": "GPT-4",
                   "System Message": "You are a helpful AI assistant.",
                   "API Key": this.apiKey,
                 },
@@ -138,9 +138,9 @@
             if (this.modelSelected == "anthropic") {
               panelData = {
                 name: "My First AI Panel",
-                plugin: "starter_anthropic",
+                plugin: "anthropic",
                 meta: {
-                  Model: "Opus",
+                  "Model": "Opus",
                   "System Message": "You are a helpful AI assistant.",
                   "API Key": this.apiKey,
                 },
@@ -149,9 +149,9 @@
             if (this.modelSelected == "google") {
               panelData = {
                 name: "My First AI Panel",
-                plugin: "starter_gemini",
-                metadata: {
-                  Model: "Gemini Pro 1.5",
+                plugin: "gemini",
+                meta: {
+                  "Model": "Gemini Pro 1.5",
                   "System Message": "You are a helpful AI assistant.",
                   "API Key": this.apiKey,
                 },
@@ -160,9 +160,9 @@
             if (this.modelSelected == "cohere") {
               panelData = {
                 name: "My First AI Panel",
-                plugin: "starter_cohere",
-                metadata: {
-                  Model: "Command R+",
+                plugin: "cohere",
+                meta: {
+                  "Model": "Command R+",
                   "System Message": "You are a helpful AI assistant.",
                   "API Key": this.apiKey,
                 },
@@ -219,7 +219,7 @@
             };
             const panelData = {
               name: "My First AI",
-              plugin: "ollama_chat",
+              plugin: "ollama",
               meta: {
                 "Context Size": "4096",
                 "System Message": "You are a helpful AI assistant.",
