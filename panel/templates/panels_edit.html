@@ -157,7 +157,7 @@
             </div>
           </div>
 
-          <template x-if="createUserMode == 'selectUsers' && ($store.active.licence_plan != 'free' && $store.active.licence_plan != 'deactivated')">
+          <template x-if="createUserMode == 'selectUsers'">
             <div class="border border-stone-200 rounded-md shadow-sm overflow-x-auto">
               <table class="w-full text-left">
                 <thead class="bg-stone-100 border-b-2 border-stone-200">
@@ -180,27 +180,6 @@
                       <td class="px-2 py-1" x-text="user.email"></td>
                     </tr>
                   </template>
-                </tbody>
-              </table>
-            </div>
-          </template>
-
-          <template x-if="createUserMode == 'selectUsers' && ($store.active.licence_plan == 'free' || $store.active.licence_plan == 'deactivated')">
-            <div class="border border-stone-200 rounded-md shadow-sm overflow-x-auto">
-              <table class="w-full text-left">
-                <thead class="bg-stone-100 border-b-2 border-stone-200">
-                  <tr>
-                    <th class="px-2 py-1 text-sm font-semibold text-stone-600"></th>
-                    <th class="px-2 py-1 text-sm font-semibold text-stone-600">Username</th>
-                    <th class="px-2 py-1 text-sm font-semibold text-stone-600">Email</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td colspan="5" class="text-center text-stone-500 px-2 py-10">
-                      <p><a href="/system/" class="underline hover:text-stone-900">Upgrade your licence</a> to unlock user specific access controls.</p>
-                    </td>
-                  </tr>
                 </tbody>
               </table>
             </div>
