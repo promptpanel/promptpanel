@@ -90,20 +90,23 @@
           </button>
           <button x-show="!showAccessControls" @click="showAccessControls = true" class="ml-1.5 flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 rounded-md transition duration-500 hover:bg-stone-200 hover:text-stone-800">
             Access Control
-            <span x-show="createUserMode == 'adminOnly'" class="ml-1.5 font-semibold px-1.5 py-1 rounded-md text-xs text-stone-800 bg-stone-300">Administrators</span>
+            <span x-show="createUserMode == 'adminOnly'" class="ml-1.5 font-semibold px-1.5 py-1 rounded-md text-xs text-stone-800 bg-stone-300">Admins Only</span>
             <span x-show="createUserMode == 'global'" class="ml-1.5 font-semibold px-1.5 py-1 rounded-md text-xs text-stone-800 bg-stone-300">All Active Users</span>
-            <span x-show="createUserMode == 'selectUsers'" x-text="createUsers.length + ' Users Selected'" class="ml-1.5 font-semibold px-1.5 py-1 rounded-md text-xs text-stone-800 bg-stone-300">Select Users</span>
+            <span x-show="createUserMode == 'selectUsers'" x-text="createUsers.length + ' Selected Users'" class="ml-1.5 font-semibold px-1.5 py-1 rounded-md text-xs text-stone-800 bg-stone-300">Select Users</span>
           </button>
           <button x-show="showAccessControls" class="ml-1.5 flex items-center justify-center font-semibold px-2.5 h-9 rounded-md transition duration-500 text-stone-800 bg-stone-200">
             Access Control
-            <span x-show="createUserMode == 'adminOnly'" class="ml-1.5 font-semibold px-1.5 py-1 rounded-md text-xs text-stone-50 bg-primary">Administrators</span>
+            <span x-show="createUserMode == 'adminOnly'" class="ml-1.5 font-semibold px-1.5 py-1 rounded-md text-xs text-stone-50 bg-primary">Admins Only</span>
             <span x-show="createUserMode == 'global'" class="ml-1.5 font-semibold px-1.5 py-1 rounded-md text-xs text-stone-50 bg-primary">All Active Users</span>
-            <span x-show="createUserMode == 'selectUsers'" x-text="createUsers.length + ' Users Selected'" class="ml-1.5 font-semibold px-1.5 py-1 rounded-md text-xs text-stone-50 bg-primary">Select Users</span>
+            <span x-show="createUserMode == 'selectUsers'" x-text="createUsers.length + ' Selected Users'" class="ml-1.5 font-semibold px-1.5 py-1 rounded-md text-xs text-stone-50 bg-primary">Select Users</span>
           </button>
         </div>
 
         <div x-show="showAccessControls">
-          <p class="mb-1.5">Who should have access to this Panel?</p>
+          <p class="">Who should have access to this Panel?</p>
+          <p class="text-stone-500 text-sm mb-1.5">
+            Only Admins can modify Panels. Admins can access all Panels.
+          </p>
           <div class="grid grid-cols-3 gap-3 mb-4">
             <div 
               @click="createUserMode = 'adminOnly'"
@@ -121,8 +124,7 @@
                     style="display: none;">
                 </div>
                 <div>
-                    <p class="font-semibold mb-1.5">Administrators</p>
-                    <p class="text-sm">Only Admins can use and edit settings.</p>
+                    <p class="font-semibold">Administrators</p>
                   </div>
             </div>
             <div 
@@ -141,8 +143,7 @@
                     style="display: none;">
                 </div>
                 <div>
-                  <p class="font-semibold mb-1.5">Active Users</p>
-                  <p class="text-sm">Only Admins will be able to edit settings.</p>
+                  <p class="font-semibold">Active Users</p>
                 </div>
             </div>
             <div 
@@ -161,8 +162,7 @@
                     style="display: none;">
                 </div>
                 <div>
-                  <p class="font-semibold mb-1.5">Select Users</p>
-                  <p class="text-sm">Only Admins will be able to edit settings.</p>
+                  <p class="font-semibold">Select Users</p>
                 </div>
             </div>
           </div>
@@ -230,7 +230,7 @@
                       <path d="M15.75 12c0 .18-.013.357-.037.53l-4.244-4.243A3.75 3.75 0 0115.75 12zM12.53 15.713l-4.243-4.244a3.75 3.75 0 004.243 4.243z"></path>
                       <path d="M6.75 12c0-.619.107-1.213.304-1.764l-3.1-3.1a11.25 11.25 0 00-2.63 4.31c-.12.362-.12.752 0 1.114 1.489 4.467 5.704 7.69 10.675 7.69 1.5 0 2.933-.294 4.242-.827l-2.477-2.477A5.25 5.25 0 016.75 12z"></path>
                     </svg>
-                    <span x-show="show" class="absolute top-0 left-4 z-10 px-2 py-1 rounded bg-stone-800 shadow-lg w-max text-stone-50 text-sm"> Private field. Will not be displayed via API (available in execution). </span>
+                    <span x-show="show" class="absolute top-0 left-4 z-10 px-2 py-1 rounded bg-stone-800 shadow-lg w-max text-stone-50 text-sm"> Private field. Editable and available to agents. Not available for user viewing. </span>
                   </div>
                 </div>
                 <div>
