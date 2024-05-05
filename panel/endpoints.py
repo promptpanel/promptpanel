@@ -283,7 +283,7 @@ def panel_create(request):
         plugin = data.get("plugin", None)
         display_image = data.get("display_image", None)
         is_global = data.get("is_global", False)
-        metadata = data.get("meta", False)
+        metadata = data.get("meta", {})
         new_panel = Panel(
             name=name,
             plugin=plugin,
@@ -568,7 +568,7 @@ def thread_create(request):
                     | Q(users_with_access=request.user)
                 ),
             )
-        metadata = data.get("meta", None)
+        metadata = data.get("meta", {})
         new_thread = Thread(
             title=title,
             panel=panel,
@@ -828,7 +828,7 @@ def message_create(request):
     try:
         data = json.loads(request.body.decode("utf-8"))
         content = data.get("content", None)
-        metadata = data.get("meta", None)
+        metadata = data.get("meta", {})
         thread_id = data.get("thread_id", None)
         panel_id = data.get("panel_id", None)
         thread = None
