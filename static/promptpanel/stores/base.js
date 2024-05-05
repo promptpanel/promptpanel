@@ -1,6 +1,7 @@
 var baseState = () => {
   return {
     panelId: Alpine.store("active").panelId,
+    loadedPanels: false,
     panelData: {},
     panels: [],
     panelSearchInput: "",
@@ -37,7 +38,6 @@ var baseState = () => {
     getPanels() {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/app/panels/";
-      
       fetch(url, {
         method: "GET",
         headers: {
@@ -48,6 +48,7 @@ var baseState = () => {
         .then((response) => response.json())
         .then((data) => {
           this.panels = data;
+          this.loadedPanels = true;
         })
         .catch((error) => {
           failToast = {
@@ -56,6 +57,7 @@ var baseState = () => {
             message: error.message,
           };
           Alpine.store("toastStore").addToast(failToast);
+          this.loadedPanels = true;
         });
     },
     get filteredPanels() {
