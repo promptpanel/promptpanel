@@ -67,13 +67,17 @@
         </div>
       </div>
 
+      <!-- 
       <div x-show="$store.active.licence_plan == 'free'" class="flex items-center p-3 mb-3 bg-stone-100 rounded-md">
         <div>
-          <h2 class="mb-0.5 text-xl font-serif">Upgrade to Prompt Panel Pro</h2>
-          <p class="text-stone-600 mb-0.5">Upgrade to Prompt Panel Pro to enable features like multi-user management and more, while supporting our development.</p>
-          <button @click="activateTrial()" type="submit" class="mt-1.5 flex items-center justify-center font-semibold bg-primary px-2.5 h-9 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">Evaluate Pro for 30 Days</button>
+          <h2 class="mb-0.5 text-xl font-serif">Upgrade your licence</h2>
+          <p class="text-stone-600 mb-0.5">Upgrade your licence to Pro to enable features like multi-user management, OpenID SSO, and more, while supporting our development.</p>
+          <button @click="activateTrial()" type="submit" class="mt-1.5 flex items-center justify-center font-semibold bg-primary px-2.5 h-9 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">
+            Activate your Pro trial
+          </button>
         </div>
-      </div>
+      </div> 
+      -->
 
       <div class="mb-3">
         <label class="block text-stone-500 mb-0.5">Version</label>
@@ -87,6 +91,7 @@
         <p x-show="$store.active.app_id == ''">-</p>
       </div>
 
+      <!-- 
       <div class="mb-3">
         <label class="block text-stone-500 mb-0.5">Licence Key</label>
         <p x-text="$store.active.licence_key"></p>
@@ -114,8 +119,8 @@
 
       <div class="mb-3">
         <label class="block text-stone-500 mb-0.5">Expiry</label>
-        <p x-show="$store.active.licence_expiry !== ''" x-text="$store.active.licence_expiry"></p>
-        <p x-show="$store.active.licence_expiry == ''">-</p>
+        <p x-show="$store.active.licence_expiry !== '' && $store.active.licence_plan !== 'trial'" x-text="$store.active.licence_expiry"></p>
+        <p x-show="$store.active.licence_expiry == '' || $store.active.licence_plan == 'trial'">-</p>
       </div>
 
       <div class="flex items-center mb-3">
@@ -127,7 +132,8 @@
           <svg class="mr-1 w-4 h-4" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3.97 3.97a.75.75 0 011.06 0l13.72 13.72V8.25a.75.75 0 011.5 0V19.5a.75.75 0 01-.75.75H8.25a.75.75 0 010-1.5h9.44L3.97 5.03a.75.75 0 010-1.06z" clip-rule="evenodd"></path></svg>
           Downgrade Licence
         </button>
-      </div>
+      </div> 
+      -->
 
       <p class="text-sm text-stone-500">Feel free to contact <span class="underline">getstarted@promptpanel.com</span> if you have any questions.</p>
     </div>
