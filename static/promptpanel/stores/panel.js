@@ -57,7 +57,7 @@ var panelUpdateState = () => {
           this.getPlugins();
           this.createName = data.name;
           this.createDisplayImg = data.display_image;
-          this.createSetting = data.metadata;
+          this.createSetting = data.meta;
           this.createUsers = data.users_with_access.map(user => user.id);
           const isGlobal = data.is_global;
           if(isGlobal == true){
@@ -86,7 +86,7 @@ var panelUpdateState = () => {
         name: this.createName,
         display_image: this.createDisplayImg,
         plugin: this.activePluginID,
-        metadata: this.createSetting,
+        meta: this.createSetting,
         user_access_ids: this.createUsers,
       };
       if (this.createUserMode == 'global') {
@@ -129,7 +129,7 @@ var panelUpdateState = () => {
         name: this.createName,
         display_image: this.createDisplayImg,
         plugin: this.activePluginID,
-        metadata: this.createSetting,
+        meta: this.createSetting,
         user_access_ids: this.createUsers,
       };
       if (this.createUserMode == 'global') {
