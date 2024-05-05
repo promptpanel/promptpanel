@@ -8,7 +8,6 @@
       <div class="w-full">
         <h1 class="font-serif text-3xl">Getting started</h1>
         <p class="text-2xl text-stone-500 mb-3">Your first model</p>
-
         <div class="flex items-center space-x-1.5 mb-3">
           <button :class="{'border-primary ring-2 ring-primary/10': $store.onboardStore.modelSelected == 'openai', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': $store.onboardStore.modelSelected != 'openai'}" @click="$store.onboardStore.modelSelected = 'openai'" class="flex items-center justify-center w-16 h-16 rounded-md bg-white border border-stone-300">
             <img src="/static/promptpanel/img/logo-openai-transparent.png" class="h-[2rem]" />
@@ -20,7 +19,6 @@
             <img src="/static/promptpanel/img/logo-ollama-transparent.png" class="h-[2.4rem]" />
           </button>
         </div>
-
         <div x-show="$store.onboardStore.modelSelected == 'openai'">
           <p class="mb-3">OpenAI is one of the most powerful models currently on the market. Enter your API key to get started with GPT-4.</p>
           <p class="mb-3">You can find your API key information at: <a href="https://platform.openai.com/api-keys" class="text-primary underline hover:text-primary/80" target="_new">https://platform.openai.com/api-keys</a></p>
@@ -94,7 +92,7 @@
               panelData = {
                 name: "My First AI Panel",
                 plugin: "starter_openai",
-                metadata: {
+                meta: {
                   Model: "GPT-4",
                   "System Message": "You are a helpful AI assistant.",
                   "API Key": this.apiKey,
@@ -105,7 +103,7 @@
               panelData = {
                 name: "My First AI Panel",
                 plugin: "starter_anthropic",
-                metadata: {
+                meta: {
                   Model: "Opus",
                   "System Message": "You are a helpful AI assistant.",
                   "API Key": this.apiKey,
@@ -164,7 +162,7 @@
             const panelData = {
               name: "My First AI",
               plugin: "ollama_chat",
-              metadata: {
+              meta: {
                 "Context Size": "4096",
                 "System Message": "You are a helpful AI assistant.",
               },
