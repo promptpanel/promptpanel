@@ -433,7 +433,7 @@ var pluginState = () => {
         try {
           this.activeThread.meta = JSON.parse(this.activeThread.meta);
         } catch (e) {
-          console.warn("Error parsing thread metadata:", e);
+          console.warn("Error parsing thread meta:", e);
           this.activeThread.meta = {};
         }
       }

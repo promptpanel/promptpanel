@@ -52,10 +52,9 @@ def file_stream(file, thread, panel):
         output_text_formatted = f"{file.filename} Context:\n {output_text} \n\n"
         new_file = [{"role": "user", "content": output_text_formatted}]
         token_count = litellm.token_counter(model=completion_model, messages=new_file)
-        new_metadata = dict(file.meta)
-        new_metadata["token_count"] = token_count
-        new_metadata["text_file_path"] = output_filepath
-        file.meta = new_metadata
+        file.meta.update(
+            {"token_count": token_count, "text_file_path": output_filepath}
+        )
         file.save()
         yield "File upload and parsing complete..."
 
@@ -106,13 +105,11 @@ def chat_stream(message, thread, panel):
         else:
             completion_model = "gpt-3.5-turbo"
 
-        new_message = [{"role": "user", "content": message.content}]
         token_count = litellm.token_counter(
-            model=completion_model, messages=new_message
+            model=completion_model,
+            messages=[{"role": "user", "content": message.content}],
         )
-        new_metadata = dict(message.meta)
-        new_metadata["token_count"] = token_count
-        message.meta = new_metadata
+        message.meta.update({"token_count": token_count})
         message.save()
 
         ## ----- 3. Get max context and system message.
@@ -136,26 +133,24 @@ def chat_stream(message, thread, panel):
         doc_current_tokens = 0
         doc_context = ""
         skipped_docs = False
-        thread_files = File.objects.filter(thread=thread)
+
+        thread_files = File.objects.filter(thread=thread, meta__enabled=True)
         if thread_files.exists():
             for file in thread_files:
-                if file.meta.get("enabled", False):
-                    doc_token_count = file.meta.get("token_count", 0)
-                    if doc_current_tokens + doc_token_count <= doc_token_limit:
-                        doc_current_tokens += doc_token_count
-                        doc_file_path = file.meta.get("text_file_path", "")
-                        try:
-                            if os.path.exists(doc_file_path):
-                                with open(doc_file_path, "r") as f:
-                                    doc_text = f.read()
-                                doc_context += (
-                                    f"{file.filename} Context:\n{doc_text}\n\n"
-                                )
-                        except Exception as e:
-                            logger.error(e, exc_info=True)
-                    else:
-                        skipped_docs = True
-                        break
+                doc_token_count = file.meta.get("token_count", 0)
+                if doc_current_tokens + doc_token_count <= doc_token_limit:
+                    doc_current_tokens += doc_token_count
+                    doc_file_path = file.meta.get("text_file_path", "")
+                    try:
+                        if os.path.exists(doc_file_path):
+                            with open(doc_file_path, "r") as f:
+                                doc_text = f.read()
+                            doc_context += f"{file.filename} Context:\n{doc_text}\n\n"
+                    except Exception as e:
+                        logger.error(e, exc_info=True)
+                else:
+                    skipped_docs = True
+                    break
             document_context = {
                 "role": "user",
                 "content": [{"type": "text", "text": doc_context}],
@@ -258,7 +253,7 @@ def chat_stream(message, thread, panel):
                 thread=thread,
                 panel=panel,
                 created_by=message.created_by,
-                metadata={"sender": "warning"},
+                meta={"sender": "warning"},
             )
             warning_docs.save()
         if skipped_images:
@@ -267,7 +262,7 @@ def chat_stream(message, thread, panel):
                 thread=thread,
                 panel=panel,
                 created_by=message.created_by,
-                metadata={"sender": "warning"},
+                meta={"sender": "warning"},
             )
             warning_images.save()
 
@@ -301,7 +296,7 @@ def chat_stream(message, thread, panel):
             thread=thread,
             panel=panel,
             created_by=message.created_by,
-            metadata={"sender": "assistant", "token_count": token_count},
+            meta={"sender": "assistant", "token_count": token_count},
         )
         response_message.save()
 
@@ -356,6 +351,6 @@ def chat_stream(message, thread, panel):
             thread=thread,
             panel=panel,
             created_by=message.created_by,
-            metadata={"sender": "error"},
+            meta={"sender": "error"},
         )
         response_message.save()
