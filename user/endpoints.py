@@ -186,67 +186,6 @@ def user_update(request, user_id):
 @user_authenticated
 @user_is_staff
 @require_http_methods(["POST"])
-def licence_trial(request):
-    try:
-        data = json.loads(request.body.decode("utf-8"))
-        lic_trial = {}
-        lic_trial["app_id"] = settings.APP_ID
-        lic_trial["email"] = data["email"]
-        base_url = os.environ.get("PROMPT_OPS_BASE")
-        logger.info(lic_trial)
-        response = requests.post(
-            f"{base_url}/api/v1/licence/trial/", json=lic_trial, timeout=4
-        )
-        data = response.json()
-        if data["status"] == "deactivated":
-            with open("/app/licence.json", "r") as file:
-                system = json.load(file)
-            system["lic_key"] = ""
-            system["lic_email"] = ""
-            system["lic_expiry"] = ""
-            system["lic_plan"] = "free"
-            system["lic_seats"] = 1
-            system["lic_state"] = "deactivated"
-            with open("/app/licence.json", "w") as file:
-                json.dump(system, file)
-        if data["status"] == "warning":
-            with open("/app/licence.json", "r") as file:
-                system = json.load(file)
-            system["lic_email"] = lic_trial["email"]
-            system["lic_key"] = licence_data["key"]
-            system["lic_expiry"] = licence_data["expiry"]
-            system["lic_plan"] = licence_data["plan"]
-            system["lic_seats"] = licence_data["seats"]
-            system["lic_state"] = "warning"
-            with open("/app/licence.json", "w") as file:
-                json.dump(system, file)
-        if data["status"] == "success":
-            licence_data = data["data"]
-            with open("/app/licence.json", "r") as file:
-                system = json.load(file)
-            system["lic_email"] = lic_trial["email"]
-            system["lic_key"] = licence_data["key"]
-            system["lic_expiry"] = licence_data["expiry"]
-            system["lic_plan"] = licence_data["plan"]
-            system["lic_seats"] = licence_data["seats"]
-            system["lic_state"] = "success"
-            with open("/app/licence.json", "w") as file:
-                json.dump(system, file)
-            return JsonResponse(
-                {"status": "success", "message": "Licence key updated successfully."}
-            )
-        else:
-            return JsonResponse(
-                {"status": "error", "message": "Invalid licence key"}, status=400
-            )
-    except Exception as e:
-        logger.error(e, exc_info=True)
-        return JsonResponse({"status": "error", "message": str(e)}, status=400)
-
-
-@user_authenticated
-@user_is_staff
-@require_http_methods(["POST"])
 def licence_set(request):
     try:
         data = json.loads(request.body.decode("utf-8"))
