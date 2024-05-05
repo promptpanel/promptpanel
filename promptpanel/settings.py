@@ -116,6 +116,13 @@ MIDDLEWARE = [
     "promptpanel.middleware.CustomErrorMiddleware",
 ]
 
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "prompt_cache",
+    }
+}
+
 X_FRAME_OPTIONS = "SAMEORIGIN"
 APPEND_SLASH = True
 ROOT_URLCONF = "promptpanel.urls"
