@@ -1,0 +1,283 @@
+<!-- prettier-ignore -->
+{% extends "base.html" %}
+{% block title %}Users{% endblock title %}
+{% block content %}
+<script>
+  document.addEventListener("alpine:init", () => {
+    Alpine.store("active", {
+      user_id: Number("{{user_id}}"),
+      initialEmail: "{{user_email}}",
+      email: "{{user_email}}",
+      username: "{{user_username}}",
+      currentSetting: "userList",
+      licence_plan: "{{licence_plan}}",
+    });
+  });
+</script>
+<script is:inline src="/static/promptpanel/stores/user_manage.js"></script>
+<div x-cloak x-data="userManageState()" x-init="getUsers()">
+  {% include "components/nav-profile.html" %}
+
+  <!-- Create User -->
+  <div :class="{'-right-[100vw]': !modalCreateUser, 'right-3': modalCreateUser}" class="transition-all fixed mx-auto z-[101] max-w-xl w-full h-[calc(100vh-4.15rem)] bg-stone-50 border-x border-stone-200 overflow-y-auto -lg:border-none -lg:max-w-[100vw] -lg:shadow-none shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.05)] right-0 rounded-r-lg">
+    <div class="flex items-center px-3 pt-3 mb-1.5">
+      <button @click="modalCreateUser = false" class="mr-1.5 cursor-pointer flex items-center justify-center text-sm font-semibold text-stone-500 rounded hover:text-stone-900 hover:bg-stone-200 h-7 w-7 -lg:min-h-9 -lg:min-w-9">
+        <svg class="w-5 h-5 -lg:min-w-6 -lg:min-h-6" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 01-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clip-rule="evenodd"></path></svg>
+      </button>
+      <h2 class="text-xl font-semibold line-clamp-1">Add User</h2>
+    </div>
+    <form class="px-3 pt-0.5 pb-20" @submit.prevent="createUser()">
+      <div class="mb-3">
+        <div class="flex items-center"><span>Username</span><span class="ml-0.5 text-rose-600">*</span></div>
+        <input type="text" x-model="userForCreate.username" required placeholder="Username..." class="w-full h-10 px-3 py-1 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
+      </div>
+      <div class="mb-3">
+        <div class="flex items-center"><span>Email</span><span class="ml-0.5 text-rose-600">*</span></div>
+        <input type="email" x-model="userForCreate.email" required placeholder="Email..." class="w-full h-10 px-3 py-1 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
+      </div>
+      <div class="mb-3">
+        <div class="flex items-center">
+          <span>Password</span><span class="ml-0.5 text-rose-600">*</span>
+          <p @click="generatePassword('create')" class="cursor-pointer text-sm ml-auto underline text-stone-500 hover:text-primary">Generate Password</p>
+        </div>
+        <input type="text" x-model="userForCreate.password" required placeholder="Password..." class="w-full h-10 px-3 py-1 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
+      </div>
+      <div class="mb-3">
+        <div class="flex items-center"><span>User Role</span><span class="ml-0.5 text-rose-600">*</span></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div @click="userForCreate.isStaff = false" class="cursor-pointer group flex items-start bg-white rounded-md border p-3" :class="{'border-primary ring-2 ring-primary/10': !userForCreate.isStaff, 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': userForCreate.isStaff}">
+            <div x-show="!userForCreate.isStaff" class="flex items-center justify-center mt-1 rounded-full min-w-4 min-h-4 bg-primary border border-primary mr-1.5">
+              <div class="bg-white w-1.5 h-1.5 rounded-full"></div>
+            </div>
+            <div x-show="userForCreate.isStaff" class="mt-1 rounded-full min-w-4 min-h-4 border border-stone-300 mr-1.5 group-hover:border-stone-400"></div>
+            <div>
+              <p class="font-semibold mb-1.5">User</p>
+              <div class="flex items-start mb-0.5">
+                <svg class="min-w-4 min-h-4 mt-1 mr-1 text-green-700" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clip-rule="evenodd"></path></svg>
+                <p class="text-sm">Users can use Panels assigned to them.</p>
+              </div>
+              <div class="flex items-start mb-0.5">
+                <svg class="min-w-4 min-h-4 mt-1 mr-1 text-rose-700" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 01-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clip-rule="evenodd"></path></svg>
+                <p class="text-sm">Users cannot access System Administration in Settings (including editing Users).</p>
+              </div>
+            </div>
+          </div>
+          <div @click="userForCreate.isStaff = true" class="cursor-pointer group flex items-start bg-white rounded-md border p-3" :class="{'border-primary ring-2 ring-primary/10': userForCreate.isStaff, 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': !userForCreate.isStaff}">
+            <div x-show="userForCreate.isStaff" class="flex items-center justify-center mt-1 rounded-full min-w-4 min-h-4 bg-primary border border-primary mr-1.5">
+              <div class="bg-white w-1.5 h-1.5 rounded-full"></div>
+            </div>
+            <div x-show="!userForCreate.isStaff" class="mt-1 rounded-full min-w-4 min-h-4 border border-stone-300 mr-1.5 group-hover:border-stone-400"></div>
+            <div>
+              <p class="font-semibold mb-1.5">Administrator</p>
+              <div class="flex items-start mb-0.5">
+                <svg class="min-w-4 min-h-4 mt-1 mr-1 text-green-700" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clip-rule="evenodd"></path></svg>
+                <p class="text-sm">Admins can create, use, and modify panels.</p>
+              </div>
+              <div class="flex items-start mb-0.5">
+                <svg class="min-w-4 min-h-4 mt-1 mr-1 text-green-700" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clip-rule="evenodd"></path></svg>
+                <p class="text-sm">Admins have full access to System Administation as well as editing other Users.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <div class="flex items-center"><span>Account Status</span><span class="ml-0.5 text-rose-600">*</span></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div @click="userForCreate.isActive = true" class="cursor-pointer group flex items-start bg-white rounded-md border py-2 px-3" :class="{'border-primary ring-2 ring-primary/10': userForCreate.isActive, 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': !userForCreate.isActive}">
+            <div x-show="userForCreate.isActive" class="flex items-center justify-center mt-1 rounded-full min-w-4 min-h-4 bg-primary border border-primary mr-1.5">
+              <div class="bg-white w-1.5 h-1.5 rounded-full"></div>
+            </div>
+            <div x-show="!userForCreate.isActive" class="mt-1 rounded-full min-w-4 min-h-4 border border-stone-300 mr-1.5 group-hover:border-stone-400"></div>
+            <div>
+              <p class="font-semibold">Active</p>
+            </div>
+          </div>
+          <div @click="userForCreate.isActive = false" class="cursor-pointer group flex items-start bg-white rounded-md border py-2 px-3" :class="{'border-primary ring-2 ring-primary/10': !userForCreate.isActive, 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': userForCreate.isActive}">
+            <div x-show="!userForCreate.isActive" class="flex items-center justify-center mt-1 rounded-full min-w-4 min-h-4 bg-primary border border-primary mr-1.5">
+              <div class="bg-white w-1.5 h-1.5 rounded-full"></div>
+            </div>
+            <div x-show="userForCreate.isActive" class="mt-1 rounded-full min-w-4 min-h-4 border border-stone-300 mr-1.5 group-hover:border-stone-400"></div>
+            <div>
+              <p class="font-semibold">Deactivated</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+    <div class="fixed bottom-0 mb-4 py-2 px-3 bg-stone-50 border-t border-stone-200 w-full max-w-xl -lg:max-w-[100vw]">
+      <div class="flex items-center">
+        <button @click="modalCreateUser = false" class="ml-auto flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 rounded-md transition duration-500 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300">Cancel</button>
+        <button @click="createUser()" class="ml-1.5 flex items-center justify-center font-semibold bg-primary px-2.5 h-9 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">Add User</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Update User -->
+  <div :class="{'-right-[100vw]': !modalModifyUser, 'right-3': modalModifyUser}" class="transition-all fixed mx-auto z-[101] max-w-xl w-full h-[calc(100vh-4.15rem)] bg-stone-50 border-x border-stone-200 overflow-y-auto -lg:border-none -lg:max-w-[100vw] -lg:shadow-none shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.05)] right-0 rounded-r-lg">
+    <div class="flex items-center px-3 pt-3 mb-1.5">
+      <button @click="modalModifyUser = false" class="mr-1.5 cursor-pointer flex items-center justify-center text-sm font-semibold text-stone-500 rounded hover:text-stone-900 hover:bg-stone-200 h-7 w-7 -lg:min-h-9 -lg:min-w-9">
+        <svg class="w-5 h-5 -lg:min-w-6 -lg:min-h-6" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 01-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clip-rule="evenodd"></path></svg>
+      </button>
+      <h2 class="text-xl font-semibold line-clamp-1">Modify User</h2>
+    </div>
+    <form class="px-3 pt-0.5 pb-20" @submit.prevent="modifyUser()">
+      <div class="mb-3">
+        <div class="flex items-center"><span>Username</span><span class="ml-0.5 text-rose-600">*</span></div>
+        <input type="text" x-model="userForModify.username" required placeholder="Username..." class="w-full h-10 px-3 py-1 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
+      </div>
+      <div class="mb-3">
+        <div class="flex items-center"><span>Email</span><span class="ml-0.5 text-rose-600">*</span></div>
+        <input type="email" x-model="userForModify.email" required placeholder="Email..." class="w-full h-10 px-3 py-1 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
+      </div>
+      <div class="mb-3">
+        <div class="flex items-center">
+          <span>Update Password</span><span class="ml-0.5 text-rose-600">*</span>
+          <p @click="generatePassword('modify')" class="cursor-pointer text-sm ml-auto underline text-stone-500 hover:text-primary">Generate Password</p>
+        </div>
+        <input type="text" x-model="userForModify.password" required placeholder="Password..." class="w-full h-10 px-3 py-1 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
+      </div>
+      <div class="mb-3">
+        <div class="flex items-center"><span>User Role</span><span class="ml-0.5 text-rose-600">*</span></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div @click="userForModify.isStaff = false" class="cursor-pointer group flex items-start bg-white rounded-md border p-3" :class="{'border-primary ring-2 ring-primary/10': !userForModify.isStaff, 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': userForModify.isStaff}">
+            <div x-show="!userForModify.isStaff" class="flex items-center justify-center mt-1 rounded-full min-w-4 min-h-4 bg-primary border border-primary mr-1.5">
+              <div class="bg-white w-1.5 h-1.5 rounded-full"></div>
+            </div>
+            <div x-show="userForModify.isStaff" class="mt-1 rounded-full min-w-4 min-h-4 border border-stone-300 mr-1.5 group-hover:border-stone-400"></div>
+            <div>
+              <p class="font-semibold mb-1.5">User</p>
+              <div class="flex items-start mb-0.5">
+                <svg class="min-w-4 min-h-4 mt-1 mr-1 text-green-600" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clip-rule="evenodd"></path></svg>
+                <p class="text-sm">Users can use Plugin Agents and create Panels for their own account.</p>
+              </div>
+              <!-- <div class="flex items-start mb-0.5">
+                <svg class="min-w-4 min-h-4 mt-1 mr-1 text-green-600" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clip-rule="evenodd"></path></svg>
+                <p class="text-sm">Users can use Global Panels, but not edit them.</p>
+              </div> -->
+              <div class="flex items-start mb-0.5">
+                <svg class="min-w-4 min-h-4 mt-1 mr-1 text-rose-600" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 01-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clip-rule="evenodd"></path></svg>
+                <p class="text-sm">Users cannot access System Administration in Settings (including editing Users).</p>
+              </div>
+            </div>
+          </div>
+          <div @click="userForModify.isStaff = true" class="cursor-pointer group flex items-start bg-white rounded-md border p-3" :class="{'border-primary ring-2 ring-primary/10': userForModify.isStaff, 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': !userForModify.isStaff}">
+            <div x-show="userForModify.isStaff" class="flex items-center justify-center mt-1 rounded-full min-w-4 min-h-4 bg-primary border border-primary mr-1.5">
+              <div class="bg-white w-1.5 h-1.5 rounded-full"></div>
+            </div>
+            <div x-show="!userForModify.isStaff" class="mt-1 rounded-full min-w-4 min-h-4 border border-stone-300 mr-1.5 group-hover:border-stone-400"></div>
+            <div>
+              <p class="font-semibold mb-1.5">Administrator</p>
+              <div class="flex items-start mb-0.5">
+                <svg class="min-w-4 min-h-4 mt-1 mr-1 text-green-600" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clip-rule="evenodd"></path></svg>
+                <p class="text-sm">Admins can use Plugin Agents and create Panels for their own account.</p>
+              </div>
+              <!-- <div class="flex items-start mb-0.5">
+                <svg class="min-w-4 min-h-4 mt-1 mr-1 text-green-600" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clip-rule="evenodd"></path></svg>
+                <p class="text-sm">Admins can create and edit Global Panels, as well as use them.</p>
+              </div> -->
+              <div class="flex items-start mb-0.5">
+                <svg class="min-w-4 min-h-4 mt-1 mr-1 text-green-600" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clip-rule="evenodd"></path></svg>
+                <p class="text-sm">Admins have full access to System Administation as well as editing other Users.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <div class="flex items-center"><span>Account Status</span><span class="ml-0.5 text-rose-600">*</span></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div @click="userForModify.isActive = true" class="cursor-pointer group flex items-start bg-white rounded-md border py-2 px-3" :class="{'border-primary ring-2 ring-primary/10': userForModify.isActive, 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': !userForModify.isActive}">
+            <div x-show="userForModify.isActive" class="flex items-center justify-center mt-1 rounded-full min-w-4 min-h-4 bg-primary border border-primary mr-1.5">
+              <div class="bg-white w-1.5 h-1.5 rounded-full"></div>
+            </div>
+            <div x-show="!userForModify.isActive" class="mt-1 rounded-full min-w-4 min-h-4 border border-stone-300 mr-1.5 group-hover:border-stone-400"></div>
+            <div>
+              <p class="font-semibold">Active</p>
+            </div>
+          </div>
+          <div @click="userForModify.isActive = false" class="cursor-pointer group flex items-start bg-white rounded-md border py-2 px-3" :class="{'border-primary ring-2 ring-primary/10': !userForModify.isActive, 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': userForModify.isActive}">
+            <div x-show="!userForModify.isActive" class="flex items-center justify-center mt-1 rounded-full min-w-4 min-h-4 bg-primary border border-primary mr-1.5">
+              <div class="bg-white w-1.5 h-1.5 rounded-full"></div>
+            </div>
+            <div x-show="userForModify.isActive" class="mt-1 rounded-full min-w-4 min-h-4 border border-stone-300 mr-1.5 group-hover:border-stone-400"></div>
+            <div>
+              <p class="font-semibold">Deactivated</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+    <div class="fixed bottom-0 mb-4 py-2 px-3 bg-stone-50 border-t border-stone-200 w-full max-w-xl -lg:max-w-[100vw]">
+      <div class="flex items-center">
+        <button @click="modalModifyUser = false" class="ml-auto flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 rounded-md transition duration-500 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300">Cancel</button>
+        <button @click="modifyUser()" class="ml-1.5 flex items-center justify-center font-semibold bg-primary px-2.5 h-9 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">Modify User</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- User List -->
+  <div class="absolute w-[calc(100%-20rem)] h-full right-0 overflow-y-auto -lg:relative -lg:block -lg:w-full">
+    <div class="my-20 max-w-4xl mx-auto px-4">
+      <div class="flex items-center mb-6">
+        <h1 class="font-serif text-3xl">User Management</h1>
+        <button @click="modalCreateUser = true" class="ml-auto flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 rounded-md transition duration-500 border border-stone-200 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300">
+          <svg class="mr-1 w-4.5 h-4.5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 20 20" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z"></path></svg>
+          Add User
+        </button>
+      </div>
+      <div class="border border-stone-200 rounded-md shadow-sm overflow-x-auto">
+        <table class="w-full text-left">
+          <thead class="bg-stone-100 border-b-2 border-stone-200">
+            <tr>
+              <th class="px-2 py-1 text-sm font-semibold text-stone-600">Username</th>
+              <th class="px-2 py-1 text-sm font-semibold text-stone-600">Email</th>
+              <th class="px-2 py-1 text-sm font-semibold text-stone-600">Role</th>
+              <th class="px-2 py-1 text-sm font-semibold text-stone-600">Active</th>
+              <th class="px-2 py-1 text-sm font-semibold text-stone-600"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-for="user in users" :key="user.id">
+              <tr class="border-b border-stone-200 last:border-transparent">
+                <td x-show="user.id == Alpine.store('active').user_id" class="px-2 py-1">
+                  <div class="flex items-center">
+                    <p x-text="user.username" class="flex items-center">username</p>
+                    <p class="ml-1 flex items-center text-sm text-stone-500">(Current User)</p>
+                  </div>
+                </td>
+                <td x-show="user.id !== Alpine.store('active').user_id" class="px-2 py-1">
+                  <p @click="modalModifyUser = true, userForModify.userId = user.id, userForModify.username = user.username, userForModify.email = user.email, userForModify.isStaff = user.is_admin, userForModify.isActive = user.is_active" x-text="user.username" class="cursor-pointer flex items-center text-primary hover:text-primary/80">martin</p>
+                </td>
+                <td class="px-2 py-1" x-text="user.email">martin@martinmark.com</td>
+                <td class="px-2 py-1">
+                  <div x-show="user.is_admin" class="capitalize px-2 py-1 bg-stone-600/10 w-max text-sm font-semibold text-stone-600 rounded-md">Admin</div>
+                  <div x-show="!user.is_admin" class="capitalize px-2 py-1 bg-stone-600/10 w-max text-sm font-semibold text-stone-600 rounded-md">User</div>
+                </td>
+                <td class="px-2 py-1">
+                  <div x-show="user.is_active" class="capitalize px-2 py-1 bg-stone-600/10 w-max text-sm font-semibold text-stone-600 rounded-md">Active</div>
+                  <div x-show="!user.is_active" class="capitalize px-2 py-1 bg-rose-600/10 w-max text-sm font-semibold text-rose-600 rounded-md">Deactivated</div>
+                </td>
+                <td x-show="user.id == Alpine.store('active').user_id" class="px-2 py-1">
+                  <p class="flex items-center">-</p>
+                </td>
+                <td x-show="user.id !== Alpine.store('active').user_id" class="px-2 py-1">
+                  <p @click="modalModifyUser = true, userForModify.userId = user.id, userForModify.username = user.username, userForModify.email = user.email, userForModify.isStaff = user.is_admin, userForModify.isActive = user.is_active" class="cursor-pointer text-sm font-semibold flex items-center text-stone-500 hover:text-stone-800">
+                    <svg class="mr-1" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 20 20" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M5.433 13.917l1.262-3.155A4 4 0 017.58 9.42l6.92-6.918a2.121 2.121 0 013 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 01-.65-.65z"></path>
+                      <path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0010 3H4.75A2.75 2.75 0 002 5.75v9.5A2.75 2.75 0 004.75 18h9.5A2.75 2.75 0 0017 15.25V10a.75.75 0 00-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5z"></path>
+                    </svg>
+                    Modify
+                  </p>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+< {% endblock content %}

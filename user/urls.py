@@ -7,8 +7,9 @@ urlpatterns = [
     ## Endpoints
     path("login/", endpoints.user_login, name="api_user_login"),
     path("onboard/", endpoints.user_onboard, name="api_user_onboard"),
+    path("create/", endpoints.user_create, name="api_user_create"),
+    path("list/", endpoints.user_list, name="api_user_list"),
     path("update/<int:user_id>/", endpoints.user_update, name="api_user_update"),
-    path("licence/trial/", endpoints.licence_trial, name="api_licence_trial"),
     path("licence/set/", endpoints.licence_set, name="api_licence_set"),
     path("licence/downgrade/", endpoints.licence_downgrade, name="api_licence_downgrade"),
 ]

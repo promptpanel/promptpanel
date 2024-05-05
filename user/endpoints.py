@@ -135,6 +135,120 @@ def user_onboard(request):
 
 
 @user_authenticated
+@require_http_methods(["POST"])
+def user_create(request):
+    # Checks if public signup is disabled
+    if (
+        not request.user.is_staff
+        and os.environ.get("PROMPT_PUBLIC_SIGNUP", "DISABLED").strip().upper()
+        != "ENABLED"
+    ):
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "Admin permissions are required for creating a new user.",
+            },
+            status=403,
+        )
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+        username = data.get("username")
+        email = data.get("email")
+        password = data.get("password")
+        # Only allow is_staff and is_active if user is an admin
+        is_staff = False
+        is_active = False
+        if request.user.is_staff:
+            is_staff = data.get("is_staff", False)
+            is_active = data.get("is_active", False)
+        # Check if username already exists
+        if User.objects.filter(username=username).exists():
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "message": "An account with that username already exists",
+                },
+                status=400,
+            )
+        # Check if email already exists
+        if User.objects.filter(email=email).exists():
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "message": "An account with that email already exists",
+                },
+                status=400,
+            )
+        # Check if email is allowed before creating
+        allowed_endings = os.getenv("PROMPT_USER_ALLOWED_DOMAINS", "")
+        allowed_endings = [
+            ending.strip().lower()
+            for ending in allowed_endings.split(",")
+            if ending.strip()
+        ]
+        if allowed_endings and not any(
+            email.endswith(ending) for ending in allowed_endings
+        ):
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "message": "PROMPT_USER_ALLOWED_DOMAINS is active. The account email does not end with any allowed domains or emails.",
+                },
+                status=400,
+            )
+        # Create user
+        User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            is_staff=is_staff,
+            is_active=is_active,
+        )
+        return JsonResponse(
+            {
+                "status": "success",
+                "message": "User created successfully.",
+            },
+            status=201,
+        )
+    except Exception as e:
+        logger.error(e, exc_info=True)
+        return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
+
+@user_authenticated
+@user_is_staff
+@require_http_methods(["GET"])
+def user_list(request):
+    if not request.user.is_staff:
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "User accounts do not have to access to user info. Please contact your administrator.",
+            },
+            status=403,
+        )
+    try:
+        users = User.objects.all().values(
+            "id", "username", "email", "is_staff", "is_active"
+        )
+        users_list = [
+            {
+                "id": user["id"],
+                "username": user["username"],
+                "email": user["email"],
+                "is_admin": user["is_staff"],
+                "is_active": user["is_active"],
+            }
+            for user in users
+        ]
+        return JsonResponse(users_list, safe=False)
+    except Exception as e:
+        logger.error(e, exc_info=True)
+        return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
+
+@user_authenticated
 @require_http_methods(["PUT"])
 def user_update(request, user_id):
     try:

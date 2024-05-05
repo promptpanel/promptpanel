@@ -15,6 +15,9 @@ urlpatterns = [
     path("profile/", user_views.profile, name="view_user_profile"),
     path("update_password/", user_views.update_password, name="view_update_password"),
     path("logout/", user_views.logout, name="view_user_logout"),
+    path("users/", user_views.user_list, name="view_user_list"),
+    path("oauth/login/", user_views.oauth_login, name="view_oauth_login"),
+    path("oauth/callback/", user_views.oauth_callback, name="view_oauth_callback"),
     ## System settings
     path("system/", user_views.system, name="view_system"),
     path("system/ollama/", user_views.ollama_model, name="view_ollama"),
