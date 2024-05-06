@@ -402,7 +402,7 @@
                       <p x-html="message.content" class="mr-1.5 w-full space-y-6 masked text-lg">Message Content</p>
                     </div>
                     <div class="flex items-center text-sm w-full text-stone-500 mt-0.5">
-                      <svg class="w-3.5 h-3.5 mr-0.5 text-amber-600" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003ZM12 8.25a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V9a.75.75 0 0 1 .75-.75Zm0 8.25a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" clip-rule="evenodd"></path></svg>
+                      <svg class="w-3.5 h-3.5 mr-0.5 text-amber-500" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003ZM12 8.25a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V9a.75.75 0 0 1 .75-.75Zm0 8.25a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" clip-rule="evenodd"></path></svg>
                       <p class="">Warning</p>
                       <p class="mx-1">•</p>
                       <p x-text="formatDate(message.created_on)"></p>
@@ -444,9 +444,21 @@
             <div x-show="messageFormatted !== ''">
               <div class="mb-6">
                 <div class="z-[0] relative ml-auto rounded-t-md rounded-bl-md bg-stone-100 w-11/12 px-3 py-2.5 overflow-x-auto">
-                  <div class="flex items-center">
-                    <p x-html="messageFormatted" class="mr-1.5 w-full space-y-6 masked text-lg">Message Content</p>
-                  </div>
+                  <p x-html="messageFormatted" class="mr-1.5 w-full space-y-6 masked text-lg">Message Content</p>
+                  <template x-if="Array.isArray(messageImages) && messageImages.length > 0">
+                    <div class="flex items-center mt-1.5">
+                      <template x-for="image in messageImages" :key="index">
+                        <div class="flex items-center justify-center min-w-7 max-w-7 h-7 rounded-md overflow-hidden mr-1.5 relative">
+                          <a :href="image" download="uploaded_img" class="relative group w-max">                    
+                            <div class="absolute flex items-center justify-center w-full h-full bg-stone-800 opacity-0 group-hover:opacity-60">
+                              <svg class="text-stone-50 w-5 h-5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 2.25a.75.75 0 0 1 .75.75v11.69l3.22-3.22a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 1 1 1.06-1.06l3.22 3.22V3a.75.75 0 0 1 .75-.75Zm-9 13.5a.75.75 0 0 1 .75.75v2.25a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5V16.5a.75.75 0 0 1 1.5 0v2.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V16.5a.75.75 0 0 1 .75-.75Z" clip-rule="evenodd"></path></svg>
+                            </div>
+                            <img :src="image" alt="Image Preview" />
+                          </a>
+                        </div>
+                      </template>  
+                    </div>
+                  </template>
                 </div>
                 <div class="flex items-center text-sm text-stone-500 w-full mt-1.5">
                   <p class="ml-auto">User</p>

@@ -29,6 +29,7 @@ var pluginState = () => {
     fileStream: "Processing Upload...",
     // Images
     extractedImages: [],
+    messageImages: [],
     // Modals
     modalSelectModel: false,
     modalThreadEdit: false,
@@ -488,7 +489,9 @@ var pluginState = () => {
         panel_id: Alpine.store("active").panelId,
         thread_id: Alpine.store("active").threadId,
       };
+      this.messageImages = this.extractedImages 
       // Wipe interim message before sending
+      this.extractedImages = []
       this.messageFromEditor = "";
       // Indicate processing => positioning div
       this.indicateProcessing = true;
@@ -534,8 +537,8 @@ var pluginState = () => {
                       controller.close();
                       this.indicateProcessing = false;
                       this.messageFormatted = "";
+                      this.messageImages = [];
                       this.responseStream = "";
-                      this.extractedImages = [];
                       this.getMessages();
                       this.getThreads();
                       return;
@@ -594,7 +597,6 @@ var pluginState = () => {
         .then((response) => response.json())
         .then((data) => {
           this.messages = data;
-          console.log(this.messages);
           this.newMessage = "";
           this.newRawMessage = "";
           setTimeout(() => {
