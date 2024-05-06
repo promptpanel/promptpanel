@@ -1,10 +1,10 @@
 {
   "name": "LLM Completion",
-  "category": " Starter Agents",
+  "category": " Base Models",
   "settings": [
     {
       "name": "Model",
-      "description": "The completion model you want to use.",
+      "description": "The completion model you want to use. Used mainly for tokenization with the API Base.",
       "default": "",
       "type": "text",
       "selections": [
@@ -12,6 +12,12 @@
           "group": "OpenAI",
           "values": [
             "gpt-3.5-turbo-instruct"
+          ]
+        },
+        {
+          "group": "Other / Open Source",
+          "values": [
+            "huggingface/meta-llama/Meta-Llama-3-8B"
           ]
         }
       ],
@@ -35,6 +41,7 @@
       "name": "API Key",
       "description": "API access key for connecting to API. OpenAI compatible APIs usually need a placeholder for this field.",
       "type": "text",
+      "private": true,
       "required": false
     },
     {
@@ -53,14 +60,6 @@
     {
       "name": "Max Tokens to Generate",
       "type": "number",
-      "advanced": true
-    },
-    {
-      "name": "Token Counter",
-      "description": "The counter used for counting token usage.",
-      "default": "openai",
-      "type": "select",
-      "selections": ["openai", "llama"],
       "advanced": true
     },
     {

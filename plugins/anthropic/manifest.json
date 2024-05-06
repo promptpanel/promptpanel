@@ -1,6 +1,6 @@
 {
   "name": "Anthropic",
-  "category": " Starter Agents",
+  "category": " Base Models",
   "settings": [
     {
       "name": "Model",
@@ -30,6 +30,7 @@
       "name": "API Key",
       "description": "API access key for connecting to API. You can find or create your key here: https://console.anthropic.com/settings/keys",
       "type": "text",
+      "private": true,
       "required": true
     }
   ]

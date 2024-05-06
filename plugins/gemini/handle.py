@@ -4,8 +4,6 @@ import litellm
 from panel.models import File, Message, Panel, Thread
 from django.http import JsonResponse, StreamingHttpResponse
 from unstructured.partition.auto import partition
-from openai import OpenAI
-from jinja2 import Template
 
 logger = logging.getLogger("app")
 
@@ -31,7 +29,11 @@ def file_stream(file, thread, panel):
         ## ----- 1. Get settings.
         logger.info("** 1. Get settings.")
         settings = panel.meta
-        completion_model = settings.get("Model")
+        model_selected = settings.get("Model", "Gemini Pro 1.5")
+        if model_selected == "Gemini Pro 1.0":
+            completion_model = "gemini/gemini-pro"
+        else:
+            completion_model = "gemini/gemini-1.5-pro-latest"
 
         ## ----- 2. Parse file and save to .txt file.
         logger.info("** 2. Parse file and save to .txt file.")
@@ -97,7 +99,12 @@ def chat_stream(message, thread, panel):
 
         ## ----- 2. Enrich incoming message with token_count.
         logger.info("** 2. Enrich incoming message with token_count.")
-        completion_model = settings.get("Model")
+        model_selected = settings.get("Model", "Gemini Pro 1.5")
+        if model_selected == "Gemini Pro 1.0":
+            completion_model = "gemini/gemini-pro"
+        else:
+            completion_model = "gemini/gemini-1.5-pro-latest"
+
         token_count = litellm.token_counter(
             model=completion_model,
             messages=[{"role": "user", "content": message.content}],
@@ -106,7 +113,11 @@ def chat_stream(message, thread, panel):
         message.save()
 
         ## ----- 3. Get max context and system message.
-        max_tokens = int(settings.get("Context Size"))
+        if model_selected == "Gemini Pro 1.5":
+            max_tokens = 1000000
+        else:
+            max_tokens = 32000
+
         system_message = {
             "role": "system",
             "content": [{"type": "text", "text": settings.get("System Message", "")}],
@@ -114,26 +125,7 @@ def chat_stream(message, thread, panel):
         system_message_token_count = litellm.token_counter(
             model=completion_model, messages=[system_message]
         )
-        prompt_template = settings.get("Prompt Template", "")
-        prompt_template_token_count = {
-            "role": "user",
-            "content": [{"type": "text", "text": prompt_template}],
-        }
-        system_message_token_count = litellm.token_counter(
-            model=completion_model, messages=[system_message]
-        )
-
-        if settings.get("Max Tokens to Generate") is not None:
-            remaining_tokens = (
-                max_tokens
-                - system_message_token_count
-                - prompt_template_token_count
-                - int(settings.get("Max Tokens to Generate"))
-            )
-        else:
-            remaining_tokens = (
-                max_tokens - prompt_template_token_count - system_message_token_count
-            )
+        remaining_tokens = max_tokens - system_message_token_count
 
         ## ----- 4. Build document context.
         logger.info("** 4. Build document context.")
@@ -142,6 +134,7 @@ def chat_stream(message, thread, panel):
         doc_current_tokens = 0
         doc_context = ""
         skipped_docs = False
+
         thread_files = File.objects.filter(thread=thread, meta__enabled=True)
         if thread_files.exists():
             for file in thread_files:
@@ -161,7 +154,7 @@ def chat_stream(message, thread, panel):
                     break
             document_context = {
                 "role": "user",
-                "content": doc_context,
+                "content": [{"type": "text", "text": doc_context}],
             }
             # Set tokens after adding docs
             remaining_tokens = remaining_tokens - doc_current_tokens
@@ -180,100 +173,76 @@ def chat_stream(message, thread, panel):
                 <= remaining_tokens
             ):
                 # Container for message
+                content_items = []
+                content_items.append({"type": "text", "text": msg.content})
                 skipped_images = False
-                if msg.meta.get("images"):
-                    skipped_images = True
+                if litellm.supports_vision(model=completion_model):
+                    images = msg.meta.get("images", [])
+                    for img_base64 in images:
+                        content_items.append(
+                            {"type": "image_url", "image_url": {"url": img_base64}}
+                        )
+                else:
+                    if msg.meta.get("images"):
+                        skipped_images = True
                 # Append if user or assistant
                 role = msg.meta.get("sender", "user")
-                message_history_token_count += msg.meta.get("token_count", 0)
                 if role == "user":
+                    # Increment if role user (for title later)
                     user_message_count = user_message_count + 1
-                    message_history.append({"role": "user", "content": msg.content})
-                if role == "assistant":
+                    message_history_token_count += msg.meta.get("token_count", 0)
                     message_history.append(
-                        {"role": "assistant", "content": msg.content}
+                        {
+                            "role": "user",
+                            "content": content_items,
+                        }
+                    )
+                if role == "assistant":
+                    message_history_token_count += msg.meta.get("token_count", 0)
+                    message_history.append(
+                        {
+                            "role": "assistant",
+                            "content": content_items,
+                        }
                     )
             else:
                 break
         if thread_files.exists():
             message_history.append(document_context)
+        message_history.append(system_message)
         message_history.reverse()
-        # Create chat template
-        message_context = {
-            "system_message": system_message,
-            "message_history": message_history,
-        }
-        template = Template(prompt_template, trim_blocks=True, lstrip_blocks=True)
-        message_prepped = template.render(message_context)
 
         ## ----- 6. Execute chat.
         logger.info("** 6. Execute chat.")
         logger.info("Message history: " + str(message_history))
-        client_settings = {
-            "api_key": settings.get("API Key"),
-            "base_url": (
-                settings.get("URL Base", "").rstrip("/")
-                if settings.get("URL Base") is not None
-                else None
-            ),
-            "organization": settings.get("Organization ID"),
-        }
-        client_settings_trimmed = {
-            key: value for key, value in client_settings.items() if value is not None
-        }
-        openai_client = OpenAI(**client_settings_trimmed)
         completion_settings = {
             "stream": True,
-            "model": settings.get("Model"),
-            "prompt": message_prepped,
-            "stop": settings.get("Stop Sequence"),
-            "temperature": (
-                float(settings.get("Temperature"))
-                if settings.get("Temperature") is not None
-                else None
-            ),
-            "max_tokens": (
-                int(settings.get("Max Tokens to Generate"))
-                if settings.get("Max Tokens to Generate") is not None
-                else None
-            ),
-            "top_p": (
-                float(settings.get("Top P"))
-                if settings.get("Top P") is not None
-                else None
-            ),
-            "presence_penalty": (
-                float(settings.get("Presence Penalty"))
-                if settings.get("Presence Penalty") is not None
-                else None
-            ),
-            "frequency_penalty": (
-                float(settings.get("Frequency Penalty"))
-                if settings.get("Frequency Penalty") is not None
-                else None
-            ),
+            "model": completion_model,
+            "messages": message_history,
+            "api_key": settings.get("API Key"),
         }
+        litellm.drop_params = True
         completion_settings_trimmed = {
             key: value
             for key, value in completion_settings.items()
             if value is not None
         }
+        response = litellm.completion(**completion_settings_trimmed)
         response_content = ""
         response_display = ""
         if skipped_images:
             response_display += "> Vision is not available with this model.\n\n"
         if skipped_docs:
             response_display += "> Some of your documents exceeded the context window (text size) for your AI. We recommend using a retrieval-augmented generation (RAG) based solution to surface only the relevant information when querying your AI.\n\n"
-        for part in openai_client.completions.create(**completion_settings_trimmed):
+        for part in response:
             try:
-                delta = part.choices[0].text or ""
+                delta = part.choices[0].delta.content or ""
                 response_content += delta
                 response_display += delta
                 yield response_display
             except Exception as e:
                 logger.info("Skipped chunk: " + str(e))
                 pass
-        logger.info("response_content: " + str(response_content))
 
         ## ----- 7. Save warnings as needed.
         logger.info("** 7. Save warnings as needed.")
@@ -333,26 +302,44 @@ def chat_stream(message, thread, panel):
         ## ----- 9. Enrich / append a title to the chat.
         logger.info("** 9. Enrich / append a title to the chat")
         if user_message_count == 1:
-            title_enrich = (
-                "## Context: "
-                + "You are an assistant who writes titles based on questions which are asked by the user. Please only provide a summary, do not provide the answer to the question."
-                + "\n"
-                + "Please create a title for the following content: "
-                + "\n"
-                + message.content
-                + "\n\n"
-                + "Title: "
+            title_enrich = []
+            title_enrich.append(
+                {
+                    "role": "system",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "You are an assistant who writes titles based on questions which are asked by the user. Please only provide a summary, do not provide the answer to the question.",
+                        }
+                    ],
+                }
+            )
+            title_enrich.append(
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": f"Please create a title for the following content: {message.content} \n\n Title:",
+                        }
+                    ],
+                }
             )
             title_settings = {
                 "stream": False,
-                "model": settings.get("Model"),
-                "prompt": title_enrich,
+                "model": "gemini/gemini-1.5-pro-latest",
+                "messages": title_enrich,
+                "api_key": settings.get("API Key"),
+                "max_tokens": 34,
             }
+            litellm.drop_params = True
             title_settings_trimmed = {
                 key: value for key, value in title_settings.items() if value is not None
             }
-            response = openai_client.completions.create(**title_settings_trimmed)
-            thread.title = response.choices[0].text.strip('"\n')  # Clean extra quotes
+            response = litellm.completion(**title_settings_trimmed)
+            thread.title = response.choices[0].message.content.strip(
+                '"\n'
+            )  # Clean extra quotes
             thread.save()
     except Exception as e:
         logger.error(e, exc_info=True)

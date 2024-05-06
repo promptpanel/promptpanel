@@ -175,7 +175,7 @@ def chat_stream(message, thread, panel):
                 content_items = []
                 content_items.append({"type": "text", "text": msg.content})
                 skipped_images = False
-                if model_selected == "GPT-4":
+                if litellm.supports_vision(model=completion_model):
                     images = msg.meta.get("images", [])
                     for img_base64 in images:
                         content_items.append(
@@ -230,11 +230,9 @@ def chat_stream(message, thread, panel):
         response_content = ""
         response_display = ""
         if skipped_images:
-            response_display += "> Vision is not available with GPT-3.5. Vision data from your messages has been excluded. Try using GPT-4 to enable vision support.\n\n"
+            response_display += "> Vision is not available with GPT-3.5. Try using GPT-4 to enable vision support.\n\n"
         if skipped_docs:
             response_display += "> Some of your documents exceeded the context window (text size) for your AI. We recommend using a retrieval-augmented generation (RAG) based solution to surface only the relevant information when querying your AI.\n\n"
-        else:
-            response_display = ""
         for part in response:
             try:
                 delta = part.choices[0].delta.content or ""
@@ -258,7 +256,7 @@ def chat_stream(message, thread, panel):
             warning_docs.save()
         if skipped_images:
             warning_images = Message(
-                content="Vision is not available with GPT-3.5. Vision data from your messages has been excluded. Try using GPT-4 to enable vision support.",
+                content="Vision is not available with GPT-3.5. Try using GPT-4 to enable vision support.",
                 thread=thread,
                 panel=panel,
                 created_by=message.created_by,

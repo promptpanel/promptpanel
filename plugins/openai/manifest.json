@@ -1,6 +1,6 @@
 {
   "name": "OpenAI",
-  "category": " Starter Agents",
+  "category": " Base Models",
   "settings": [
     {
       "name": "Model",

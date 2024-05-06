@@ -1,6 +1,6 @@
 {
   "name": "Cohere",
-  "category": " Starter Agents",
+  "category": " Base Models",
   "settings": [
     {
       "name": "Model",
@@ -29,6 +29,7 @@
       "name": "API Key",
       "description": "API access key for connecting to API. You can find or create your key here: https://dashboard.cohere.com/api-keys",
       "type": "text",
+      "private": true,
       "required": true
     }
   ]
