@@ -1,6 +1,9 @@
 {
   "name": "OpenAI",
   "category": " Base Models",
+  "capabilities": {
+    "vision": true
+  },
   "settings": [
     {
       "name": "Model",
