@@ -461,15 +461,10 @@ var pluginState = () => {
       }
     },
     autoExpand(field) {
-      field.style.height = 'inherit';
+      field.style.height = "inherit";
       var computed = window.getComputedStyle(field);
-      var height = parseInt(computed.getPropertyValue('border-top-width'), 10)
-          + parseInt(computed.getPropertyValue('padding-top'), 10)
-          + field.scrollHeight
-          + parseInt(computed.getPropertyValue('padding-bottom'), 10)
-          + parseInt(computed.getPropertyValue('border-bottom-width'), 10)
-          - 15;
-      field.style.height = height + 'px';
+      var height = parseInt(computed.getPropertyValue("border-top-width"), 10) + parseInt(computed.getPropertyValue("padding-top"), 10) + field.scrollHeight + parseInt(computed.getPropertyValue("padding-bottom"), 10) + parseInt(computed.getPropertyValue("border-bottom-width"), 10) - 15;
+      field.style.height = height + "px";
     },
     // Messages
     createMessageSubmit() {
@@ -479,7 +474,7 @@ var pluginState = () => {
       // Streaming container for WIP generation
       let streaming = "";
       let mdConverter = new showdown.Converter();
-      this.messageFromEditor = this.messageFromEditor.replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      this.messageFromEditor = this.messageFromEditor.replace(/</g, "&lt;").replace(/>/g, "&gt;");
       this.messageFormatted = mdConverter.makeHtml(this.messageFromEditor);
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/app/message/create/";
@@ -489,9 +484,9 @@ var pluginState = () => {
         panel_id: Alpine.store("active").panelId,
         thread_id: Alpine.store("active").threadId,
       };
-      this.messageImages = this.extractedImages 
+      this.messageImages = this.extractedImages;
       // Wipe interim message before sending
-      this.extractedImages = []
+      this.extractedImages = [];
       this.messageFromEditor = "";
       // Indicate processing => positioning div
       this.indicateProcessing = true;
@@ -548,12 +543,12 @@ var pluginState = () => {
                     // Format for display / light sanitize for HTML tags and such
                     this.responseStream = mdConverter.makeHtml(string);
                     document.querySelectorAll("pre code").forEach((block) => {
-                      if (!block.classList.contains('hljs')) {
+                      if (!block.classList.contains("hljs")) {
                         hljs.highlightElement(block);
                       }
-                      if (!block.classList.contains('hljs')) {
-                        block.classList.add('language-bash');
-                        block.classList.add('bash');                  
+                      if (!block.classList.contains("hljs")) {
+                        block.classList.add("language-bash");
+                        block.classList.add("bash");
                         hljs.highlightElement(block);
                       }
                     });
@@ -602,12 +597,12 @@ var pluginState = () => {
           setTimeout(() => {
             // Check for any un-highlighted blocks
             document.querySelectorAll("pre code").forEach((block) => {
-              if (!block.classList.contains('hljs')) {
+              if (!block.classList.contains("hljs")) {
                 hljs.highlightElement(block);
               }
-              if (!block.classList.contains('hljs')) {
-                block.classList.add('language-bash');
-                block.classList.add('bash');                  
+              if (!block.classList.contains("hljs")) {
+                block.classList.add("language-bash");
+                block.classList.add("bash");
                 hljs.highlightElement(block);
               }
             });
@@ -727,15 +722,15 @@ var pluginState = () => {
     },
     handleFiles(event, isDrop) {
       let filesArray = isDrop ? event.dataTransfer.files : event.target.files;
-      this.filesQueue = Array.from(filesArray).map(f => ({ file: f, filename: f.name, status: 'queued' }));    
+      this.filesQueue = Array.from(filesArray).map((f) => ({ file: f, filename: f.name, status: "queued" }));
       this.processNextFile();
     },
     processNextFile() {
-      let nextFile = this.filesQueue.find(f => f.status === 'queued');
+      let nextFile = this.filesQueue.find((f) => f.status === "queued");
       if (nextFile) {
         this.createFileSubmit(nextFile);
       }
-    },    
+    },
     createFileSubmit(fileItem) {
       fileItem.status = "uploading";
       let mdConverter = new showdown.Converter();
@@ -743,7 +738,7 @@ var pluginState = () => {
       let fileStatus = "";
       const fileObj = fileItem.file;
       formData.append("file", fileObj);
-      formData.append("metadata", JSON.stringify({"enabled": true}));
+      formData.append("metadata", JSON.stringify({ enabled: true }));
       formData.append("panel_id", Alpine.store("active").panelId);
       formData.append("thread_id", Alpine.store("active").threadId);
       const hostname = window.location.origin;
@@ -758,7 +753,7 @@ var pluginState = () => {
         method: "POST",
         credentials: "include",
         body: formData,
-        signal: controller.signal
+        signal: controller.signal,
       })
         .then((response) => {
           if (!response.ok) {
@@ -840,13 +835,13 @@ var pluginState = () => {
             Alpine.store("toastStore").addToast(failToast);
             fileItem.status = "error";
             this.indicateFile = false;
-            this.processNextFile();  
+            this.processNextFile();
           }
         });
     },
     cancelUpload(fileItem) {
       if (fileItem.status === "completed" || fileItem.status === "cancelled") {
-        this.filesQueue = this.filesQueue.filter(f => f !== fileItem);
+        this.filesQueue = this.filesQueue.filter((f) => f !== fileItem);
       } else {
         if (!confirm("Are you sure you want to cancel your file upload?")) {
           return;
@@ -856,11 +851,11 @@ var pluginState = () => {
             fileItem.controller.abort();
           }
         } else {
-          this.filesQueue = this.filesQueue.filter(f => f !== fileItem);
+          this.filesQueue = this.filesQueue.filter((f) => f !== fileItem);
         }
       }
     },
-    updateFileEnableState(file, isEnabled){
+    updateFileEnableState(file, isEnabled) {
       file.meta.enabled = isEnabled;
       this.updateFile(file.id, file.filename, file.meta);
     },
@@ -869,7 +864,7 @@ var pluginState = () => {
       const url = hostname + "/api/v1/app/file/update/" + fileId + "/";
       const fileData = {
         filename: fileName,
-        meta: metadata
+        meta: metadata,
       };
       fetch(url, {
         method: "PUT",
@@ -899,8 +894,8 @@ var pluginState = () => {
           Alpine.store("toastStore").addToast(failToast);
         });
     },
-    getEnabledDocumentsCount() { 
-      return this.files.filter(file => file.meta?.enabled).length; 
+    getEnabledDocumentsCount() {
+      return this.files.filter((file) => file.meta?.enabled).length;
     },
     deleteFile(fileId) {
       if (!confirm("Are you sure you want to delete this file?")) {
@@ -992,21 +987,20 @@ var pluginState = () => {
       } else {
         this.osPlatform = "other";
       }
-    },    
+    },
     insertTab(event) {
       let textarea = event.target;
       let start = textarea.selectionStart;
       let end = textarea.selectionEnd;
-      textarea.value = textarea.value.substring(0, start) +
-          "\t" + textarea.value.substring(end);
+      textarea.value = textarea.value.substring(0, start) + "\t" + textarea.value.substring(end);
       textarea.selectionStart = textarea.selectionEnd = start + 1;
       event.preventDefault();
-    }
+    },
   };
 };
 
 // Querystring
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   // Querystring > delete thread
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get("deleted") === "true") {

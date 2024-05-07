@@ -78,26 +78,20 @@
           </button>
           <div>
             <h2 class="text-xl font-semibold line-clamp-1">Documents</h2>
-            <p class="text-sm text-stone-500">
-              Documents are processed as they are uploaded.
-            </p>  
+            <p class="text-sm text-stone-500">Documents are processed as they are uploaded.</p>
           </div>
         </div>
         <div class="px-4 pt-1.5 max-h-[calc(100%-4.15rem)] overflow-auto">
           <form enctype="multipart/form-data" @submit.prevent>
-            <div 
-              @dragover.prevent="isFileDragged = true"
-              @dragleave.prevent="isFileDragged = false"
-              @drop.prevent="handleFiles($event, true)"
-              @click="$refs.fileInput.click()"
-              :class="{'bg-stone-100': isFileDragged, 'bg-transparent': !isFileDragged}"
-              class="text-stone-500 flex justify-center items-center h-32 mb-3 p-4 border-dashed border border-stone-400 rounded cursor-pointer hover:bg-stone-100 hover:text-stone-700"
-            >
-                <div class="text-center w-full">
-                  <svg class="w-5 h-5 mb-0.5 mx-auto" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.625 1.5H9a3.75 3.75 0 0 1 3.75 3.75v1.875c0 1.036.84 1.875 1.875 1.875H16.5a3.75 3.75 0 0 1 3.75 3.75v7.875c0 1.035-.84 1.875-1.875 1.875H5.625a1.875 1.875 0 0 1-1.875-1.875V3.375c0-1.036.84-1.875 1.875-1.875ZM12.75 12a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V18a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V12Z" clip-rule="evenodd"></path><path d="M14.25 5.25a5.23 5.23 0 0 0-1.279-3.434 9.768 9.768 0 0 1 6.963 6.963A5.23 5.23 0 0 0 16.5 7.5h-1.875a.375.375 0 0 1-.375-.375V5.25Z"></path></svg>
-                  <p class="font-semibold">Upload your documents</p>  
-                </div>
-                <input id="file-upload" x-ref="fileInput" type="file" name="file-upload[]" multiple class="hidden" @change="handleFiles($event, false)" />
+            <div @dragover.prevent="isFileDragged = true" @dragleave.prevent="isFileDragged = false" @drop.prevent="handleFiles($event, true)" @click="$refs.fileInput.click()" :class="{'bg-stone-100': isFileDragged, 'bg-transparent': !isFileDragged}" class="text-stone-500 flex justify-center items-center h-32 mb-3 p-4 border-dashed border border-stone-400 rounded cursor-pointer hover:bg-stone-100 hover:text-stone-700">
+              <div class="text-center w-full">
+                <svg class="w-5 h-5 mb-0.5 mx-auto" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+                  <path fill-rule="evenodd" d="M5.625 1.5H9a3.75 3.75 0 0 1 3.75 3.75v1.875c0 1.036.84 1.875 1.875 1.875H16.5a3.75 3.75 0 0 1 3.75 3.75v7.875c0 1.035-.84 1.875-1.875 1.875H5.625a1.875 1.875 0 0 1-1.875-1.875V3.375c0-1.036.84-1.875 1.875-1.875ZM12.75 12a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V18a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V12Z" clip-rule="evenodd"></path>
+                  <path d="M14.25 5.25a5.23 5.23 0 0 0-1.279-3.434 9.768 9.768 0 0 1 6.963 6.963A5.23 5.23 0 0 0 16.5 7.5h-1.875a.375.375 0 0 1-.375-.375V5.25Z"></path>
+                </svg>
+                <p class="font-semibold">Upload your documents</p>
+              </div>
+              <input id="file-upload" x-ref="fileInput" type="file" name="file-upload[]" multiple class="hidden" @change="handleFiles($event, false)" />
             </div>
 
             <div x-show="indicateFile">
@@ -134,7 +128,6 @@
                 </button>
               </div>
             </template>
-
           </form>
           <div class="border border-stone-200 rounded-md shadow-sm overflow-x-auto">
             <table class="w-full text-left bg-white">
@@ -155,12 +148,10 @@
                 <template x-for="file in files" :key="file.id">
                   <tr class="border-b border-stone-200 last:border-transparent">
                     <td class="px-2 py-1 text-center">
-                      <input type="checkbox" :checked="file.meta?.enabled" @change="updateFileEnableState(file, $event.target.checked)" class="text-sm w-4 h-4 accent-primary mt-[0.3rem] cursor-pointer">
+                      <input type="checkbox" :checked="file.meta?.enabled" @change="updateFileEnableState(file, $event.target.checked)" class="text-sm w-4 h-4 accent-primary mt-[0.3rem] cursor-pointer" />
                     </td>
                     <td class="px-2 py-1 whitespace-nowrap">
-                      <a :href="file.filepath" x-text="file.filename" 
-                      :class="{ 'text-stone-500 hover:text-stone-800': !file.meta?.enabled, 'text-primary hover:text-primary/80': file.meta?.enabled}"
-                      class="text-primary hover:text-primary/80"></a>
+                      <a :href="file.filepath" x-text="file.filename" :class="{ 'text-stone-500 hover:text-stone-800': !file.meta?.enabled, 'text-primary hover:text-primary/80': file.meta?.enabled}" class="text-primary hover:text-primary/80"></a>
                     </td>
                     <td class="px-2 py-1 whitespace-nowrap" x-text="formatDate(file.created_on)" :class="{ 'text-stone-400': !file.meta?.enabled }"></td>
                     <td class="px-2 py-1 text-right">
@@ -221,16 +212,12 @@
                 </template>
                 <tr x-show="ollamaModels.length == 0">
                   <td colspan="6" class="text-center text-stone-500 px-2 py-10 bg-white">
-                    <p>No local AI models added.
-                      {% if user_is_admin %}
-                        <a href="/system/ollama/" target="_top" class="underline hover:text-stone-900">Get one</a> to continue.</p>
-                      {% endif %}
-                      {% if not user_is_admin %}
-                        Get one to continue.
-                      {% endif %}
+                    <p>
+                      No local AI models added. {% if user_is_admin %}
+                      <a href="/system/ollama/" target="_top" class="underline hover:text-stone-900">Get one</a> to continue. {% endif %} {% if not user_is_admin %} Get one to continue. {% endif %}
                     </p>
                   </td>
-                </tr>    
+                </tr>
               </tbody>
             </table>
           </div>
@@ -272,21 +259,13 @@
           <template x-if="!loadedThreads">
             <div>
               <div class="block px-2.5 py-1 mb-1 transition -lg:p-3">
-                <p class="font-semibold line-clamp-1 rounded-md mb-0.5 w-max text-stone-200 bg-stone-200">
-                  ---------
-                </p>
-                <p class="text-sm w-max rounded-md text-stone-200 bg-stone-200">
-                  ---------------------------
-                </p>
+                <p class="font-semibold line-clamp-1 rounded-md mb-0.5 w-max text-stone-200 bg-stone-200">---------</p>
+                <p class="text-sm w-max rounded-md text-stone-200 bg-stone-200">---------------------------</p>
               </div>
               <div class="block px-2.5 py-1 mb-1 transition -lg:p-3">
-                <p class="font-semibold line-clamp-1 rounded-md mb-0.5 w-max text-stone-200 bg-stone-200">
-                  ---------
-                </p>
-                <p class="text-sm w-max rounded-md text-stone-200 bg-stone-200">
-                  ---------------------------
-                </p>
-              </div>  
+                <p class="font-semibold line-clamp-1 rounded-md mb-0.5 w-max text-stone-200 bg-stone-200">---------</p>
+                <p class="text-sm w-max rounded-md text-stone-200 bg-stone-200">---------------------------</p>
+              </div>
             </div>
           </template>
           <template x-for="thread in filteredThreads" :key="thread.id">
@@ -363,12 +342,8 @@
               <div>
                 <div class="mb-10">
                   <div class="z-[0] relative rounded-t-md rounded-br-md w-11/12 py-2.5">
-                    <p class="mr-1.5 mb-0.5 w-full space-y-6 masked text-lg rounded-md w-max text-stone-200 bg-stone-200">
-                      ----------------------------------------------------------
-                    </p>
-                    <p class="mr-1.5 w-full space-y-6 masked text-lg rounded-md w-max text-stone-200 bg-stone-200">
-                      -----------------------------
-                    </p>
+                    <p class="mr-1.5 mb-0.5 w-full space-y-6 masked text-lg rounded-md w-max text-stone-200 bg-stone-200">----------------------------------------------------------</p>
+                    <p class="mr-1.5 w-full space-y-6 masked text-lg rounded-md w-max text-stone-200 bg-stone-200">-----------------------------</p>
                   </div>
                   <div class="flex items-center text-sm text-stone-500 w-full mt-0.5">
                     <p class="rounded-md w-max text-stone-200 bg-stone-200">-----</p>
@@ -378,25 +353,20 @@
                 </div>
                 <div class="mb-6">
                   <div class="z-[0] relative ml-auto rounded-t-md rounded-bl-md bg-stone-100 w-11/12 px-3 py-2.5 overflow-x-auto">
-                    <p class="mr-1.5 mb-0.5 w-full space-y-6 masked text-lg rounded-md w-max text-stone-200 bg-stone-200">
-                      ----------------------------------------------------------
-                    </p>
-                    <p class="mr-1.5 w-full space-y-6 masked text-lg rounded-md w-max text-stone-200 bg-stone-200">
-                      -----------------------------
-                    </p>
+                    <p class="mr-1.5 mb-0.5 w-full space-y-6 masked text-lg rounded-md w-max text-stone-200 bg-stone-200">----------------------------------------------------------</p>
+                    <p class="mr-1.5 w-full space-y-6 masked text-lg rounded-md w-max text-stone-200 bg-stone-200">-----------------------------</p>
                   </div>
                   <div class="flex items-center text-sm text-stone-500 w-full mt-1.5">
                     <p class="ml-auto rounded-md w-max text-stone-200 bg-stone-200">-----</p>
                     <p class="mx-1">•</p>
                     <p class="rounded-md w-max text-stone-200 bg-stone-200">----------</p>
                   </div>
-                </div>  
+                </div>
               </div>
             </template>
 
             <template x-for="message in messages" :key="message.id">
               <div>
-
                 <template x-if="message.meta?.sender == 'assistant'">
                   <div class="mb-10">
                     <div class="z-[0] relative rounded-t-md rounded-br-md w-11/12 py-2.5">
@@ -440,14 +410,14 @@
                         <div class="flex items-center mt-1.5">
                           <template x-for="image in message.meta?.images" :key="index">
                             <div class="flex items-center justify-center min-w-7 max-w-7 h-7 rounded-md overflow-hidden mr-1.5 relative">
-                              <a :href="image" download="uploaded_img" class="relative group w-max">                    
+                              <a :href="image" download="uploaded_img" class="relative group w-max">
                                 <div class="absolute flex items-center justify-center w-full h-full bg-stone-800 opacity-0 group-hover:opacity-60">
                                   <svg class="text-stone-50 w-5 h-5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 2.25a.75.75 0 0 1 .75.75v11.69l3.22-3.22a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 1 1 1.06-1.06l3.22 3.22V3a.75.75 0 0 1 .75-.75Zm-9 13.5a.75.75 0 0 1 .75.75v2.25a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5V16.5a.75.75 0 0 1 1.5 0v2.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V16.5a.75.75 0 0 1 .75-.75Z" clip-rule="evenodd"></path></svg>
                                 </div>
                                 <img :src="image" alt="Image Preview" />
                               </a>
                             </div>
-                          </template>  
+                          </template>
                         </div>
                       </template>
                     </div>
@@ -515,7 +485,6 @@
                     </div>
                   </div>
                 </template>
-
               </div>
             </template>
 
@@ -527,14 +496,14 @@
                     <div class="flex items-center mt-1.5">
                       <template x-for="image in messageImages" :key="index">
                         <div class="flex items-center justify-center min-w-7 max-w-7 h-7 rounded-md overflow-hidden mr-1.5 relative">
-                          <a :href="image" download="uploaded_img" class="relative group w-max">                    
+                          <a :href="image" download="uploaded_img" class="relative group w-max">
                             <div class="absolute flex items-center justify-center w-full h-full bg-stone-800 opacity-0 group-hover:opacity-60">
                               <svg class="text-stone-50 w-5 h-5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 2.25a.75.75 0 0 1 .75.75v11.69l3.22-3.22a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 1 1 1.06-1.06l3.22 3.22V3a.75.75 0 0 1 .75-.75Zm-9 13.5a.75.75 0 0 1 .75.75v2.25a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5V16.5a.75.75 0 0 1 1.5 0v2.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V16.5a.75.75 0 0 1 .75-.75Z" clip-rule="evenodd"></path></svg>
                             </div>
                             <img :src="image" alt="Image Preview" />
                           </a>
                         </div>
-                      </template>  
+                      </template>
                     </div>
                   </template>
                 </div>
@@ -573,7 +542,6 @@
         <div class="fixed w-[calc(100%-20rem)] bottom-0 bg-white px-6 pt-1 -lg:w-full">
           <div class="max-w-3xl mx-auto">
             <div class="mt-3 relative w-full z-10">
-
               <!-- Send Button - Blank -->
               <button x-show="messageFromEditor == '' && !indicateProcessing" disabled class="z-10 flex items-center justify-center absolute bottom-[0.5rem] right-[0.825rem] h-7 w-7 rounded-md text-stone-400">
                 <svg class="w-[1rem] h-[1rem] min-w-[1rem] min-h-[1rem]" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M476.59 227.05l-.16-.07L49.35 49.84A23.56 23.56 0 0027.14 52 24.65 24.65 0 0016 72.59v113.29a24 24 0 0019.52 23.57l232.93 43.07a4 4 0 010 7.86L35.53 303.45A24 24 0 0016 327v113.31A23.57 23.57 0 0026.59 460a23.94 23.94 0 0013.22 4 24.55 24.55 0 009.52-1.93L476.4 285.94l.19-.09a32 32 0 000-58.8z"></path></svg>
@@ -587,25 +555,15 @@
                 <svg class="animate-spin w-5 h-5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M12 22c5.421 0 10-4.579 10-10h-2c0 4.337-3.663 8-8 8s-8-3.663-8-8c0-4.336 3.663-8 8-8V2C6.579 2 2 6.58 2 12c0 5.421 4.579 10 10 10z"></path></svg>
               </button>
 
+              {% if capabilities.vision %}
               <!-- Image Upload -->
               <label for="image-upload" class="absolute bottom-[0.5rem] left-[0.5rem] text-sm font-semibold cursor-pointer z-10 flex items-center justify-center h-7 w-7 text-stone-400 rounded-md hover:bg-stone-200 hover:text-stone-600">
                 <svg class="w-[1.25rem] h-[1.25rem] min-w-[1.25rem] min-h-[1.25rem]" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 20 20" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M1 5.25A2.25 2.25 0 013.25 3h13.5A2.25 2.25 0 0119 5.25v9.5A2.25 2.25 0 0116.75 17H3.25A2.25 2.25 0 011 14.75v-9.5zm1.5 5.81v3.69c0 .414.336.75.75.75h13.5a.75.75 0 00.75-.75v-2.69l-2.22-2.219a.75.75 0 00-1.06 0l-1.91 1.909.47.47a.75.75 0 11-1.06 1.06L6.53 8.091a.75.75 0 00-1.06 0l-2.97 2.97zM12 7a1 1 0 11-2 0 1 1 0 012 0z" clip-rule="evenodd"></path></svg>
               </label>
               <input id="image-upload" name="image-upload" type="file" @change="imageUpload" class="hidden" />
+              {% endif %}
 
-              <textarea 
-                id="tabTextarea"
-                x-model="messageFromEditor" 
-                @keydown.cmd.enter="createMessageSubmit()" 
-                @keydown.ctrl.enter="createMessageSubmit()"
-                @keydown.tab.prevent="insertTab($event)"
-                x-ref="chatBox"
-                x-init="$watch('messageFromEditor', () => autoExpand($refs.chatBox))"
-                @input="autoExpand($event.target)"
-                rows="1"
-                class="block text-lg resize-none w-full min-h-[1.5rem] max-h-[44vh] px-10 py-2 rounded-t-md bg-white border border-stone-400/30 outline-none transition placeholder:text-stone-400 hover:shadow-sm focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10"
-              ></textarea>
-              
+              <textarea id="tabTextarea" x-model="messageFromEditor" @keydown.cmd.enter="createMessageSubmit()" @keydown.ctrl.enter="createMessageSubmit()" @keydown.tab.prevent="insertTab($event)" x-ref="chatBox" x-init="$watch('messageFromEditor', () => autoExpand($refs.chatBox))" @input="autoExpand($event.target)" rows="1" class="{% if capabilities.vision %} px-10 {% else %} pl-4 pr-10 {% endif %} block text-lg resize-none w-full min-h-[1.5rem] max-h-[44vh] py-2 rounded-t-md bg-white border border-stone-400/30 outline-none transition placeholder:text-stone-400 hover:shadow-sm focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10"></textarea>
             </div>
             <div class="flex items-center bg-stone-100 rounded-b-md border-b border-x border-stone-400/30 mb-1.5 w-full">
               <div class="flex items-center px-1.5 py-1.5">
@@ -618,7 +576,7 @@
                     </button>
                   </div>
                 </template>
-              </div> 
+              </div>
               <button @click="modalDocuments = true" class="ml-auto flex items-center text-sm font-semibold h-10 px-2.5 text-stone-500 hover:bg-stone-200 hover:text-stone-700">
                 <svg class="w-4 h-4 mr-1" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 20 20" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.5 2A1.5 1.5 0 0 0 3 3.5v13A1.5 1.5 0 0 0 4.5 18h11a1.5 1.5 0 0 0 1.5-1.5V7.621a1.5 1.5 0 0 0-.44-1.06l-4.12-4.122A1.5 1.5 0 0 0 11.378 2H4.5Zm2.25 8.5a.75.75 0 0 0 0 1.5h6.5a.75.75 0 0 0 0-1.5h-6.5Zm0 3a.75.75 0 0 0 0 1.5h6.5a.75.75 0 0 0 0-1.5h-6.5Z" clip-rule="evenodd"></path></svg>
                 <p x-text="getEnabledDocumentsCount() > 0 ? getEnabledDocumentsCount() + ' Document' + (getEnabledDocumentsCount() > 1 ? 's' : '') : 'Add Documents'"></p>

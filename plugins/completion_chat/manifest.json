@@ -10,15 +10,11 @@
       "selections": [
         {
           "group": "OpenAI",
-          "values": [
-            "gpt-3.5-turbo-instruct"
-          ]
+          "values": ["gpt-3.5-turbo-instruct"]
         },
         {
           "group": "Other / Open Source",
-          "values": [
-            "huggingface/meta-llama/Meta-Llama-3-8B"
-          ]
+          "values": ["huggingface/meta-llama/Meta-Llama-3-8B"]
         }
       ],
       "required": false

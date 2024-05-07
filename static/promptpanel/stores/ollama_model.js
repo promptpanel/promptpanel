@@ -58,7 +58,7 @@ var localModelState = () => {
     removeModel(modelName) {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/app/ollama/delete/";
-      
+
       const data = {
         name: modelName,
       };
@@ -91,7 +91,7 @@ var localModelState = () => {
     getModels() {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/app/ollama/tags";
-      
+
       fetch(url, {
         method: "GET",
         headers: {

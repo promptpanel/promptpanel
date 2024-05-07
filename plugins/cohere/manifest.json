@@ -10,10 +10,7 @@
       "selections": [
         {
           "group": "Cohere",
-          "values": [
-            "Command R+",
-            "Command R"
-          ]
+          "values": ["Command R+", "Command R"]
         }
       ],
       "required": true

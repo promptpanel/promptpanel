@@ -13,10 +13,7 @@
       "selections": [
         {
           "group": "OpenAI",
-          "values": [
-            "GPT-3.5",
-            "GPT-4"
-          ]
+          "values": ["GPT-3.5", "GPT-4"]
         }
       ],
       "required": true

@@ -82,12 +82,8 @@
         </div>
 
         <div class="flex items-center mt-6 mb-3">
-          <button x-show="!showAccessControls" class="flex items-center justify-center font-semibold px-2.5 h-9 rounded-md transition duration-500 text-stone-800 bg-stone-200">
-            Panel Options
-          </button>
-          <button x-show="showAccessControls" @click="showAccessControls = false" class="flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 rounded-md transition duration-500 hover:bg-stone-200 hover:text-stone-800">
-            Panel Options
-          </button>
+          <button x-show="!showAccessControls" class="flex items-center justify-center font-semibold px-2.5 h-9 rounded-md transition duration-500 text-stone-800 bg-stone-200">Panel Options</button>
+          <button x-show="showAccessControls" @click="showAccessControls = false" class="flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 rounded-md transition duration-500 hover:bg-stone-200 hover:text-stone-800">Panel Options</button>
           <button x-show="!showAccessControls" @click="showAccessControls = true" class="ml-1.5 flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 rounded-md transition duration-500 hover:bg-stone-200 hover:text-stone-800">
             Access Control
             <span x-show="createUserMode == 'adminOnly'" class="ml-1.5 font-semibold px-1.5 py-1 rounded-md text-xs text-stone-800 bg-stone-300">Admins Only</span>
@@ -104,66 +100,34 @@
 
         <div x-show="showAccessControls">
           <p class="">Who should have access to this Panel?</p>
-          <p class="text-stone-500 text-sm mb-1.5">
-            Only Admins can modify Panels. Admins can access all Panels.
-          </p>
+          <p class="text-stone-500 text-sm mb-1.5">Only Admins can modify Panels. Admins can access all Panels.</p>
           <div class="grid grid-cols-3 gap-3 mb-4">
-            <div 
-              @click="createUserMode = 'adminOnly'"
-              class="cursor-pointer group flex items-start bg-white rounded-md border p-3"
-              :class="{'border-primary ring-2 ring-primary/10': createUserMode == 'adminOnly', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': createUserMode == 'adminOnly'}"
-            >
-                <div 
-                    x-show="createUserMode == 'adminOnly'"
-                    class="flex items-center justify-center mt-1 rounded-full min-w-4 min-h-4 bg-primary border border-primary mr-1.5">
-                    <div class="bg-white w-1.5 h-1.5 rounded-full"></div>
-                </div>
-                <div 
-                    x-show="createUserMode !== 'adminOnly'"
-                    class="mt-1 rounded-full min-w-4 min-h-4 border border-stone-300 mr-1.5 group-hover:border-stone-400"
-                    style="display: none;">
-                </div>
-                <div>
-                    <p class="font-semibold">Administrators</p>
-                  </div>
+            <div @click="createUserMode = 'adminOnly'" class="cursor-pointer group flex items-start bg-white rounded-md border p-3" :class="{'border-primary ring-2 ring-primary/10': createUserMode == 'adminOnly', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': createUserMode == 'adminOnly'}">
+              <div x-show="createUserMode == 'adminOnly'" class="flex items-center justify-center mt-1 rounded-full min-w-4 min-h-4 bg-primary border border-primary mr-1.5">
+                <div class="bg-white w-1.5 h-1.5 rounded-full"></div>
+              </div>
+              <div x-show="createUserMode !== 'adminOnly'" class="mt-1 rounded-full min-w-4 min-h-4 border border-stone-300 mr-1.5 group-hover:border-stone-400" style="display: none"></div>
+              <div>
+                <p class="font-semibold">Administrators</p>
+              </div>
             </div>
-            <div 
-              @click="createUserMode = 'global'"
-              class="cursor-pointer group flex items-start bg-white rounded-md border p-3"
-              :class="{'border-primary ring-2 ring-primary/10': createUserMode == 'global', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': createUserMode !== 'global'}"
-            >
-                <div 
-                    x-show="createUserMode == 'global'"
-                    class="flex items-center justify-center mt-1 rounded-full min-w-4 min-h-4 bg-primary border border-primary mr-1.5">
-                    <div class="bg-white w-1.5 h-1.5 rounded-full"></div>
-                </div>
-                <div 
-                    x-show="createUserMode !== 'global'"
-                    class="mt-1 rounded-full min-w-4 min-h-4 border border-stone-300 mr-1.5 group-hover:border-stone-400"
-                    style="display: none;">
-                </div>
-                <div>
-                  <p class="font-semibold">Active Users</p>
-                </div>
+            <div @click="createUserMode = 'global'" class="cursor-pointer group flex items-start bg-white rounded-md border p-3" :class="{'border-primary ring-2 ring-primary/10': createUserMode == 'global', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': createUserMode !== 'global'}">
+              <div x-show="createUserMode == 'global'" class="flex items-center justify-center mt-1 rounded-full min-w-4 min-h-4 bg-primary border border-primary mr-1.5">
+                <div class="bg-white w-1.5 h-1.5 rounded-full"></div>
+              </div>
+              <div x-show="createUserMode !== 'global'" class="mt-1 rounded-full min-w-4 min-h-4 border border-stone-300 mr-1.5 group-hover:border-stone-400" style="display: none"></div>
+              <div>
+                <p class="font-semibold">Active Users</p>
+              </div>
             </div>
-            <div 
-              @click="createUserMode = 'selectUsers'"
-              class="cursor-pointer group flex items-start bg-white rounded-md border p-3"
-              :class="{'border-primary ring-2 ring-primary/10': createUserMode == 'selectUsers', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': createUserMode !== 'selectUsers'}"
-            >
-                <div 
-                    x-show="createUserMode == 'selectUsers'"
-                    class="flex items-center justify-center mt-1 rounded-full min-w-4 min-h-4 bg-primary border border-primary mr-1.5">
-                    <div class="bg-white w-1.5 h-1.5 rounded-full"></div>
-                </div>
-                <div 
-                    x-show="createUserMode !== 'selectUsers'"
-                    class="mt-1 rounded-full min-w-4 min-h-4 border border-stone-300 mr-1.5 group-hover:border-stone-400"
-                    style="display: none;">
-                </div>
-                <div>
-                  <p class="font-semibold">Select Users</p>
-                </div>
+            <div @click="createUserMode = 'selectUsers'" class="cursor-pointer group flex items-start bg-white rounded-md border p-3" :class="{'border-primary ring-2 ring-primary/10': createUserMode == 'selectUsers', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': createUserMode !== 'selectUsers'}">
+              <div x-show="createUserMode == 'selectUsers'" class="flex items-center justify-center mt-1 rounded-full min-w-4 min-h-4 bg-primary border border-primary mr-1.5">
+                <div class="bg-white w-1.5 h-1.5 rounded-full"></div>
+              </div>
+              <div x-show="createUserMode !== 'selectUsers'" class="mt-1 rounded-full min-w-4 min-h-4 border border-stone-300 mr-1.5 group-hover:border-stone-400" style="display: none"></div>
+              <div>
+                <p class="font-semibold">Select Users</p>
+              </div>
             </div>
           </div>
 
@@ -179,13 +143,11 @@
                 </thead>
                 <tbody>
                   <template x-for="user in users" :key="user.id">
-                    <tr x-show="user.is_active"cclass="border-b border-stone-200 last:border-transparent">
+                    <tr x-show="user.is_active" cclass="border-b border-stone-200 last:border-transparent">
                       <td x-show="!user.is_admin" class="text-center px-2 py-1">
-                        <input type="checkbox" :value="user.id" x-model="createUsers" class="text-sm w-4 h-4 accent-primary mt-[0.3rem] cursor-pointer">
+                        <input type="checkbox" :value="user.id" x-model="createUsers" class="text-sm w-4 h-4 accent-primary mt-[0.3rem] cursor-pointer" />
                       </td>
-                      <td x-show="user.is_admin" class="text-center px-2 py-1 text-sm text-stone-500">
-                        Admin
-                      </td>
+                      <td x-show="user.is_admin" class="text-center px-2 py-1 text-sm text-stone-500">Admin</td>
                       <td class="px-2 py-1" x-text="user.username"></td>
                       <td class="px-2 py-1" x-text="user.email"></td>
                     </tr>

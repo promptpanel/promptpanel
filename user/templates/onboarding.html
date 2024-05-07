@@ -54,34 +54,34 @@
                   "Content-Type": "application/json",
                 },
                 body: JSON.stringify(data),
-                redirect: 'follow'
+                redirect: "follow",
               })
-              .then((response) => {
-                console.log(response)
-                if (response.redirected) {
-                  window.location.href = response.url;
-                } else {
-                  return response.json();
-                }
-              })
-              .then((data) => {
-                if (data && data.status !== "success") {
+                .then((response) => {
+                  console.log(response);
+                  if (response.redirected) {
+                    window.location.href = response.url;
+                  } else {
+                    return response.json();
+                  }
+                })
+                .then((data) => {
+                  if (data && data.status !== "success") {
+                    let failToast = {
+                      type: "error",
+                      header: "We had a problem creating your initial user. Please try again.",
+                      message: data.message,
+                    };
+                    Alpine.store("toastStore").addToast(failToast);
+                  }
+                })
+                .catch((error) => {
                   let failToast = {
                     type: "error",
                     header: "We had a problem creating your initial user. Please try again.",
-                    message: data.message,
+                    message: error.message,
                   };
                   Alpine.store("toastStore").addToast(failToast);
-                }
-              })
-              .catch((error) => {
-                let failToast = {
-                  type: "error",
-                  header: "We had a problem creating your initial user. Please try again.",
-                  message: error.message,
-                };
-                Alpine.store("toastStore").addToast(failToast);
-              });
+                });
             } else {
               let failToast = {
                 type: "error",
@@ -89,7 +89,7 @@
               };
               Alpine.store("toastStore").addToast(failToast);
             }
-          }
+          },
         });
       });
     </script>

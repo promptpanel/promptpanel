@@ -44,9 +44,9 @@
             <p class="ml-2 text-stone-500 line-clamp-1" x-text="panelData.plugin_name"></p>
           </div>
           {% if user_is_admin %}
-            <a :href="`/panel/edit/${panelId}`" x-show="!isEditPage" class="ml-1.5 flex items-center justify-center text-sm font-semibold text-stone-500 h-8 w-8 rounded hover:text-stone-900 hover:bg-stone-200 -lg:min-h-9 -lg:min-w-9 -lg:hidden">
-              <svg class="w-5 h-5 -lg:w-6 -lg:h-6" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M6 12a.75.75 0 01-.75-.75v-7.5a.75.75 0 111.5 0v7.5A.75.75 0 016 12zM18 12a.75.75 0 01-.75-.75v-7.5a.75.75 0 011.5 0v7.5A.75.75 0 0118 12zM6.75 20.25v-1.5a.75.75 0 00-1.5 0v1.5a.75.75 0 001.5 0zM18.75 18.75v1.5a.75.75 0 01-1.5 0v-1.5a.75.75 0 011.5 0zM12.75 5.25v-1.5a.75.75 0 00-1.5 0v1.5a.75.75 0 001.5 0zM12 21a.75.75 0 01-.75-.75v-7.5a.75.75 0 011.5 0v7.5A.75.75 0 0112 21zM3.75 15a2.25 2.25 0 104.5 0 2.25 2.25 0 00-4.5 0zM12 11.25a2.25 2.25 0 110-4.5 2.25 2.25 0 010 4.5zM15.75 15a2.25 2.25 0 104.5 0 2.25 2.25 0 00-4.5 0z"></path></svg>
-            </a>
+          <a :href="`/panel/edit/${panelId}`" x-show="!isEditPage" class="ml-1.5 flex items-center justify-center text-sm font-semibold text-stone-500 h-8 w-8 rounded hover:text-stone-900 hover:bg-stone-200 -lg:min-h-9 -lg:min-w-9 -lg:hidden">
+            <svg class="w-5 h-5 -lg:w-6 -lg:h-6" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M6 12a.75.75 0 01-.75-.75v-7.5a.75.75 0 111.5 0v7.5A.75.75 0 016 12zM18 12a.75.75 0 01-.75-.75v-7.5a.75.75 0 011.5 0v7.5A.75.75 0 0118 12zM6.75 20.25v-1.5a.75.75 0 00-1.5 0v1.5a.75.75 0 001.5 0zM18.75 18.75v1.5a.75.75 0 01-1.5 0v-1.5a.75.75 0 011.5 0zM12.75 5.25v-1.5a.75.75 0 00-1.5 0v1.5a.75.75 0 001.5 0zM12 21a.75.75 0 01-.75-.75v-7.5a.75.75 0 011.5 0v7.5A.75.75 0 0112 21zM3.75 15a2.25 2.25 0 104.5 0 2.25 2.25 0 00-4.5 0zM12 11.25a2.25 2.25 0 110-4.5 2.25 2.25 0 010 4.5zM15.75 15a2.25 2.25 0 104.5 0 2.25 2.25 0 00-4.5 0z"></path></svg>
+          </a>
           {% endif %}
         </div>
       </template>
@@ -54,9 +54,9 @@
       <!-- Right-Side -->
       <div class="ml-auto flex items-center">
         {% if user_is_admin %}
-          <a :href="`/panel/edit/${panelId}`" x-show="!isEditPage && panelId && panelData.plugin" class="ml-1.5 flex items-center justify-center text-sm font-semibold text-stone-500 h-8 w-8 rounded hover:text-stone-900 hover:bg-stone-200 -lg:min-h-9 -lg:min-w-9 lg:hidden">
-            <svg class="w-5 h-5 -lg:w-6 -lg:h-6" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M6 12a.75.75 0 01-.75-.75v-7.5a.75.75 0 111.5 0v7.5A.75.75 0 016 12zM18 12a.75.75 0 01-.75-.75v-7.5a.75.75 0 011.5 0v7.5A.75.75 0 0118 12zM6.75 20.25v-1.5a.75.75 0 00-1.5 0v1.5a.75.75 0 001.5 0zM18.75 18.75v1.5a.75.75 0 01-1.5 0v-1.5a.75.75 0 011.5 0zM12.75 5.25v-1.5a.75.75 0 00-1.5 0v1.5a.75.75 0 001.5 0zM12 21a.75.75 0 01-.75-.75v-7.5a.75.75 0 011.5 0v7.5A.75.75 0 0112 21zM3.75 15a2.25 2.25 0 104.5 0 2.25 2.25 0 00-4.5 0zM12 11.25a2.25 2.25 0 110-4.5 2.25 2.25 0 010 4.5zM15.75 15a2.25 2.25 0 104.5 0 2.25 2.25 0 00-4.5 0z"></path></svg>
-          </a>
+        <a :href="`/panel/edit/${panelId}`" x-show="!isEditPage && panelId && panelData.plugin" class="ml-1.5 flex items-center justify-center text-sm font-semibold text-stone-500 h-8 w-8 rounded hover:text-stone-900 hover:bg-stone-200 -lg:min-h-9 -lg:min-w-9 lg:hidden">
+          <svg class="w-5 h-5 -lg:w-6 -lg:h-6" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M6 12a.75.75 0 01-.75-.75v-7.5a.75.75 0 111.5 0v7.5A.75.75 0 016 12zM18 12a.75.75 0 01-.75-.75v-7.5a.75.75 0 011.5 0v7.5A.75.75 0 0118 12zM6.75 20.25v-1.5a.75.75 0 00-1.5 0v1.5a.75.75 0 001.5 0zM18.75 18.75v1.5a.75.75 0 01-1.5 0v-1.5a.75.75 0 011.5 0zM12.75 5.25v-1.5a.75.75 0 00-1.5 0v1.5a.75.75 0 001.5 0zM12 21a.75.75 0 01-.75-.75v-7.5a.75.75 0 011.5 0v7.5A.75.75 0 0112 21zM3.75 15a2.25 2.25 0 104.5 0 2.25 2.25 0 00-4.5 0zM12 11.25a2.25 2.25 0 110-4.5 2.25 2.25 0 010 4.5zM15.75 15a2.25 2.25 0 104.5 0 2.25 2.25 0 00-4.5 0z"></path></svg>
+        </a>
         {% endif %}
         <!-- Header > Mobile Placeholder -->
         <div x-show="isEditPage" class="h-7 w-7 hidden -sm:flex"></div>
@@ -78,18 +78,18 @@
         </div>
         <p class="font-semibold text-lg">Panels</p>
         {% if user_is_admin %}
-          <a href="/panel/create" class="ml-auto flex items-center justify-center font-semibold h-9 px-3 bg-primary rounded-md text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">
-            <svg class="w-4 h-4 mr-1" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 3.75a.75.75 0 01.75.75v6.75h6.75a.75.75 0 010 1.5h-6.75v6.75a.75.75 0 01-1.5 0v-6.75H4.5a.75.75 0 010-1.5h6.75V4.5a.75.75 0 01.75-.75z" clip-rule="evenodd"></path></svg>
-            New
-          </a>
+        <a href="/panel/create" class="ml-auto flex items-center justify-center font-semibold h-9 px-3 bg-primary rounded-md text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">
+          <svg class="w-4 h-4 mr-1" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 3.75a.75.75 0 01.75.75v6.75h6.75a.75.75 0 010 1.5h-6.75v6.75a.75.75 0 01-1.5 0v-6.75H4.5a.75.75 0 010-1.5h6.75V4.5a.75.75 0 01.75-.75z" clip-rule="evenodd"></path></svg>
+          New
+        </a>
         {% endif %}
       </div>
       <div class="lg:flex -lg:hidden items-center mb-1">
         <p class="font-semibold text-xs text-stone-500 uppercase tracking-wider">Panels</p>
         {% if user_is_admin %}
-          <a href="/panel/create" class="ml-auto flex items-center justify-center text-sm font-semibold text-stone-500 h-7 w-7 rounded hover:text-stone-900 hover:bg-stone-200">
-            <svg class="w-4 h-4" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 3.75a.75.75 0 01.75.75v6.75h6.75a.75.75 0 010 1.5h-6.75v6.75a.75.75 0 01-1.5 0v-6.75H4.5a.75.75 0 010-1.5h6.75V4.5a.75.75 0 01.75-.75z" clip-rule="evenodd"></path></svg>
-          </a>
+        <a href="/panel/create" class="ml-auto flex items-center justify-center text-sm font-semibold text-stone-500 h-7 w-7 rounded hover:text-stone-900 hover:bg-stone-200">
+          <svg class="w-4 h-4" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 3.75a.75.75 0 01.75.75v6.75h6.75a.75.75 0 010 1.5h-6.75v6.75a.75.75 0 01-1.5 0v-6.75H4.5a.75.75 0 010-1.5h6.75V4.5a.75.75 0 01.75-.75z" clip-rule="evenodd"></path></svg>
+        </a>
         {% endif %}
       </div>
 
@@ -97,7 +97,7 @@
         <div>
           <p class="font-semibold mb-1 py-1 line-clamp-1 rounded-md text-stone-200 bg-stone-200">--------------------</p>
           <p class="font-semibold mb-1 py-1 line-clamp-1 rounded-md text-stone-200 bg-stone-200">--------------------</p>
-          <p class="font-semibold mb-1 py-1 line-clamp-1 rounded-md text-stone-200 bg-stone-200">--------------------</p>  
+          <p class="font-semibold mb-1 py-1 line-clamp-1 rounded-md text-stone-200 bg-stone-200">--------------------</p>
         </div>
       </template>
       <template x-for="panel in filteredPanels" :key="panel.id">
@@ -112,12 +112,12 @@
         <p class="text-stone-500 text-sm mb-1">No panels exits, create one.</p>
       </template>
       {% if user_is_admin %}
-        <a href="/panel/create/" class="group cursor-pointer group flex items-center w-full px-1 rounded-md font-semibold text-stone-500 transition duration-500 hover:text-stone-900 -lg:px-3 -lg:py-0">
-          <div class="flex items-center justify-center w-7 h-7">
-            <svg class="w-4 h-4 -lg:w-5 -lg:h-5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 3.75a.75.75 0 01.75.75v6.75h6.75a.75.75 0 010 1.5h-6.75v6.75a.75.75 0 01-1.5 0v-6.75H4.5a.75.75 0 010-1.5h6.75V4.5a.75.75 0 01.75-.75z" clip-rule="evenodd"></path></svg>
-          </div>
-          <p class="ml-0.5">Create Panel</p>
-        </a>
+      <a href="/panel/create/" class="group cursor-pointer group flex items-center w-full px-1 rounded-md font-semibold text-stone-500 transition duration-500 hover:text-stone-900 -lg:px-3 -lg:py-0">
+        <div class="flex items-center justify-center w-7 h-7">
+          <svg class="w-4 h-4 -lg:w-5 -lg:h-5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 3.75a.75.75 0 01.75.75v6.75h6.75a.75.75 0 010 1.5h-6.75v6.75a.75.75 0 01-1.5 0v-6.75H4.5a.75.75 0 010-1.5h6.75V4.5a.75.75 0 01.75-.75z" clip-rule="evenodd"></path></svg>
+        </div>
+        <p class="ml-0.5">Create Panel</p>
+      </a>
       {% endif %}
       <hr class="lg:hidden mt-3 border-t border-stone-200" />
       <a href="/profile/" class="lg:hidden group cursor-pointer group flex items-center w-full px-1 rounded-md font-semibold text-stone-500 transition duration-500 hover:text-stone-900 -lg:p-3">

@@ -10,18 +10,11 @@
       "selections": [
         {
           "group": "OpenAI",
-          "values": [
-            "gpt-4-turbo",
-            "gpt-3.5-turbo",
-            "gpt-4"
-          ]
+          "values": ["gpt-4-turbo", "gpt-3.5-turbo", "gpt-4"]
         },
         {
           "group": "Google Gemini",
-          "values": [
-            "gemini/gemini-pro",
-            "gemini/gemini-1.5-pro-latest"
-          ]
+          "values": ["gemini/gemini-pro", "gemini/gemini-1.5-pro-latest"]
         },
         {
           "group": "Anthropic",
@@ -66,18 +59,11 @@
       "selections": [
         {
           "group": "OpenAI",
-          "values": [
-            "gpt-4-turbo",
-            "gpt-3.5-turbo",
-            "gpt-4"
-          ]
+          "values": ["gpt-4-turbo", "gpt-3.5-turbo", "gpt-4"]
         },
         {
           "group": "Google Gemini",
-          "values": [
-            "gemini/gemini-pro",
-            "gemini/gemini-1.5-pro-latest"
-          ]
+          "values": ["gemini/gemini-pro", "gemini/gemini-1.5-pro-latest"]
         },
         {
           "group": "Anthropic",

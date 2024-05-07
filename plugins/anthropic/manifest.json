@@ -10,11 +10,7 @@
       "selections": [
         {
           "group": "Anthropic",
-          "values": [
-            "Haiku",
-            "Sonnet",
-            "Opus"
-          ]
+          "values": ["Haiku", "Sonnet", "Opus"]
         }
       ],
       "required": true
