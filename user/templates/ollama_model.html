@@ -37,22 +37,22 @@
           </div>
         </div>
 
+        <div @click="modelForCreate.modelName = 'phi3:3.8b'" class="mb-3 cursor-pointer group flex items-start bg-white rounded-md border p-3" :class="{'border-primary ring-2 ring-primary/10': modelForCreate.modelName == 'phi3:3.8b', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': modelForCreate.modelName != 'gemma:2b'}">
+          <div>
+            <img src="/static/promptpanel/img/logo-microsoft.png" class="w-14 -ml-3" />
+            <p class="font-semibold mb-0.5">Phi-3.8B</p>
+            <div class="flex items-start">
+              <p class="text-sm">Small model created by Microsoft.</p>
+            </div>
+          </div>
+        </div>
+
         <div @click="modelForCreate.modelName = 'gemma:7b'" class="mb-3 cursor-pointer group flex items-start bg-white rounded-md border p-3" :class="{'border-primary ring-2 ring-primary/10': modelForCreate.modelName == 'gemma:7b', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': modelForCreate.modelName != 'gemma:7b'}">
           <div>
             <img src="/static/promptpanel/img/logo-gemini.png" class="w-14 -ml-3" />
             <p class="font-semibold mb-0.5">Gemma 7B</p>
             <div class="flex items-start">
               <p class="text-sm">Open model built by Google DeepMind.</p>
-            </div>
-          </div>
-        </div>
-
-        <div @click="modelForCreate.modelName = 'llama3:8b'" class="mb-3 cursor-pointer group flex items-start bg-white rounded-md border p-3" :class="{'border-primary ring-2 ring-primary/10': modelForCreate.modelName == 'llama2:7b', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': modelForCreate.modelName != 'llama2:7b'}">
-          <div>
-            <img src="/static/promptpanel/img/logo-meta.png" class="w-14 -ml-3" />
-            <p class="font-semibold mb-0.5">Llama3 8B</p>
-            <div class="flex items-start">
-              <p class="text-sm">Foundation language models by Meta.</p>
             </div>
           </div>
         </div>
@@ -67,12 +67,22 @@
           </div>
         </div>
 
-        <div @click="modelForCreate.modelName = 'llama2:13b'" class="mb-3 cursor-pointer group flex items-start bg-white rounded-md border p-3" :class="{'border-primary ring-2 ring-primary/10': modelForCreate.modelName == 'llama2:13b', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': modelForCreate.modelName != 'llama2:13b'}">
+        <div @click="modelForCreate.modelName = 'llama3:8b'" class="mb-3 cursor-pointer group flex items-start bg-white rounded-md border p-3" :class="{'border-primary ring-2 ring-primary/10': modelForCreate.modelName == 'llama3:8b', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': modelForCreate.modelName != 'llama2:7b'}">
           <div>
             <img src="/static/promptpanel/img/logo-meta.png" class="w-14 -ml-3" />
-            <p class="font-semibold mb-0.5">Llama2 13B</p>
+            <p class="font-semibold mb-0.5">Llama3 8B</p>
             <div class="flex items-start">
               <p class="text-sm">Foundation language models by Meta.</p>
+            </div>
+          </div>
+        </div>
+
+        <div @click="modelForCreate.modelName = 'qwen:14b'" class="mb-3 cursor-pointer group flex items-start bg-white rounded-md border p-3" :class="{'border-primary ring-2 ring-primary/10': modelForCreate.modelName == 'qwen:14b', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': modelForCreate.modelName != 'yi:34b'}">
+          <div>
+            <img src="/static/promptpanel/img/logo-qwen.png" class="w-14 -ml-3" />
+            <p class="font-semibold mb-0.5">Qwen 14B</p>
+            <div class="flex items-start">
+              <p class="text-sm">Foundation language model by Alibaba.</p>
             </div>
           </div>
         </div>
@@ -87,12 +97,12 @@
           </div>
         </div>
 
-        <div @click="modelForCreate.modelName = 'llama3:70b'" class="mb-3 cursor-pointer group flex items-start bg-white rounded-md border p-3" :class="{'border-primary ring-2 ring-primary/10': modelForCreate.modelName == 'llama2:70b', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': modelForCreate.modelName != 'llama2:70b'}">
+        <div @click="modelForCreate.modelName = 'command-r:35b'" class="mb-3 cursor-pointer group flex items-start bg-white rounded-md border p-3" :class="{'border-primary ring-2 ring-primary/10': modelForCreate.modelName == 'command-r:34b', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': modelForCreate.modelName != 'llama2:13b'}">
           <div>
-            <img src="/static/promptpanel/img/logo-meta.png" class="w-14 -ml-3" />
-            <p class="font-semibold mb-0.5">Llama3 70B</p>
+            <img src="/static/promptpanel/img/logo-cohere.png" class="w-14 -ml-3" />
+            <p class="font-semibold mb-0.5">Command R 35B</p>
             <div class="flex items-start">
-              <p class="text-sm">Foundation language models by Meta.</p>
+              <p class="text-sm">Foundation language models by Cohere.</p>
             </div>
           </div>
         </div>
@@ -106,7 +116,6 @@
             </div>
           </div>
         </div>
-
       </div>
 
       <div class="mb-3">
@@ -160,7 +169,7 @@
                 <td class="px-2 py-1" x-text="model.details.parameter_size">Parameters</td>
                 <td class="px-2 py-1" x-text="model.details.quantization_level">Quantization</td>
                 <td class="px-2 py-1">
-                  <div @click="removeModel(model.name)" class="cursor-pointer text-sm font-semibold flex items-center text-rose-600 hover:text-rose-800">
+                  <div @click="removeModel(model.name)" class="cursor-pointer text-sm font-semibold flex items-center text-stone-500 hover:text-rose-600">
                     <svg class="mr-1" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z" clip-rule="evenodd"></path></svg>
                     <p>Remove</p>
                   </div>

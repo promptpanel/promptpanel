@@ -1,0 +1,3 @@
+google-generativeai==0.5.2
+litellm==1.35.38
+unstructured[all-docs]==0.13.6

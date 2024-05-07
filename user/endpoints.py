@@ -135,6 +135,120 @@ def user_onboard(request):
 
 
 @user_authenticated
+@require_http_methods(["POST"])
+def user_create(request):
+    # Checks if public signup is disabled
+    if (
+        not request.user.is_staff
+        and os.environ.get("PROMPT_PUBLIC_SIGNUP", "DISABLED").strip().upper()
+        != "ENABLED"
+    ):
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "Admin permissions are required for creating a new user.",
+            },
+            status=403,
+        )
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+        username = data.get("username")
+        email = data.get("email")
+        password = data.get("password")
+        # Only allow is_staff and is_active if user is an admin
+        is_staff = False
+        is_active = False
+        if request.user.is_staff:
+            is_staff = data.get("is_staff", False)
+            is_active = data.get("is_active", False)
+        # Check if username already exists
+        if User.objects.filter(username=username).exists():
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "message": "An account with that username already exists",
+                },
+                status=400,
+            )
+        # Check if email already exists
+        if User.objects.filter(email=email).exists():
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "message": "An account with that email already exists",
+                },
+                status=400,
+            )
+        # Check if email is allowed before creating
+        allowed_endings = os.getenv("PROMPT_USER_ALLOWED_DOMAINS", "")
+        allowed_endings = [
+            ending.strip().lower()
+            for ending in allowed_endings.split(",")
+            if ending.strip()
+        ]
+        if allowed_endings and not any(
+            email.endswith(ending) for ending in allowed_endings
+        ):
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "message": "PROMPT_USER_ALLOWED_DOMAINS is active. The account email does not end with any allowed domains or emails.",
+                },
+                status=400,
+            )
+        # Create user
+        User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            is_staff=is_staff,
+            is_active=is_active,
+        )
+        return JsonResponse(
+            {
+                "status": "success",
+                "message": "User created successfully.",
+            },
+            status=201,
+        )
+    except Exception as e:
+        logger.error(e, exc_info=True)
+        return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
+
+@user_authenticated
+@user_is_staff
+@require_http_methods(["GET"])
+def user_list(request):
+    if not request.user.is_staff:
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "User accounts do not have to access to user info. Please contact your administrator.",
+            },
+            status=403,
+        )
+    try:
+        users = User.objects.all().values(
+            "id", "username", "email", "is_staff", "is_active"
+        )
+        users_list = [
+            {
+                "id": user["id"],
+                "username": user["username"],
+                "email": user["email"],
+                "is_admin": user["is_staff"],
+                "is_active": user["is_active"],
+            }
+            for user in users
+        ]
+        return JsonResponse(users_list, safe=False)
+    except Exception as e:
+        logger.error(e, exc_info=True)
+        return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
+
+@user_authenticated
 @require_http_methods(["PUT"])
 def user_update(request, user_id):
     try:
@@ -178,67 +292,6 @@ def user_update(request, user_id):
         return JsonResponse(
             {"status": "success", "message": "User updated successfully."}
         )
-    except Exception as e:
-        logger.error(e, exc_info=True)
-        return JsonResponse({"status": "error", "message": str(e)}, status=400)
-
-
-@user_authenticated
-@user_is_staff
-@require_http_methods(["POST"])
-def licence_trial(request):
-    try:
-        data = json.loads(request.body.decode("utf-8"))
-        lic_trial = {}
-        lic_trial["app_id"] = settings.APP_ID
-        lic_trial["email"] = data["email"]
-        base_url = os.environ.get("PROMPT_OPS_BASE")
-        logger.info(lic_trial)
-        response = requests.post(
-            f"{base_url}/api/v1/licence/trial/", json=lic_trial, timeout=4
-        )
-        data = response.json()
-        if data["status"] == "deactivated":
-            with open("/app/licence.json", "r") as file:
-                system = json.load(file)
-            system["lic_key"] = ""
-            system["lic_email"] = ""
-            system["lic_expiry"] = ""
-            system["lic_plan"] = "free"
-            system["lic_seats"] = 1
-            system["lic_state"] = "deactivated"
-            with open("/app/licence.json", "w") as file:
-                json.dump(system, file)
-        if data["status"] == "warning":
-            with open("/app/licence.json", "r") as file:
-                system = json.load(file)
-            system["lic_email"] = lic_trial["email"]
-            system["lic_key"] = licence_data["key"]
-            system["lic_expiry"] = licence_data["expiry"]
-            system["lic_plan"] = licence_data["plan"]
-            system["lic_seats"] = licence_data["seats"]
-            system["lic_state"] = "warning"
-            with open("/app/licence.json", "w") as file:
-                json.dump(system, file)
-        if data["status"] == "success":
-            licence_data = data["data"]
-            with open("/app/licence.json", "r") as file:
-                system = json.load(file)
-            system["lic_email"] = lic_trial["email"]
-            system["lic_key"] = licence_data["key"]
-            system["lic_expiry"] = licence_data["expiry"]
-            system["lic_plan"] = licence_data["plan"]
-            system["lic_seats"] = licence_data["seats"]
-            system["lic_state"] = "success"
-            with open("/app/licence.json", "w") as file:
-                json.dump(system, file)
-            return JsonResponse(
-                {"status": "success", "message": "Licence key updated successfully."}
-            )
-        else:
-            return JsonResponse(
-                {"status": "error", "message": "Invalid licence key"}, status=400
-            )
     except Exception as e:
         logger.error(e, exc_info=True)
         return JsonResponse({"status": "error", "message": str(e)}, status=400)

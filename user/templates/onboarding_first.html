@@ -8,7 +8,6 @@
       <div class="w-full">
         <h1 class="font-serif text-3xl">Getting started</h1>
         <p class="text-2xl text-stone-500 mb-3">Your first model</p>
-
         <div class="flex items-center space-x-1.5 mb-3">
           <button :class="{'border-primary ring-2 ring-primary/10': $store.onboardStore.modelSelected == 'openai', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': $store.onboardStore.modelSelected != 'openai'}" @click="$store.onboardStore.modelSelected = 'openai'" class="flex items-center justify-center w-16 h-16 rounded-md bg-white border border-stone-300">
             <img src="/static/promptpanel/img/logo-openai-transparent.png" class="h-[2rem]" />
@@ -16,13 +15,18 @@
           <button :class="{'border-primary ring-2 ring-primary/10': $store.onboardStore.modelSelected == 'anthropic', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': $store.onboardStore.modelSelected != 'anthropic'}" @click="$store.onboardStore.modelSelected = 'anthropic'" class="flex items-center justify-center w-16 h-16 rounded-md bg-white border border-stone-300">
             <img src="/static/promptpanel/img/logo-anthropic-transparent.png" class="h-[1.624rem]" />
           </button>
+          <button :class="{'border-primary ring-2 ring-primary/10': $store.onboardStore.modelSelected == 'cohere', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': $store.onboardStore.modelSelected != 'cohere'}" @click="$store.onboardStore.modelSelected = 'cohere'" class="flex items-center justify-center w-16 h-16 rounded-md bg-white border border-stone-300">
+            <img src="/static/promptpanel/img/logo-cohere-transparent.png" class="h-[2.2rem]" />
+          </button>
+          <button :class="{'border-primary ring-2 ring-primary/10': $store.onboardStore.modelSelected == 'google', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': $store.onboardStore.modelSelected != 'google'}" @click="$store.onboardStore.modelSelected = 'google'" class="flex items-center justify-center w-16 h-16 rounded-md bg-white border border-stone-300">
+            <img src="/static/promptpanel/img/logo-gemini-transparent.png" class="h-[2.4rem]" />
+          </button>
           <button :class="{'border-primary ring-2 ring-primary/10': $store.onboardStore.modelSelected == 'ollama', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': $store.onboardStore.modelSelected != 'ollama'}" @click="$store.onboardStore.modelSelected = 'ollama'" class="flex items-center justify-center w-16 h-16 rounded-md bg-white border border-stone-300">
             <img src="/static/promptpanel/img/logo-ollama-transparent.png" class="h-[2.4rem]" />
           </button>
         </div>
-
         <div x-show="$store.onboardStore.modelSelected == 'openai'">
-          <p class="mb-3">OpenAI is one of the most powerful models currently on the market. Enter your API key to get started with GPT-4.</p>
+          <p class="mb-3">OpenAI is one of the most powerful models currently on the market. Enter your API key to get started with <span class="font-semibold">GPT-4</span>.</p>
           <p class="mb-3">You can find your API key information at: <a href="https://platform.openai.com/api-keys" class="text-primary underline hover:text-primary/80" target="_new">https://platform.openai.com/api-keys</a></p>
 
           <div class="mb-3">
@@ -37,7 +41,7 @@
         </div>
 
         <div x-show="$store.onboardStore.modelSelected == 'anthropic'">
-          <p class="mb-3">Anthropic specializes in having models at every power tier, as well as having compatibility for extra-long context. Enter your API key to get started with Claude Opus.</p>
+          <p class="mb-3">Anthropic specializes in having models at every power tier, as well as having compatibility for extra-long context. Enter your API key to get started with <span class="font-semibold">Claude Opus</span>.</p>
           <p class="mb-3">You can find your API key information at: <a href="https://console.anthropic.com/settings/keys" class="text-primary underline hover:text-primary/80" target="_new">https://console.anthropic.com/settings/keys</a></p>
 
           <div class="mb-3">
@@ -51,12 +55,42 @@
           </div>
         </div>
 
+        <div x-show="$store.onboardStore.modelSelected == 'cohere'">
+          <p class="mb-3">Cohere specializes in having models balanced for high performance with strong accuracy. Great for RAG-based use-cases. Enter your API key to get started with <span class="font-semibold">Command R+</span></p>
+          <p class="mb-3">You can find your API key information at: <a href="https://dashboard.cohere.com/api-keys" class="text-primary underline hover:text-primary/80" target="_new">https://dashboard.cohere.com/api-keys</a></p>
+
+          <div class="mb-3">
+            <p class="text-stone-500 mb-0.5 text-sm font-semibold">API Key</p>
+            <input x-model="$store.onboardStore.apiKey" required id="apikey" name="apikey" placeholder="Cohere API Key..." class="cursor-text w-full px-2.5 h-9 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
+          </div>
+
+          <div class="flex items-center mb-3">
+            <a href="/app/" class="flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 mr-3 rounded-md transition duration-500 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300">Skip</a>
+            <button @click="$store.onboardStore.getStarted()" class="flex ml-auto w-max items-center justify-center font-semibold bg-primary px-3 h-9 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">Get Started</button>
+          </div>
+        </div>
+
+        <div x-show="$store.onboardStore.modelSelected == 'google'">
+          <p class="mb-3">Google Gemini specializes in super-long context sizes (up to 1-million tokens) and high reasoning and understanding. Enter your API key to get started with <span class="font-semibold">Gemini 1.5 Pro</span>.</p>
+          <p class="mb-3">You can find your API key information at: <a href="https://aistudio.google.com/app/apikey" class="text-primary underline hover:text-primary/80" target="_new">https://aistudio.google.com/app/apikey</a></p>
+
+          <div class="mb-3">
+            <p class="text-stone-500 mb-0.5 text-sm font-semibold">API Key</p>
+            <input x-model="$store.onboardStore.apiKey" required id="apikey" name="apikey" placeholder="Google Gemini API Key..." class="cursor-text w-full px-2.5 h-9 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
+          </div>
+
+          <div class="flex items-center mb-3">
+            <a href="/app/" class="flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 mr-3 rounded-md transition duration-500 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300">Skip</a>
+            <button @click="$store.onboardStore.getStarted()" class="flex ml-auto w-max items-center justify-center font-semibold bg-primary px-3 h-9 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">Get Started</button>
+          </div>
+        </div>
+
         <div x-show="$store.onboardStore.modelSelected == 'ollama'">
           <p x-show="!$store.onboardStore.runningGetStarted" class="mb-3">Get started with Ollama for hosting models locally and offline.</p>
-          <p x-show="!$store.onboardStore.runningGetStarted" class="mb-3">We can get started by downloading and running Llama-3 a small, local model by Facebook.</p>
+          <p x-show="!$store.onboardStore.runningGetStarted" class="mb-3">We can get started by downloading and running Phi-3 a tiny, but mighty, local / offline model by Microsoft Research.</p>
 
           <p x-show="$store.onboardStore.runningGetStarted" class="mb-3">Your model is warming up...</p>
-          <p x-show="$store.onboardStore.runningGetStarted" class="mb-3">Llama-3 is a great small model for getting started - but using a larger, more resource intensive model can yield better results. <a href="https://promptpanel.com/models/overview" target="_new" class="text-sm underline hover:text-primary">Learn more</a></p>
+          <p x-show="$store.onboardStore.runningGetStarted" class="mb-3">Phi-3 is a great small model for getting started - but using a larger, more resource intensive model can yield better results. <a href="https://promptpanel.com/models/overview" target="_new" class="text-sm underline hover:text-primary">Learn more</a></p>
 
           <div class="flex items-center mb-3">
             <a href="/app/" class="flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 mr-3 rounded-md transition duration-500 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300">Skip</a>
@@ -93,8 +127,8 @@
             if (this.modelSelected == "openai") {
               panelData = {
                 name: "My First AI Panel",
-                plugin: "starter_openai",
-                metadata: {
+                plugin: "openai",
+                meta: {
                   Model: "GPT-4",
                   "System Message": "You are a helpful AI assistant.",
                   "API Key": this.apiKey,
@@ -104,9 +138,31 @@
             if (this.modelSelected == "anthropic") {
               panelData = {
                 name: "My First AI Panel",
-                plugin: "starter_anthropic",
-                metadata: {
+                plugin: "anthropic",
+                meta: {
                   Model: "Opus",
+                  "System Message": "You are a helpful AI assistant.",
+                  "API Key": this.apiKey,
+                },
+              };
+            }
+            if (this.modelSelected == "google") {
+              panelData = {
+                name: "My First AI Panel",
+                plugin: "gemini",
+                meta: {
+                  Model: "Gemini Pro 1.5",
+                  "System Message": "You are a helpful AI assistant.",
+                  "API Key": this.apiKey,
+                },
+              };
+            }
+            if (this.modelSelected == "cohere") {
+              panelData = {
+                name: "My First AI Panel",
+                plugin: "cohere",
+                meta: {
+                  Model: "Command R+",
                   "System Message": "You are a helpful AI assistant.",
                   "API Key": this.apiKey,
                 },
@@ -127,7 +183,7 @@
                   };
                   Alpine.store("toastStore").addToast(successToast);
                   setTimeout(function () {
-                    window.location.href = "/app/1/";
+                    window.location.href = "/app/";
                   }, 1000);
                 } else {
                   failToast = {
@@ -163,14 +219,14 @@
             };
             const panelData = {
               name: "My First AI",
-              plugin: "ollama_chat",
-              metadata: {
+              plugin: "ollama",
+              meta: {
                 "Context Size": "4096",
                 "System Message": "You are a helpful AI assistant.",
               },
             };
             const modelData = {
-              name: "llama3",
+              name: "phi3",
               stream: false,
             };
             fetch(createURL, {
@@ -196,7 +252,7 @@
                       };
                       Alpine.store("toastStore").addToast(successToast);
                       setTimeout(function () {
-                        window.location.href = "/app/1/";
+                        window.location.href = "/app/";
                       }, 1000);
                     })
                     .catch((error) => {

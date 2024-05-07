@@ -10,25 +10,22 @@ var localModelState = () => {
     createModel() {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/app/ollama/pull/";
-      
       const data = {
         name: this.modelForCreate.modelName,
         stream: false,
       };
-      // Update UI immediately - load success afterwards
       let modelsInProgress = localStorage.getItem("modelsInProgress");
       this.modelsDownloading = modelsInProgress ? JSON.parse(modelsInProgress) : [];
-      // Only add if model isn't in localstorage array
       if (!this.modelsDownloading.includes(this.modelForCreate.modelName)) {
         this.modelsDownloading.push(this.modelForCreate.modelName);
         localStorage.setItem("modelsInProgress", JSON.stringify(this.modelsDownloading));
       }
-      const successToast = {
+      const loadingModelToast = {
         type: "success",
         header: "Loading local model",
         message: "Your model will take a couple minutes to download and load. Feel free to leave the page, it will continue loading in the background.",
       };
-      Alpine.store("toastStore").addToast(successToast);
+      Alpine.store("toastStore").addToast(loadingModelToast);
       this.modalCreateModel = false;
       this.getModels();
       fetch(url, {
@@ -61,7 +58,7 @@ var localModelState = () => {
     removeModel(modelName) {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/app/ollama/delete/";
-      
+
       const data = {
         name: modelName,
       };
@@ -94,7 +91,7 @@ var localModelState = () => {
     getModels() {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/app/ollama/tags";
-      
+
       fetch(url, {
         method: "GET",
         headers: {

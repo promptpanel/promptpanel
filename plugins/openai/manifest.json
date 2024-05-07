@@ -1,0 +1,36 @@
+{
+  "name": "OpenAI",
+  "category": " Base Models",
+  "capabilities": {
+    "vision": true
+  },
+  "settings": [
+    {
+      "name": "Model",
+      "description": "The OpenAI model you would like to use.",
+      "default": "",
+      "type": "text",
+      "selections": [
+        {
+          "group": "OpenAI",
+          "values": ["GPT-3.5", "GPT-4"]
+        }
+      ],
+      "required": true
+    },
+    {
+      "name": "System Message",
+      "description": "A message to help instruct the model on it's usage and how to behave.",
+      "type": "textarea",
+      "default": "You are a helpful AI assistant.",
+      "required": true
+    },
+    {
+      "name": "API Key",
+      "description": "API access key for connecting to API. You can find or create your key here: https://platform.openai.com/api-keys",
+      "type": "text",
+      "private": true,
+      "required": true
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 import os
+import json
 import logging
 from django.conf import settings
 from django.http import HttpResponse, Http404
@@ -49,17 +50,31 @@ def panels_edit(request, panel_id):
 def panel_expanded(request, panel_id):
     try:
         panel = get_object_or_404(Panel, pk=panel_id)
-        template_path = os.path.join(
-            BASE_DIR, f"plugins/{panel.plugin}/templates/panel.html"
-        )
+        plugin_base_path = os.path.join(BASE_DIR, f"plugins/{panel.plugin}")
+        # Get templates
+        template_path = os.path.join(plugin_base_path, "templates/panel.html")
+        if not os.path.exists(template_path):
+            template_path = os.path.join(
+                settings.BASE_DIR, "panel/default_templates/panel.html"
+            )
         with open(template_path, "r") as file:
             template = Template(file.read())
+        # Get capabilities
+        manifest_path = os.path.join(plugin_base_path, "manifest.json")
+        if not os.path.exists(manifest_path):
+            logger.error(f"Manifest file not found for plugin {panel.plugin}")
+            raise FileNotFoundError(f"Manifest file not found at {manifest_path}")
+        with open(manifest_path, "r") as manifest_file:
+            manifest_data = json.load(manifest_file)
+        capabilities = manifest_data.get("capabilities", {})
+        # Set up local context
         local_context = {
             "plugin": panel.plugin,
             "panel_name": panel.name,
             "panel_id": panel_id,
             "thread_id": "",
             "message_id": "",
+            "capabilities": capabilities,
         }
         global_context = RequestContext(request)
         global_context.update(local_context)
@@ -74,17 +89,31 @@ def panel_expanded(request, panel_id):
 def thread_expanded(request, panel_id, thread_id):
     try:
         panel = get_object_or_404(Panel, pk=panel_id)
-        template_path = os.path.join(
-            BASE_DIR, f"plugins/{panel.plugin}/templates/thread.html"
-        )
+        plugin_base_path = os.path.join(BASE_DIR, f"plugins/{panel.plugin}")
+        # Get templates
+        template_path = os.path.join(plugin_base_path, "templates/thread.html")
+        if not os.path.exists(template_path):
+            template_path = os.path.join(
+                settings.BASE_DIR, "panel/default_templates/thread.html"
+            )
         with open(template_path, "r") as file:
             template = Template(file.read())
+        # Get capabilities
+        manifest_path = os.path.join(plugin_base_path, "manifest.json")
+        if not os.path.exists(manifest_path):
+            logger.error(f"Manifest file not found for plugin {panel.plugin}")
+            raise FileNotFoundError(f"Manifest file not found at {manifest_path}")
+        with open(manifest_path, "r") as manifest_file:
+            manifest_data = json.load(manifest_file)
+        capabilities = manifest_data.get("capabilities", {})
+        # Set up local context
         local_context = {
             "plugin": panel.plugin,
             "panel_name": panel.name,
             "panel_id": panel_id,
             "thread_id": thread_id,
             "message_id": "",
+            "capabilities": capabilities,
         }
         global_context = RequestContext(request)
         global_context.update(local_context)
@@ -99,17 +128,31 @@ def thread_expanded(request, panel_id, thread_id):
 def message_expanded(request, panel_id, thread_id, message_id):
     try:
         panel = get_object_or_404(Panel, pk=panel_id)
-        template_path = os.path.join(
-            BASE_DIR, f"plugins/{panel.plugin}/templates/message.html"
-        )
+        plugin_base_path = os.path.join(BASE_DIR, f"plugins/{panel.plugin}")
+        # Get templates
+        template_path = os.path.join(plugin_base_path, "templates/message.html")
+        if not os.path.exists(template_path):
+            template_path = os.path.join(
+                settings.BASE_DIR, "panel/default_templates/message.html"
+            )
         with open(template_path, "r") as file:
             template = Template(file.read())
+        # Get capabilities
+        manifest_path = os.path.join(plugin_base_path, "manifest.json")
+        if not os.path.exists(manifest_path):
+            logger.error(f"Manifest file not found for plugin {panel.plugin}")
+            raise FileNotFoundError(f"Manifest file not found at {manifest_path}")
+        with open(manifest_path, "r") as manifest_file:
+            manifest_data = json.load(manifest_file)
+        capabilities = manifest_data.get("capabilities", {})
+        # Set up local context
         local_context = {
             "plugin": panel.plugin,
             "panel_name": panel.name,
             "panel_id": panel_id,
             "thread_id": thread_id,
             "message_id": message_id,
+            "capabilities": capabilities,
         }
         global_context = RequestContext(request)
         global_context.update(local_context)
@@ -124,7 +167,7 @@ def message_expanded(request, panel_id, thread_id, message_id):
 def media_protected(request, path):
     file_path = os.path.join(settings.MEDIA_ROOT, path)
     if os.path.exists(file_path):
-        file_obj = get_object_or_404(File, filename=file_path)
+        file_obj = get_object_or_404(File, filepath=file_path)
         with open(file_path, "rb") as file:
             response = HttpResponse(
                 file.read(), content_type="application/octet-stream"

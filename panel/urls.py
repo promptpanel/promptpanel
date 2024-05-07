@@ -33,6 +33,7 @@ urlpatterns = [
     path("files/panel/<int:panel_id>/", endpoints.file_list_panel, name="api_file_list_panel"),
     path("files/thread/<int:thread_id>/", endpoints.file_list_thread, name="api_file_list_thread"),
     path("file/create/", endpoints.file_create, name="api_file_create"),
+    path("file/update/<int:file_id>/", endpoints.file_update, name="api_file_update"),
     path("file/delete/<int:file_id>/", endpoints.file_delete, name="api_file_delete"),
     ### Ollama Proxy
     path("ollama/<path:route>/", endpoints.ollama_proxy, name="api_ollama_proxy"),

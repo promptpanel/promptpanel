@@ -1,0 +1,12 @@
+{
+  "name": "Hello World Agent",
+  "category": "Your Agents",
+  "settings": [
+    {
+      "name": "Sample setting",
+      "description": "This is a sample setting you can configure in the manifest.json",
+      "type": "text",
+      "advanced": true
+    }
+  ]
+}

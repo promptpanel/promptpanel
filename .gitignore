@@ -5,14 +5,11 @@ system.json
 licence.json
 media
 static_files
-ollama
 tailwindcss
 *.bak 
 *.log
 
 # Pro folders
-pro
-plugins
 entrypoint.sh
 
 # Builds

@@ -82,92 +82,56 @@
         </div>
 
         <div class="flex items-center mt-6 mb-3">
-          <button x-show="!showAccessControls" class="flex items-center justify-center font-semibold px-2.5 h-9 rounded-md transition duration-500 text-stone-800 bg-stone-200">
-            Panel Options
-          </button>
-          <button x-show="showAccessControls" @click="showAccessControls = false" class="flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 rounded-md transition duration-500 hover:bg-stone-200 hover:text-stone-800">
-            Panel Options
-          </button>
+          <button x-show="!showAccessControls" class="flex items-center justify-center font-semibold px-2.5 h-9 rounded-md transition duration-500 text-stone-800 bg-stone-200">Panel Options</button>
+          <button x-show="showAccessControls" @click="showAccessControls = false" class="flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 rounded-md transition duration-500 hover:bg-stone-200 hover:text-stone-800">Panel Options</button>
           <button x-show="!showAccessControls" @click="showAccessControls = true" class="ml-1.5 flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 rounded-md transition duration-500 hover:bg-stone-200 hover:text-stone-800">
             Access Control
-            <span x-show="createUserMode == 'adminOnly'" class="ml-1.5 font-semibold px-1.5 py-1 rounded-md text-xs text-stone-800 bg-stone-300">Administrators</span>
+            <span x-show="createUserMode == 'adminOnly'" class="ml-1.5 font-semibold px-1.5 py-1 rounded-md text-xs text-stone-800 bg-stone-300">Admins Only</span>
             <span x-show="createUserMode == 'global'" class="ml-1.5 font-semibold px-1.5 py-1 rounded-md text-xs text-stone-800 bg-stone-300">All Active Users</span>
-            <span x-show="createUserMode == 'selectUsers'" x-text="createUsers.length + ' Users Selected'" class="ml-1.5 font-semibold px-1.5 py-1 rounded-md text-xs text-stone-800 bg-stone-300">Select Users</span>
+            <span x-show="createUserMode == 'selectUsers'" x-text="createUsers.length + ' Selected Users'" class="ml-1.5 font-semibold px-1.5 py-1 rounded-md text-xs text-stone-800 bg-stone-300">Select Users</span>
           </button>
           <button x-show="showAccessControls" class="ml-1.5 flex items-center justify-center font-semibold px-2.5 h-9 rounded-md transition duration-500 text-stone-800 bg-stone-200">
             Access Control
-            <span x-show="createUserMode == 'adminOnly'" class="ml-1.5 font-semibold px-1.5 py-1 rounded-md text-xs text-stone-50 bg-primary">Administrators</span>
+            <span x-show="createUserMode == 'adminOnly'" class="ml-1.5 font-semibold px-1.5 py-1 rounded-md text-xs text-stone-50 bg-primary">Admins Only</span>
             <span x-show="createUserMode == 'global'" class="ml-1.5 font-semibold px-1.5 py-1 rounded-md text-xs text-stone-50 bg-primary">All Active Users</span>
-            <span x-show="createUserMode == 'selectUsers'" x-text="createUsers.length + ' Users Selected'" class="ml-1.5 font-semibold px-1.5 py-1 rounded-md text-xs text-stone-50 bg-primary">Select Users</span>
+            <span x-show="createUserMode == 'selectUsers'" x-text="createUsers.length + ' Selected Users'" class="ml-1.5 font-semibold px-1.5 py-1 rounded-md text-xs text-stone-50 bg-primary">Select Users</span>
           </button>
         </div>
 
         <div x-show="showAccessControls">
-          <p class="mb-1.5">Who should have access to this Panel?</p>
+          <p class="">Who should have access to this Panel?</p>
+          <p class="text-stone-500 text-sm mb-1.5">Only Admins can modify Panels. Admins can access all Panels.</p>
           <div class="grid grid-cols-3 gap-3 mb-4">
-            <div 
-              @click="createUserMode = 'adminOnly'"
-              class="cursor-pointer group flex items-start bg-white rounded-md border p-3"
-              :class="{'border-primary ring-2 ring-primary/10': createUserMode == 'adminOnly', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': createUserMode == 'adminOnly'}"
-            >
-                <div 
-                    x-show="createUserMode == 'adminOnly'"
-                    class="flex items-center justify-center mt-1 rounded-full min-w-4 min-h-4 bg-primary border border-primary mr-1.5">
-                    <div class="bg-white w-1.5 h-1.5 rounded-full"></div>
-                </div>
-                <div 
-                    x-show="createUserMode !== 'adminOnly'"
-                    class="mt-1 rounded-full min-w-4 min-h-4 border border-stone-300 mr-1.5 group-hover:border-stone-400"
-                    style="display: none;">
-                </div>
-                <div>
-                    <p class="font-semibold mb-1.5">Administrators</p>
-                    <p class="text-sm">Only Admins can use and edit settings.</p>
-                  </div>
+            <div @click="createUserMode = 'adminOnly'" class="cursor-pointer group flex items-start bg-white rounded-md border p-3" :class="{'border-primary ring-2 ring-primary/10': createUserMode == 'adminOnly', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': createUserMode == 'adminOnly'}">
+              <div x-show="createUserMode == 'adminOnly'" class="flex items-center justify-center mt-1 rounded-full min-w-4 min-h-4 bg-primary border border-primary mr-1.5">
+                <div class="bg-white w-1.5 h-1.5 rounded-full"></div>
+              </div>
+              <div x-show="createUserMode !== 'adminOnly'" class="mt-1 rounded-full min-w-4 min-h-4 border border-stone-300 mr-1.5 group-hover:border-stone-400" style="display: none"></div>
+              <div>
+                <p class="font-semibold">Administrators</p>
+              </div>
             </div>
-            <div 
-              @click="createUserMode = 'global'"
-              class="cursor-pointer group flex items-start bg-white rounded-md border p-3"
-              :class="{'border-primary ring-2 ring-primary/10': createUserMode == 'global', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': createUserMode !== 'global'}"
-            >
-                <div 
-                    x-show="createUserMode == 'global'"
-                    class="flex items-center justify-center mt-1 rounded-full min-w-4 min-h-4 bg-primary border border-primary mr-1.5">
-                    <div class="bg-white w-1.5 h-1.5 rounded-full"></div>
-                </div>
-                <div 
-                    x-show="createUserMode !== 'global'"
-                    class="mt-1 rounded-full min-w-4 min-h-4 border border-stone-300 mr-1.5 group-hover:border-stone-400"
-                    style="display: none;">
-                </div>
-                <div>
-                  <p class="font-semibold mb-1.5">Active Users</p>
-                  <p class="text-sm">Only Admins will be able to edit settings.</p>
-                </div>
+            <div @click="createUserMode = 'global'" class="cursor-pointer group flex items-start bg-white rounded-md border p-3" :class="{'border-primary ring-2 ring-primary/10': createUserMode == 'global', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': createUserMode !== 'global'}">
+              <div x-show="createUserMode == 'global'" class="flex items-center justify-center mt-1 rounded-full min-w-4 min-h-4 bg-primary border border-primary mr-1.5">
+                <div class="bg-white w-1.5 h-1.5 rounded-full"></div>
+              </div>
+              <div x-show="createUserMode !== 'global'" class="mt-1 rounded-full min-w-4 min-h-4 border border-stone-300 mr-1.5 group-hover:border-stone-400" style="display: none"></div>
+              <div>
+                <p class="font-semibold">Active Users</p>
+              </div>
             </div>
-            <div 
-              @click="createUserMode = 'selectUsers'"
-              class="cursor-pointer group flex items-start bg-white rounded-md border p-3"
-              :class="{'border-primary ring-2 ring-primary/10': createUserMode == 'selectUsers', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': createUserMode !== 'selectUsers'}"
-            >
-                <div 
-                    x-show="createUserMode == 'selectUsers'"
-                    class="flex items-center justify-center mt-1 rounded-full min-w-4 min-h-4 bg-primary border border-primary mr-1.5">
-                    <div class="bg-white w-1.5 h-1.5 rounded-full"></div>
-                </div>
-                <div 
-                    x-show="createUserMode !== 'selectUsers'"
-                    class="mt-1 rounded-full min-w-4 min-h-4 border border-stone-300 mr-1.5 group-hover:border-stone-400"
-                    style="display: none;">
-                </div>
-                <div>
-                  <p class="font-semibold mb-1.5">Select Users</p>
-                  <p class="text-sm">Only Admins will be able to edit settings.</p>
-                </div>
+            <div @click="createUserMode = 'selectUsers'" class="cursor-pointer group flex items-start bg-white rounded-md border p-3" :class="{'border-primary ring-2 ring-primary/10': createUserMode == 'selectUsers', 'border-stone-300 shadow-sm hover:border-stone-400/70 hover:shadow': createUserMode !== 'selectUsers'}">
+              <div x-show="createUserMode == 'selectUsers'" class="flex items-center justify-center mt-1 rounded-full min-w-4 min-h-4 bg-primary border border-primary mr-1.5">
+                <div class="bg-white w-1.5 h-1.5 rounded-full"></div>
+              </div>
+              <div x-show="createUserMode !== 'selectUsers'" class="mt-1 rounded-full min-w-4 min-h-4 border border-stone-300 mr-1.5 group-hover:border-stone-400" style="display: none"></div>
+              <div>
+                <p class="font-semibold">Select Users</p>
+              </div>
             </div>
           </div>
 
-          <template x-if="createUserMode == 'selectUsers' && ($store.active.licence_plan != 'free' && $store.active.licence_plan != 'deactivated')">
+          <template x-if="createUserMode == 'selectUsers'">
             <div class="border border-stone-200 rounded-md shadow-sm overflow-x-auto">
               <table class="w-full text-left">
                 <thead class="bg-stone-100 border-b-2 border-stone-200">
@@ -179,38 +143,15 @@
                 </thead>
                 <tbody>
                   <template x-for="user in users" :key="user.id">
-                    <tr x-show="user.is_active"cclass="border-b border-stone-200 last:border-transparent">
+                    <tr x-show="user.is_active" cclass="border-b border-stone-200 last:border-transparent">
                       <td x-show="!user.is_admin" class="text-center px-2 py-1">
-                        <input type="checkbox" :value="user.id" x-model="createUsers" class="text-sm w-4 h-4 accent-primary mt-[0.3rem] cursor-pointer">
+                        <input type="checkbox" :value="user.id" x-model="createUsers" class="text-sm w-4 h-4 accent-primary mt-[0.3rem] cursor-pointer" />
                       </td>
-                      <td x-show="user.is_admin" class="text-center px-2 py-1 text-sm text-stone-500">
-                        Admin
-                      </td>
+                      <td x-show="user.is_admin" class="text-center px-2 py-1 text-sm text-stone-500">Admin</td>
                       <td class="px-2 py-1" x-text="user.username"></td>
                       <td class="px-2 py-1" x-text="user.email"></td>
                     </tr>
                   </template>
-                </tbody>
-              </table>
-            </div>
-          </template>
-
-          <template x-if="createUserMode == 'selectUsers' && ($store.active.licence_plan == 'free' || $store.active.licence_plan == 'deactivated')">
-            <div class="border border-stone-200 rounded-md shadow-sm overflow-x-auto">
-              <table class="w-full text-left">
-                <thead class="bg-stone-100 border-b-2 border-stone-200">
-                  <tr>
-                    <th class="px-2 py-1 text-sm font-semibold text-stone-600"></th>
-                    <th class="px-2 py-1 text-sm font-semibold text-stone-600">Username</th>
-                    <th class="px-2 py-1 text-sm font-semibold text-stone-600">Email</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td colspan="5" class="text-center text-stone-500 px-2 py-10">
-                      <p><a href="/system/" class="underline hover:text-stone-900">Upgrade your licence</a> to unlock user specific access controls.</p>
-                    </td>
-                  </tr>
                 </tbody>
               </table>
             </div>
@@ -230,7 +171,7 @@
                       <path d="M15.75 12c0 .18-.013.357-.037.53l-4.244-4.243A3.75 3.75 0 0115.75 12zM12.53 15.713l-4.243-4.244a3.75 3.75 0 004.243 4.243z"></path>
                       <path d="M6.75 12c0-.619.107-1.213.304-1.764l-3.1-3.1a11.25 11.25 0 00-2.63 4.31c-.12.362-.12.752 0 1.114 1.489 4.467 5.704 7.69 10.675 7.69 1.5 0 2.933-.294 4.242-.827l-2.477-2.477A5.25 5.25 0 016.75 12z"></path>
                     </svg>
-                    <span x-show="show" class="absolute top-0 left-4 z-10 px-2 py-1 rounded bg-stone-800 shadow-lg w-max text-stone-50 text-sm"> Private field. Will not be displayed via API (available in execution). </span>
+                    <span x-show="show" class="absolute top-0 left-4 z-10 px-2 py-1 rounded bg-stone-800 shadow-lg w-max text-stone-50 text-sm"> Private field. Editable and available to agents. Not available for user viewing. </span>
                   </div>
                 </div>
                 <div>

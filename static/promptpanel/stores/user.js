@@ -127,6 +127,6 @@ var userState = () => {
         };
         Alpine.store("toastStore").addToast(failToast);
       }
-    }
+    },
   };
 };

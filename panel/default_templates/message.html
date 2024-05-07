@@ -1,0 +1,12 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Prompt Panel</title>
+    {% include "components/head.html" %}
+  </head>
+  <body>
+    <!-- Stores -->
+    <script is:inline src="/static/plugin_default/stores/script.js"></script>
+    <div x-data="pluginState()" x-init="redirectMessage()"></div>
+  </body>
+</html>

@@ -1,0 +1,49 @@
+{
+  "name": "Ollama",
+  "category": " Base Models",
+  "settings": [
+    {
+      "name": "Context Size",
+      "description": "The max context size your model supports.",
+      "default": "4096",
+      "type": "number",
+      "required": true
+    },
+    {
+      "name": "System Message",
+      "description": "A message to help instruct the model on it's usage and how to behave.",
+      "type": "textarea",
+      "default": "You are a helpful AI assistant.",
+      "required": true
+    },
+    {
+      "name": "Max Tokens to Generate",
+      "type": "number",
+      "advanced": true
+    },
+    {
+      "name": "Temperature",
+      "description": "Temperature as a setting that controls the AI's willingness to take risks in its word choices. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. (Between 0.0 to 2.0)",
+      "type": "number",
+      "advanced": true
+    },
+    {
+      "name": "Top P",
+      "description": "Top P controls the diversity of the AI's responses by only considering a subset of all possible next words that have a cumulative probability above a certain threshold. Recommended to use Temperature OR Top-P, not both. (Between 0.0 to 2.0)",
+      "type": "number",
+      "advanced": true
+    },
+    {
+      "name": "Stop Sequence",
+      "description": "Sequence where if generated the API will stop generating further tokens.",
+      "type": "text",
+      "advanced": true
+    },
+    {
+      "name": "Frequency Penalty",
+      "description": "Aims to decrease the repetition of individual words or phrases within the generated text. (Between -2.0 to 2.0)",
+      "type": "number",
+      "advanced": true
+    }
+  ]
+}

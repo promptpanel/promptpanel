@@ -157,7 +157,7 @@ def panel_list(request):
 
             filtered_metadata = {
                 key: value
-                for key, value in panel.metadata.items()
+                for key, value in panel.meta.items()
                 if key not in private_settings
             }
             # Display image
@@ -189,7 +189,7 @@ def panel_list(request):
                 "created_by": panel.created_by.username,
                 "created_on": panel.created_on,
                 "updated_at": panel.updated_at,
-                "metadata": filtered_metadata,
+                "meta": filtered_metadata,
                 "last_active": last_active,
                 "display_image": display_image,
             }
@@ -247,7 +247,7 @@ def panel_detail(request, panel_id):
             display_image = "/static/promptpanel/img/default-chat.png"
         filtered_metadata = {
             key: value
-            for key, value in panel.metadata.items()
+            for key, value in panel.meta.items()
             if key not in private_settings
         }
         panel_data = {
@@ -260,7 +260,7 @@ def panel_detail(request, panel_id):
             "created_by": panel.created_by.username,
             "created_on": panel.created_on,
             "updated_at": panel.updated_at,
-            "metadata": filtered_metadata,
+            "meta": filtered_metadata,
         }
         if request.user.is_staff:
             panel_data["users_with_access"] = [
@@ -283,13 +283,13 @@ def panel_create(request):
         plugin = data.get("plugin", None)
         display_image = data.get("display_image", None)
         is_global = data.get("is_global", False)
-        metadata = data.get("metadata", False)
+        metadata = data.get("meta", {})
         new_panel = Panel(
             name=name,
             plugin=plugin,
             display_image=display_image,
             is_global=is_global,
-            metadata=metadata,
+            meta=metadata,
             created_by=request.user,
         )
         new_panel.save()
@@ -321,7 +321,7 @@ def panel_create(request):
             "created_on": new_panel.created_on,
             "updated_at": new_panel.updated_at,
             "users_with_access": users_with_access_data,
-            "metadata": new_panel.metadata,
+            "meta": new_panel.meta,
         }
         return JsonResponse(response_data)
     except Exception as e:
@@ -340,8 +340,14 @@ def panel_update(request, panel_id):
         panel.plugin = data.get("plugin", panel.plugin)
         panel.display_image = data.get("display_image", panel.display_image)
         panel.is_global = data.get("is_global", panel.is_global)
-        panel.metadata = data.get("metadata", panel.metadata)
         user_ids = data.get("user_access_ids")
+        incoming_meta = data.get("meta", {})
+        logger.info(incoming_meta)
+        logger.info(panel.meta)
+        if incoming_meta:
+            for key, value in incoming_meta.items():
+                if value != "":
+                    panel.meta[key] = value
         panel.save()
         if user_ids is not None:
             users_with_access = User.objects.filter(id__in=user_ids)
@@ -367,7 +373,7 @@ def panel_update(request, panel_id):
             "created_on": panel.created_on,
             "updated_at": panel.updated_at,
             "users_with_access": users_with_access_data,
-            "metadata": panel.metadata,
+            "meta": panel.meta,
         }
         return JsonResponse(response_data)
     except Exception as e:
@@ -464,7 +470,7 @@ def thread_list(request):
                 "created_by": thread.created_by.username,
                 "created_on": thread.created_on,
                 "updated_at": thread.updated_at,
-                "metadata": thread.metadata,
+                "meta": thread.meta,
                 "last_active": thread.last_active,
             }
             for thread in sorted_threads
@@ -515,7 +521,7 @@ def thread_list_panel(request, panel_id):
                 "created_by": thread.created_by.username,
                 "created_on": thread.created_on,
                 "updated_at": thread.updated_at,
-                "metadata": thread.metadata,
+                "meta": thread.meta,
                 "last_active": thread.last_active,
             }
             for thread in sorted_threads
@@ -541,7 +547,7 @@ def thread_detail(request, thread_id):
             "created_by": thread.created_by.username,
             "created_on": thread.created_on,
             "updated_at": thread.updated_at,
-            "metadata": thread.metadata,
+            "meta": thread.meta,
         }
         return JsonResponse(thread_data, safe=False)
     except Exception as e:
@@ -568,11 +574,11 @@ def thread_create(request):
                     | Q(users_with_access=request.user)
                 ),
             )
-        metadata = data.get("metadata", None)
+        metadata = data.get("meta", {})
         new_thread = Thread(
             title=title,
             panel=panel,
-            metadata=metadata,
+            meta=metadata,
             created_by=request.user,
         )
         new_thread.save()
@@ -585,7 +591,7 @@ def thread_create(request):
             "created_by": new_thread.created_by.username,
             "created_on": new_thread.created_on,
             "updated_at": new_thread.updated_at,
-            "metadata": new_thread.metadata,
+            "meta": new_thread.meta,
         }
         return JsonResponse(response_data)
     except Exception as e:
@@ -606,7 +612,7 @@ def thread_clone(request, thread_id):
         new_thread = Thread(
             title=original_thread.title + " (Duplicated)",
             panel=original_thread.panel,
-            metadata=original_thread.metadata,
+            meta=original_thread.meta,
             created_by=request.user,
         )
         new_thread.save()
@@ -618,7 +624,7 @@ def thread_clone(request, thread_id):
                 content=message.content,
                 thread=new_thread,
                 panel=message.panel,
-                metadata=message.metadata,
+                meta=message.meta,
                 created_by=request.user,
             )
         original_files = File.objects.filter(thread=original_thread)
@@ -639,7 +645,7 @@ def thread_clone(request, thread_id):
                 filepath=new_file_path,
                 thread=new_thread,
                 panel=file.panel,
-                metadata=file.metadata,
+                meta=file.meta,
                 created_by=request.user,
             )
         return JsonResponse(
@@ -679,7 +685,7 @@ def thread_update(request, thread_id):
             )
         thread.panel = panel
         thread.title = data.get("title", thread.title)
-        thread.metadata = data.get("metadata", thread.metadata)
+        thread.meta = data.get("meta", thread.meta)
         thread.save()
         response_data = {
             "status": "success",
@@ -690,7 +696,7 @@ def thread_update(request, thread_id):
             "created_by": thread.created_by.username,
             "created_on": thread.created_on,
             "updated_at": thread.updated_at,
-            "metadata": thread.metadata,
+            "meta": thread.meta,
         }
         return JsonResponse(response_data)
     except Exception as e:
@@ -772,7 +778,7 @@ def message_list_panel(request, panel_id):
                 "created_by": message.created_by.username,
                 "created_on": message.created_on,
                 "updated_at": message.updated_at,
-                "metadata": message.metadata,
+                "meta": message.meta,
             }
             for message in panel_messages
         ]
@@ -812,7 +818,7 @@ def message_list_thread(request, thread_id):
                 "created_by": message.created_by.username,
                 "created_on": message.created_on,
                 "updated_at": message.updated_at,
-                "metadata": message.metadata,
+                "meta": message.meta,
             }
             for message in thread_messages
         ]
@@ -828,7 +834,7 @@ def message_create(request):
     try:
         data = json.loads(request.body.decode("utf-8"))
         content = data.get("content", None)
-        metadata = data.get("metadata", None)
+        metadata = data.get("meta", {})
         thread_id = data.get("thread_id", None)
         panel_id = data.get("panel_id", None)
         thread = None
@@ -852,7 +858,7 @@ def message_create(request):
             content=content,
             thread=thread,
             panel=panel,
-            metadata=metadata,
+            meta=metadata,
             created_by=request.user,
         )
         new_message.save()
@@ -868,7 +874,10 @@ def message_create(request):
 def message_update(request, message_id):
     try:
         data = json.loads(request.body.decode("utf-8"))
-        message = get_object_or_404(Message, id=message_id, created_by=request.user)
+        if request.user.is_staff:
+            message = get_object_or_404(Message, id=message_id)
+        else:
+            message = get_object_or_404(Message, id=message_id, created_by=request.user)
         panel_id = data.get("panel_id", message.panel.id)
         thread_id = data.get("thread_id", message.thread.id)
         if request.user.is_staff:
@@ -890,7 +899,7 @@ def message_update(request, message_id):
         message.panel = panel
         message.thread = thread
         message.content = data.get("content", message.content)
-        message.metadata = data.get("metadata", message.metadata)
+        message.meta = data.get("meta", message.meta)
         message.save()
         response_data = {
             "status": "success",
@@ -902,7 +911,7 @@ def message_update(request, message_id):
             "created_by": message.created_by.username,
             "created_on": message.created_on,
             "updated_at": message.updated_at,
-            "metadata": message.metadata,
+            "meta": message.meta,
         }
         return JsonResponse(response_data)
     except Exception as e:
@@ -952,7 +961,7 @@ def file_list_panel(request, panel_id):
                 "created_by": file.created_by.username,
                 "created_on": file.created_on,
                 "updated_at": file.updated_at,
-                "metadata": file.metadata,
+                "meta": file.meta,
             }
             for file in files
         ]
@@ -981,13 +990,14 @@ def file_list_thread(request, thread_id):
         file_list = [
             {
                 "id": file.id,
-                "filepath": file.filepath,
+                "filename": file.filename,
+                "filepath": file.filepath.replace("/app/", "/"),
                 "panel_id": file.panel_id,
                 "thread_id": file.thread_id,
                 "created_by": file.created_by.username,
                 "created_on": file.created_on,
                 "updated_at": file.updated_at,
-                "metadata": file.metadata,
+                "meta": file.meta,
             }
             for file in files
         ]
@@ -1001,68 +1011,114 @@ def file_list_thread(request, thread_id):
 @require_http_methods(["POST"])
 def file_create(request):
     try:
-        if "file" in request.FILES:
-            # Get other attributes
-            panel_id = request.POST.get("panel_id", None)
-            thread_id = request.POST.get("thread_id", None)
-            metadata = request.POST.get("metadata", None)
-            thread = None
-            if request.user.is_staff:
-                panel = get_object_or_404(Panel, id=panel_id)
-            else:
-                panel = get_object_or_404(
-                    Panel,
-                    Q(id=panel_id)
-                    & (
-                        Q(is_global=True)
-                        | Q(created_by=request.user)
-                        | Q(users_with_access=request.user)
-                    ),
-                )
-            if thread_id:
-                if request.user.is_staff:
-                    thread = get_object_or_404(Thread, id=thread_id)
-                else:
-                    thread = get_object_or_404(
-                        Thread, id=thread_id, created_by=request.user
-                    )
-            # Upload file
-            uploaded_file = request.FILES["file"]
-            file_name = uploaded_file.name
-            save_path_components = [settings.MEDIA_ROOT, str(panel_id)]
-            if thread_id:
-                save_path_components.append(str(thread_id))
-            save_path = os.path.join(*save_path_components)
-            os.makedirs(save_path, exist_ok=True)
-            file_path = os.path.join(save_path, file_name)
-            fs = FileSystemStorage(location=save_path)
-            filepath = fs.save(file_name, uploaded_file)
-            file_full_path = os.path.join(save_path, filepath)
-            # Create db object
-            new_file = File(
-                filepath=file_full_path,
-                thread=thread,
-                panel=panel,
-                metadata=metadata,
-                created_by=request.user,
-            )
-            new_file.save()
-            response_data = {
-                "id": new_file.id,
-                "filepath": new_file.filepath,
-                "panel_id": new_file.panel_id,
-                "thread_id": new_file.thread_id,
-                "created_by": new_file.created_by.username,
-                "created_on": new_file.created_on,
-                "updated_at": new_file.updated_at,
-                "metadata": new_file.metadata,
-            }
-            response = run_plugin_function("file", new_file, thread, panel)
-            return response
-        else:
+        if not "file" in request.FILES:
             return JsonResponse(
-                {"status": "error", "message": "No file provided"}, status=400
+                {"status": "error", "message": "No files provided"}, status=400
             )
+        panel_id = request.POST.get("panel_id", None)
+        thread_id = request.POST.get("thread_id", None)
+        metadata = request.POST.get("meta", {})
+        try:
+            metadata = json.loads(metadata)
+        except json.JSONDecodeError:
+            return JsonResponse(
+                {"status": "error", "message": "Invalid metadata format"}, status=400
+            )
+        thread = None
+        if request.user.is_staff:
+            panel = get_object_or_404(Panel, id=panel_id)
+        else:
+            panel = get_object_or_404(
+                Panel,
+                Q(id=panel_id)
+                & (
+                    Q(is_global=True)
+                    | Q(created_by=request.user)
+                    | Q(users_with_access=request.user)
+                ),
+            )
+        if thread_id:
+            if request.user.is_staff:
+                thread = get_object_or_404(Thread, id=thread_id)
+            else:
+                thread = get_object_or_404(
+                    Thread, id=thread_id, created_by=request.user
+                )
+        # Upload file
+        uploaded_file = request.FILES["file"]
+        file_name = uploaded_file.name
+        save_path_components = [settings.MEDIA_ROOT, str(panel_id)]
+        if thread_id:
+            save_path_components.append(str(thread_id))
+        save_path = os.path.join(*save_path_components)
+        os.makedirs(save_path, exist_ok=True)
+        file_path = os.path.join(save_path, file_name)
+        fs = FileSystemStorage(location=save_path)
+        filepath = fs.save(file_name, uploaded_file)
+        file_full_path = os.path.join(save_path, filepath)
+        new_file = File(
+            filename=file_name,
+            filepath=file_full_path,
+            thread=thread,
+            panel=panel,
+            meta=metadata,
+            created_by=request.user,
+        )
+        new_file.save()
+        response = run_plugin_function("file", new_file, thread, panel)
+        return response
+    except Exception as e:
+        logger.error(e, exc_info=True)
+        return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
+
+@user_authenticated
+@require_http_methods(["PUT"])
+def file_update(request, file_id):
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+        if request.user.is_staff:
+            file = get_object_or_404(File, id=file_id)
+        else:
+            file = get_object_or_404(File, id=file_id, created_by=request.user)
+
+        panel_id = data.get("panel_id", file.panel.id)
+        thread_id = data.get("thread_id", file.thread.id)
+        if request.user.is_staff:
+            panel = get_object_or_404(Panel, id=panel_id)
+        else:
+            panel = get_object_or_404(
+                Panel,
+                Q(id=panel_id)
+                & (
+                    Q(is_global=True)
+                    | Q(created_by=request.user)
+                    | Q(users_with_access=request.user)
+                ),
+            )
+        if request.user.is_staff:
+            thread = get_object_or_404(Thread, id=thread_id)
+        else:
+            thread = get_object_or_404(Thread, id=thread_id, created_by=request.user)
+        file.panel = panel
+        file.thread = thread
+        file.meta = data.get("meta", file.meta)
+        file.filename = data.get("filename", file.filename)
+        file.save()
+        response_data = {
+            "status": "success",
+            "message": "File updated successfully",
+            "id": file.id,
+            "filename": file.filename,
+            "panel_id": file.panel_id,
+            "thread_id": file.thread_id,
+            "created_by": file.created_by.username,
+            "created_on": file.created_on,
+            "updated_at": file.updated_at,
+            "meta": file.meta,
+            "filepath": file.filepath,
+        }
+        return JsonResponse(response_data)
     except Exception as e:
         logger.error(e, exc_info=True)
         return JsonResponse({"status": "error", "message": str(e)}, status=400)

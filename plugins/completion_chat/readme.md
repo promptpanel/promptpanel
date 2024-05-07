@@ -1,0 +1,1 @@
+Legacy OpenAI chat plugin for completions. Useful for connecting to **OpenAI Compatible** large language model APIs providers. <a class="text-sm underline hover:text-primary" href="https://promptpanel.com/overview/packaged-plugins-models/#completion-chat" target="_new">More Info</a>

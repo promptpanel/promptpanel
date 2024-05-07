@@ -7,7 +7,6 @@ var systemState = () => {
     activateTrial() {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/users/licence/trial/";
-      
       const data = {
         email: this.email,
       };
@@ -51,7 +50,7 @@ var systemState = () => {
     setLicence() {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/users/licence/set/";
-      
+
       const data = {
         email: this.licence_email,
         licence_key: this.licence_key,
@@ -100,7 +99,7 @@ var systemState = () => {
       }
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/users/licence/downgrade/";
-      
+
       fetch(url, {
         method: "POST",
         headers: {

@@ -57,15 +57,15 @@ var panelUpdateState = () => {
           this.getPlugins();
           this.createName = data.name;
           this.createDisplayImg = data.display_image;
-          this.createSetting = data.metadata;
-          this.createUsers = data.users_with_access.map(user => user.id);
+          this.createSetting = data.meta;
+          this.createUsers = data.users_with_access.map((user) => user.id);
           const isGlobal = data.is_global;
-          if(isGlobal == true){
-            this.createUserMode = 'global'
-          } else if(this.createUsers.length > 1){
-            this.createUserMode = 'selectUsers'
+          if (isGlobal == true) {
+            this.createUserMode = "global";
+          } else if (this.createUsers.length > 1) {
+            this.createUserMode = "selectUsers";
           } else {
-            this.createUserMode = 'adminOnly'
+            this.createUserMode = "adminOnly";
           }
           this.activePluginID = data.plugin;
           this.setActivePlugin();
@@ -86,10 +86,10 @@ var panelUpdateState = () => {
         name: this.createName,
         display_image: this.createDisplayImg,
         plugin: this.activePluginID,
-        metadata: this.createSetting,
+        meta: this.createSetting,
         user_access_ids: this.createUsers,
       };
-      if (this.createUserMode == 'global') {
+      if (this.createUserMode == "global") {
         panelData.is_global = true;
       }
       fetch(url, {
@@ -129,10 +129,10 @@ var panelUpdateState = () => {
         name: this.createName,
         display_image: this.createDisplayImg,
         plugin: this.activePluginID,
-        metadata: this.createSetting,
+        meta: this.createSetting,
         user_access_ids: this.createUsers,
       };
-      if (this.createUserMode == 'global') {
+      if (this.createUserMode == "global") {
         panelData.is_global = true;
       }
       fetch(url, {
@@ -171,7 +171,7 @@ var panelUpdateState = () => {
       }
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/app/panel/delete/" + Alpine.store("active").panelId + "/";
-      
+
       fetch(url, {
         method: "DELETE",
         headers: {
@@ -248,7 +248,7 @@ var panelUpdateState = () => {
     getPlugins() {
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/app/plugins/";
-      
+
       fetch(url, {
         method: "GET",
         headers: {

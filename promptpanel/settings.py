@@ -1,10 +1,7 @@
 import os
 import json
-import requests
-import glob
 import logging
 import secrets
-from datetime import datetime, timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -119,6 +116,13 @@ MIDDLEWARE = [
     "promptpanel.middleware.CustomErrorMiddleware",
 ]
 
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "prompt_cache",
+    }
+}
+
 X_FRAME_OPTIONS = "SAMEORIGIN"
 APPEND_SLASH = True
 ROOT_URLCONF = "promptpanel.urls"
@@ -147,8 +151,6 @@ WSGI_APPLICATION = "promptpanel.wsgi.application"
 
 if all(
     [
-        os.environ.get("PROMPT_LICENSE_EMAIL", "").strip(),
-        os.environ.get("PROMPT_LICENSE_KEY", "").strip(),
         os.environ.get("PROMPT_PG_HOST", "").strip(),
         os.environ.get("PROMPT_PG_PORT", "").strip(),
         os.environ.get("PROMPT_PG_DBNAME", "").strip(),
