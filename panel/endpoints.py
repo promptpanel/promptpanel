@@ -340,8 +340,14 @@ def panel_update(request, panel_id):
         panel.plugin = data.get("plugin", panel.plugin)
         panel.display_image = data.get("display_image", panel.display_image)
         panel.is_global = data.get("is_global", panel.is_global)
-        panel.meta = data.get("meta", panel.meta)
         user_ids = data.get("user_access_ids")
+        incoming_meta = data.get("meta", {})
+        logger.info(incoming_meta)
+        logger.info(panel.meta)
+        if incoming_meta:
+            for key, value in incoming_meta.items():
+                if value != "":
+                    panel.meta[key] = value
         panel.save()
         if user_ids is not None:
             users_with_access = User.objects.filter(id__in=user_ids)
