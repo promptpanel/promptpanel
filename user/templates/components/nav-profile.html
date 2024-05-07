@@ -18,11 +18,11 @@
   <a href="/system/ollama" :class="{ 'bg-stone-200 text-stone-900': $store.active.currentSetting == 'ollama_model' }" class="group cursor-pointer group flex items-center w-full py-1 px-2.5 mb-1 rounded-md font-semibold text-stone-500 transition duration-500 hover:text-stone-900 -lg:p-3">
     <p>Manage Ollama</p>
   </a>
-  {% endif %} {% if env_pro %}
+  {% endif %}
   <a href="/users/" :class="{ 'bg-stone-200 text-stone-900': $store.active.currentSetting == 'userList' }" class="group cursor-pointer group flex items-center w-full py-1 px-2.5 mb-1 rounded-md font-semibold text-stone-500 transition duration-500 hover:text-stone-900 -lg:p-3">
     <p>User Management</p>
   </a>
-  {% endif %} {% endif %}
+  {% endif %}
   <a href="https://promptpanel.com/docs" class="group cursor-pointer group flex items-center w-full px-1 mb-1 rounded-md font-semibold text-stone-500 transition duration-500 hover:text-stone-900 -lg:p-3">
     <div class="flex items-center justify-center w-7 h-7">
       <svg class="w-4 h-4" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M8.25 3.75H19.5a.75.75 0 01.75.75v11.25a.75.75 0 01-1.5 0V6.31L5.03 20.03a.75.75 0 01-1.06-1.06L17.69 5.25H8.25a.75.75 0 010-1.5z" clip-rule="evenodd"></path></svg>
