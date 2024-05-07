@@ -107,22 +107,16 @@ def chat_stream(message, thread, panel):
 
         ## ----- 3. Get max context and system message.
         max_tokens = int(settings.get("Context Size"))
-        system_message = {
-            "role": "system",
-            "content": [{"type": "text", "text": settings.get("System Message", "")}],
-        }
+        system_message = settings.get("System Message", "")
         system_message_token_count = litellm.token_counter(
-            model=completion_model, messages=[system_message]
+            model=completion_model,
+            messages=[{"role": "system", "content": system_message}],
         )
         prompt_template = settings.get("Prompt Template", "")
-        prompt_template_token_count = {
-            "role": "user",
-            "content": [{"type": "text", "text": prompt_template}],
-        }
-        system_message_token_count = litellm.token_counter(
-            model=completion_model, messages=[system_message]
+        prompt_template_token_count = litellm.token_counter(
+            model=completion_model,
+            messages=[{"role": "user", "content": prompt_template}],
         )
-
         if settings.get("Max Tokens to Generate") is not None:
             remaining_tokens = (
                 max_tokens

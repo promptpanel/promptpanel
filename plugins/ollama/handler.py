@@ -178,19 +178,7 @@ def chat_stream(message, thread, panel):
                 <= remaining_tokens
             ):
                 # Container for message
-                content_items = []
-                content_items.append({"type": "text", "text": msg.content})
-                skipped_images = True
-                # if litellm.supports_vision(model=completion_model):
-                #     images = msg.meta.get("images", [])
-                #     for img_base64 in images:
-                #         content_items.append(
-                #             {"type": "image_url", "image_url": {"url": img_base64}}
-                #         )
-                # else:
-                #     if msg.meta.get("images"):
-                #         skipped_images = True
-                # Append if user or assistant
+                skipped_images = False
                 role = msg.meta.get("sender", "user")
                 if role == "user":
                     # Increment if role user (for title later)

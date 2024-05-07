@@ -107,7 +107,7 @@ def chat_stream(message, thread, panel):
         max_tokens = int(settings.get("Context Size"))
         system_message = {
             "role": "system",
-            "content": [{"type": "text", "text": settings.get("System Message", "")}],
+            "content": settings.get("System Message", ""),
         }
         system_message_token_count = litellm.token_counter(
             model=completion_model, messages=[system_message]
@@ -166,19 +166,7 @@ def chat_stream(message, thread, panel):
                 <= remaining_tokens
             ):
                 # Container for message
-                content_items = []
-                content_items.append({"type": "text", "text": msg.content})
                 skipped_images = False
-                if litellm.supports_vision(model=completion_model):
-                    images = msg.meta.get("images", [])
-                    for img_base64 in images:
-                        content_items.append(
-                            {"type": "image_url", "image_url": {"url": img_base64}}
-                        )
-                else:
-                    if msg.meta.get("images"):
-                        skipped_images = True
-                # Append if user or assistant
                 role = msg.meta.get("sender", "user")
                 if role == "user":
                     # Increment if role user (for title later)
@@ -187,7 +175,7 @@ def chat_stream(message, thread, panel):
                     message_history.append(
                         {
                             "role": "user",
-                            "content": content_items,
+                            "content": msg.content,
                         }
                     )
                 if role == "assistant":
@@ -195,7 +183,7 @@ def chat_stream(message, thread, panel):
                     message_history.append(
                         {
                             "role": "assistant",
-                            "content": content_items,
+                            "content": msg.content,
                         }
                     )
             else:
@@ -332,23 +320,13 @@ def chat_stream(message, thread, panel):
             title_enrich.append(
                 {
                     "role": "system",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "You are an assistant who writes titles based on questions which are asked by the user. Please only provide a summary, do not provide the answer to the question.",
-                        }
-                    ],
+                    "content": "You are an assistant who writes titles based on questions which are asked by the user. Please only provide a summary, do not provide the answer to the question.",
                 }
             )
             title_enrich.append(
                 {
                     "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": f"Please create a title for the following content: {message.content} \n\n Title:",
-                        }
-                    ],
+                    "content": f"Please create a title for the following content: {message.content} \n\n Title:",
                 }
             )
             title_settings = {
