@@ -10,7 +10,6 @@ tailwindcss
 *.log
 
 # Pro folders
-pro
 entrypoint.sh
 
 # Builds
