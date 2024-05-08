@@ -243,17 +243,15 @@ def chat_stream(message, thread, panel):
         }
         response = litellm.completion(**completion_settings_trimmed)
         response_content = ""
-        response_display = ""
         if skipped_images:
-            response_display += "> Vision is not available with this model.\n\n"
+            yield "> Vision is not available with this model.\n\n"
         if skipped_docs:
-            response_display += "> Some of your documents exceeded the context window (text size) for your AI. We recommend using a retrieval-augmented generation (RAG) based solution to surface only the relevant information when querying your AI.\n\n"
+            yield "> Some of your documents exceeded the context window (text size) for your AI. We recommend using a retrieval-augmented generation (RAG) based solution to surface only the relevant information when querying your AI.\n\n"
         for part in response:
             try:
                 delta = part.choices[0].delta.content or ""
                 response_content += delta
-                response_display += delta
-                yield response_display
+                yield delta
             except Exception as e:
                 logger.info("Skipped chunk: " + str(e))
                 pass
