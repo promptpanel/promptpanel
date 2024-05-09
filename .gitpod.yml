@@ -1,0 +1,9 @@
+tasks:
+  - init: |
+      DEV_PORT=4001 docker compose -f docker-compose-agent-dev.yml up
+ports:
+  - port: 4001
+    onOpen: open-preview
+vscode:
+  extensions:
+    - ms-azuretools.vscode-docker

@@ -738,7 +738,7 @@ var pluginState = () => {
       let fileStatus = "";
       const fileObj = fileItem.file;
       formData.append("file", fileObj);
-      formData.append("metadata", JSON.stringify({ enabled: true }));
+      formData.append("meta", JSON.stringify({ enabled: true }));
       formData.append("panel_id", Alpine.store("active").panelId);
       formData.append("thread_id", Alpine.store("active").threadId);
       const hostname = window.location.origin;

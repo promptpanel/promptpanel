@@ -1,4 +1,5 @@
 import os
+import json
 import logging
 import litellm
 from panel.models import File, Message, Panel, Thread
@@ -48,6 +49,7 @@ def file_stream(file, thread, panel):
         output_text_formatted = f"{file.filename} Context:\n {output_text} \n\n"
         new_file = [{"role": "user", "content": output_text_formatted}]
         token_count = litellm.token_counter(model=completion_model, messages=new_file)
+        file.meta = json.loads(file.meta)
         file.meta.update(
             {"token_count": token_count, "text_file_path": output_filepath}
         )

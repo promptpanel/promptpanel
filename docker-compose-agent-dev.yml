@@ -1,0 +1,29 @@
+version: "3.9"
+services:
+  promptpanel:
+    image: promptpanel/promptpanel:latest
+    container_name: promptpanel
+    restart: always
+    volumes:
+      - ./database:/app/database
+      - ./media:/app/media
+      ## Community plugins
+      - ./plugins/openai:/app/plugins/openai
+      - ./plugins/anthropic:/app/plugins/anthropic
+      - ./plugins/cohere:/app/plugins/cohere
+      - ./plugins/ollama:/app/plugins/ollama 
+      - ./plugins/completion_chat:/app/plugins/completion
+      - ./plugins/llm_universal:/app/plugins/llm_universal
+      ## Your new plugins
+      - ./plugins/hello_agent:/app/plugins/hello_agent
+    ## Agent plugins
+    ports:
+      - ${DEV_PORT}:4000
+    environment:
+      PROMPT_MODE: DEVELOPMENT ## Applies changes server-side as you work.
+      # PROMPT_DEV_INSTALL_REQS: ENABLED ## Installs requirements on container startup.
+      # PROMPT_OLLAMA_HOST: http://ollama:11434 ## If you want to locally run a model in development.
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   container_name: ollama
+  #   restart: always
