@@ -52,6 +52,10 @@ Let's free your AI interface.
 
 ## Build your own agent plugins
 
+Get started developing using a one-click cloud development environment using GitPod:
+
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/promptpanel/promptpanel/tree/gitpod-one-click)
+
 This `./plugins` directory contains the community plugin agents found in Prompt Panel as well as a sample agent as a template for you to get started with your own development.
 
 - The `./hello_agent` directory gives you some scaffolding for a sample agent.
@@ -61,10 +65,6 @@ This `./plugins` directory contains the community plugin agents found in Prompt 
 To get more information about how to build your first plugin we recommend giving a read to: 
 - <a href="https://promptpanel.com/plugin-agent-authoring/building-plugin-agents/" target="_new">Building Plugin Agents</a>
 - <a href="https://promptpanel.com/overview/data-model/" target="_new">Data Model</a>
-
-Get started developing using a one-click cloud development environment using GitPod:
-
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/promptpanel/promptpanel/tree/gitpod-one-click])
 
 Running `DEV_PORT=4001 docker compose up -f docker-compose-agent-dev.yml` from this directory with a development port set will bring up a development environment you can use to start developing your agent plugin.
 
