@@ -54,7 +54,7 @@ Let's free your AI interface.
 
 Get started developing using a one-click cloud development environment using GitPod:
 
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/promptpanel/promptpanel/tree/gitpod-one-click)
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/promptpanel/promptpanel/tree/main)
 
 This `./plugins` directory contains the community plugin agents found in Prompt Panel as well as a sample agent as a template for you to get started with your own development.
 
