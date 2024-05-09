@@ -85,7 +85,7 @@ def chat_stream(message, thread, panel):
             thread=thread,
             panel=panel,
             created_by=message.created_by,
-            metadata={"sender": "assistant", "token_count": len(response_content)},
+            meta={"sender": "assistant", "token_count": len(response_content)},
         )
         response_message.save()
     except Exception as e:
