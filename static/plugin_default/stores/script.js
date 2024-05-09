@@ -382,9 +382,9 @@ var pluginState = () => {
                       return;
                     }
                     const string = new TextDecoder().decode(value);
-                    // streaming += string;
+                    streaming += string;
                     // Format for display / light sanitize for HTML tags and such
-                    this.responseStream = mdConverter.makeHtml(string);
+                    this.responseStream = mdConverter.makeHtml(streaming);
                     controller.enqueue(value);
                     push();
                   })
@@ -539,9 +539,9 @@ var pluginState = () => {
                       return;
                     }
                     const string = new TextDecoder().decode(value);
-                    // streaming += string;
+                    streaming += string;
                     // Format for display / light sanitize for HTML tags and such
-                    this.responseStream = mdConverter.makeHtml(string);
+                    this.responseStream = mdConverter.makeHtml(streaming);
                     document.querySelectorAll("pre code").forEach((block) => {
                       if (!block.classList.contains("hljs")) {
                         hljs.highlightElement(block);
@@ -798,6 +798,7 @@ var pluginState = () => {
                       return;
                     }
                     const string = new TextDecoder().decode(value);
+                    // fileStatus += string;
                     this.fileStream = mdConverter.makeHtml(string);
                     controller.enqueue(value);
                     push();

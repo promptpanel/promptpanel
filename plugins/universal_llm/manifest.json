@@ -40,12 +40,20 @@
           ]
         },
         {
-          "group": "Mistral AI API",
+          "group": "Mistral AI",
           "values": [
             "mistral/mistral-tiny",
             "mistral/mistral-small",
             "mistral/mistral-medium",
             "mistral/mistral-large-latest"
+          ]
+        },
+        {
+          "group": "Groq",
+          "values": [
+            "groq/llama3-8b-8192",
+            "groq/llama3-70b-8192",
+            "groq/mixtral-8x7b-32768"
           ]
         }
       ],
