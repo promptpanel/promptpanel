@@ -82,4 +82,6 @@ hello@promptpanel.com
 
 ---
 
-![screenshot](https://github.com/promptpanel/promptpanel/assets/161855417/6e7a303d-0fbc-4896-870d-19700b579e71)
+![App Screenshot](https://github.com/promptpanel/promptpanel/assets/161855417/6e7a303d-0fbc-4896-870d-19700b579e71)
+
+![Development Experience via GitPod](https://github.com/promptpanel/promptpanel/assets/161855417/32a0c972-94d1-4871-a6f9-6435548926c2)
