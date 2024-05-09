@@ -1,6 +1,6 @@
 tasks:
   - init: |
-      DEV_PORT=4001 docker compose up -f docker-compose-agent-dev.yml
+      DEV_PORT=4001 docker compose -f docker-compose-agent-dev.yml up
 ports:
   - port: 4001
     onOpen: open-preview
