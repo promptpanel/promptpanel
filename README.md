@@ -2,7 +2,7 @@
 
 **Prompt Panel**\
 Accelerating your AI agent adoption\
-<a href="https://promptpanel.com/docs">Documentation</a> | <a href="https://hub.docker.com/r/promptpanel/promptpanel">DockerHub</a> | <a href="https://github.com/promptpanel/promptpanel">GitHub</a>
+<a href="https://promptpanel.com/getting-started/quickstart/">Documentation</a> | <a href="https://hub.docker.com/r/promptpanel/promptpanel">DockerHub</a> | <a href="https://github.com/promptpanel/promptpanel">GitHub</a>
 
 ## Installation
 
