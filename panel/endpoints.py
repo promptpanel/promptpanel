@@ -342,8 +342,6 @@ def panel_update(request, panel_id):
         panel.is_global = data.get("is_global", panel.is_global)
         user_ids = data.get("user_access_ids")
         incoming_meta = data.get("meta", {})
-        logger.info(incoming_meta)
-        logger.info(panel.meta)
         if incoming_meta:
             for key, value in incoming_meta.items():
                 if value != "":
@@ -636,8 +634,6 @@ def thread_clone(request, thread_id):
             )
             os.makedirs(new_file_dir, exist_ok=True)
             new_file_path = os.path.join(new_file_dir, os.path.basename(old_file_path))
-            logger.info(old_file_path)
-            logger.info(new_file_path)
             # Copy the file
             shutil.copy2(old_file_path, new_file_path)
             # Create new File object
@@ -1163,7 +1159,6 @@ def ollama_proxy(request, route):
     if request.META.get("QUERY_STRING"):
         target_url += f"?{request.META.get('QUERY_STRING')}"
     try:
-        logger.info(f"Proxying {request.method} request to {target_url}")
         response = requests.request(
             method=request.method,
             url=target_url,
