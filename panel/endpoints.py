@@ -1018,12 +1018,6 @@ def file_create(request):
         panel_id = request.POST.get("panel_id", None)
         thread_id = request.POST.get("thread_id", None)
         metadata = request.POST.get("meta", {})
-        try:
-            metadata = json.loads(metadata)
-        except json.JSONDecodeError:
-            return JsonResponse(
-                {"status": "error", "message": "Invalid metadata format"}, status=400
-            )
         thread = None
         if request.user.is_staff:
             panel = get_object_or_404(Panel, id=panel_id)
