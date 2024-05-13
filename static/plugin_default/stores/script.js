@@ -293,7 +293,7 @@ var pluginState = () => {
     },
     cloneThread() {
       const hostname = window.location.origin;
-      const url = hostname + "/api/v1/app/thread/clone/" + Alpine.store("active").threadId + "/";
+      const url = hostname + "/api/v1/app/thread/duplicate/" + Alpine.store("active").threadId + "/";
       fetch(url, {
         method: "POST",
         headers: {
