@@ -102,6 +102,8 @@ def chat_stream(message, thread, panel):
         ## ----- 2. Enrich incoming message with token_count.
         logger.info("** 2. Enrich incoming message with token_count.")
         model_selected = settings.get("Model", "GPT-3.5")
+        if model_selected == "GPT-4o":
+            completion_model = "gpt-4o"
         if model_selected == "GPT-4":
             completion_model = "gpt-4-turbo"
         else:
@@ -116,6 +118,8 @@ def chat_stream(message, thread, panel):
 
         ## ----- 3. Get max context and system message.
         if model_selected == "GPT-4":
+            max_tokens = 128000
+        if model_selected == "GPT-4o":
             max_tokens = 128000
         else:
             max_tokens = 16385
@@ -256,7 +260,7 @@ def chat_stream(message, thread, panel):
             warning_docs.save()
         if skipped_images:
             warning_images = Message(
-                content="Vision is not available with GPT-3.5. Try using GPT-4 to enable vision support.",
+                content="Vision is not available with GPT-3.5. Try using GPT-4o or GOT-4 to enable vision support.",
                 thread=thread,
                 panel=panel,
                 created_by=message.created_by,
