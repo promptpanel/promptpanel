@@ -35,9 +35,8 @@ def file_stream(file, thread, panel):
         settings = panel.meta
         embedding_api_key = settings.get("Embedding API Key")
         embedding_model = settings.get("Embedding Model")
-
-        ## ----- 2. Parse file and save to pickle file.
-        logger.info("** 2. Parse file and save token count, embeddings.")
+        ## ----- 2. Parse file and save embeddings.
+        logger.info("** 2. Parse file and save embeddings.")
         elements = partition(filename=file.filepath, chunking_strategy="by_title")
         sentences = []
         page_numbers = []
@@ -60,6 +59,8 @@ def file_stream(file, thread, panel):
         pickle_data = (sentences, page_numbers, sentence_embeddings)
         with open(pickle_path, "wb") as f:
             pickle.dump(pickle_data, f)
+        file.meta.update({"enabled": True, "pickle_file_path": pickle_path})
+        file.save()
         yield "Upload and parsing complete"
     except Exception as e:
         logger.info("** Upload failed")
@@ -100,6 +101,10 @@ def chat_stream(message, thread, panel):
         for key in keys_to_remove:
             del settings[key]
         completion_model = settings.get("Model")
+        if completion_model == "gpt-4o":
+            temp__token_model = "gpt-4-turbo"
+        token_model = temp__token_model if temp__token_model else completion_model
+
         embedding_model = settings["Embedding Model"]
 
         ## ----- 2. Get max context and system message.
@@ -109,7 +114,7 @@ def chat_stream(message, thread, panel):
             "content": settings.get("System Message", ""),
         }
         system_message_token_count = litellm.token_counter(
-            model=completion_model, messages=[system_message]
+            model=token_model, messages=[system_message]
         )
         if settings.get("Max Tokens to Generate") is not None:
             remaining_tokens = (
@@ -147,7 +152,7 @@ def chat_stream(message, thread, panel):
             embedded_sentences = []
             associated_files = []
             for file in thread_files:
-                pickle_path = f"{file.filepath}.pkl"
+                pickle_path = file.meta.get("pickle_file_path")
                 with open(pickle_path, "rb") as f:
                     (
                         sentences_data,
@@ -194,7 +199,7 @@ def chat_stream(message, thread, panel):
                     "content": sentence_to_add,
                 }
                 doc_msg_token_count = litellm.token_counter(
-                    model=completion_model, messages=[doc_msg]
+                    model=token_model, messages=[doc_msg]
                 )
                 if doc_msg_token_count + doc_current_tokens <= doc_token_limit:
                     doc_current_tokens = doc_current_tokens + doc_msg_token_count
@@ -219,7 +224,7 @@ def chat_stream(message, thread, panel):
             if role == "user" or role == "assistant":
                 msg_content_row = [{"role": role, "content": msg.content}]
                 msg_token_count = litellm.token_counter(
-                    model=completion_model, messages=msg_content_row
+                    model=token_model, messages=msg_content_row
                 )
             if msg_token_count + message_history_token_count <= remaining_tokens:
                 # Container for message
