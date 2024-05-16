@@ -33,6 +33,8 @@ def file_stream(file, thread, panel):
         model_selected = settings.get("Model", "GPT-3.5")
         if model_selected == "GPT-4":
             completion_model = "gpt-4-turbo"
+        elif model_selected == "GPT-4o":
+            completion_model = "gpt-4o"
         else:
             completion_model = "gpt-3.5-turbo"
 
@@ -105,13 +107,13 @@ def chat_stream(message, thread, panel):
         ## ----- 2. Enrich incoming message with token_count.
         logger.info("** 2. Enrich incoming message with token_count.")
         model_selected = settings.get("Model", "GPT-3.5")
+        logger.info(model_selected)
         if model_selected == "GPT-4o":
-            completion_model = "gpt-4o"
-        if model_selected == "GPT-4":
             completion_model = "gpt-4-turbo"
+        elif model_selected == "GPT-4o":
+            completion_model = "gpt-4o"
         else:
             completion_model = "gpt-3.5-turbo"
-
         token_count = litellm.token_counter(
             model=completion_model,
             messages=[{"role": "user", "content": message.content}],
@@ -122,7 +124,7 @@ def chat_stream(message, thread, panel):
         ## ----- 3. Get max context and system message.
         if model_selected == "GPT-4":
             max_tokens = 128000
-        if model_selected == "GPT-4o":
+        elif model_selected == "GPT-4o":
             max_tokens = 128000
         else:
             max_tokens = 16385
