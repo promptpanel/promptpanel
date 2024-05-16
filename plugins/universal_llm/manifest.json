@@ -10,7 +10,7 @@
       "selections": [
         {
           "group": "OpenAI",
-          "values": ["gpt-4-turbo", "gpt-3.5-turbo", "gpt-4"]
+          "values": ["gpt-4o", "gpt-4-turbo", "gpt-3.5-turbo", "gpt-4"]
         },
         {
           "group": "Google Gemini",
@@ -67,7 +67,7 @@
       "selections": [
         {
           "group": "OpenAI",
-          "values": ["gpt-4-turbo", "gpt-3.5-turbo", "gpt-4"]
+          "values": ["gpt-4o", "gpt-4-turbo", "gpt-3.5-turbo", "gpt-4"]
         },
         {
           "group": "Google Gemini",
@@ -103,6 +103,14 @@
             "mistral/mistral-small",
             "mistral/mistral-medium",
             "mistral/mistral-large-latest"
+          ]
+        },
+        {
+          "group": "Groq",
+          "values": [
+            "groq/llama3-8b-8192",
+            "groq/llama3-70b-8192",
+            "groq/mixtral-8x7b-32768"
           ]
         }
       ],

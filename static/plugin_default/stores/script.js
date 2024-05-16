@@ -293,7 +293,7 @@ var pluginState = () => {
     },
     cloneThread() {
       const hostname = window.location.origin;
-      const url = hostname + "/api/v1/app/thread/clone/" + Alpine.store("active").threadId + "/";
+      const url = hostname + "/api/v1/app/thread/duplicate/" + Alpine.store("active").threadId + "/";
       fetch(url, {
         method: "POST",
         headers: {
@@ -530,12 +530,9 @@ var pluginState = () => {
                   .then(({ done, value }) => {
                     if (done) {
                       controller.close();
-                      this.indicateProcessing = false;
-                      this.messageFormatted = "";
-                      this.messageImages = [];
-                      this.responseStream = "";
                       this.getMessages();
                       this.getThreads();
+                      this.indicateProcessing = false;
                       return;
                     }
                     const string = new TextDecoder().decode(value);
@@ -591,6 +588,11 @@ var pluginState = () => {
       })
         .then((response) => response.json())
         .then((data) => {
+          // Reset message state
+          this.messageFormatted = "";
+          this.messageImages = [];
+          this.responseStream = "";
+          // Add new messages
           this.messages = data;
           this.newMessage = "";
           this.newRawMessage = "";

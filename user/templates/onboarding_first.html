@@ -26,7 +26,7 @@
           </button>
         </div>
         <div x-show="$store.onboardStore.modelSelected == 'openai'">
-          <p class="mb-3">OpenAI is one of the most powerful models currently on the market. Enter your API key to get started with <span class="font-semibold">GPT-4</span>.</p>
+          <p class="mb-3">OpenAI is one of the most powerful models currently on the market. Enter your API key to get started with <span class="font-semibold">GPT-4o</span>.</p>
           <p class="mb-3">You can find your API key information at: <a href="https://platform.openai.com/api-keys" class="text-primary underline hover:text-primary/80" target="_new">https://platform.openai.com/api-keys</a></p>
 
           <div class="mb-3">
@@ -129,7 +129,7 @@
                 name: "My First AI Panel",
                 plugin: "openai",
                 meta: {
-                  Model: "GPT-4",
+                  Model: "GPT-4o",
                   "System Message": "You are a helpful AI assistant.",
                   "API Key": this.apiKey,
                 },
