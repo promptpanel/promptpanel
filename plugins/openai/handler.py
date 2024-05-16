@@ -108,16 +108,20 @@ def chat_stream(message, thread, panel):
         logger.info("** 2. Enrich incoming message with token_count.")
         model_selected = settings.get("Model", "GPT-3.5")
         logger.info(model_selected)
-        if model_selected == "GPT-4o":
+        if model_selected == "GPT-4":
             completion_model = "gpt-4-turbo"
         elif model_selected == "GPT-4o":
+            temp__token_model = "gpt-4-turbo"
             completion_model = "gpt-4o"
         else:
             completion_model = "gpt-3.5-turbo"
+        token_model = temp__token_model if temp__token_model else completion_model
+        logger.info(completion_model)
         token_count = litellm.token_counter(
-            model=completion_model,
+            model=token_model,
             messages=[{"role": "user", "content": message.content}],
         )
+        logger.info(token_count)
         message.meta.update({"token_count": token_count})
         message.save()
 
@@ -133,7 +137,7 @@ def chat_stream(message, thread, panel):
             "content": [{"type": "text", "text": settings.get("System Message", "")}],
         }
         system_message_token_count = litellm.token_counter(
-            model=completion_model, messages=[system_message]
+            model=token_model, messages=[system_message]
         )
         remaining_tokens = max_tokens - system_message_token_count
 
@@ -295,9 +299,7 @@ def chat_stream(message, thread, panel):
 
         # Save message
         new_message = [{"role": "assistant", "content": response_content}]
-        token_count = litellm.token_counter(
-            model=completion_model, messages=new_message
-        )
+        token_count = litellm.token_counter(model=token_model, messages=new_message)
         response_message = Message(
             content=response_content,
             thread=thread,
