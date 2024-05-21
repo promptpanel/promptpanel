@@ -302,20 +302,23 @@
                           <div x-data="{open: false}" x-on:click.away="open = false" class="relative">
                               <template x-if="answer.citation_index">
                                 <div x-show="open" class="z-10 absolute bg-white p-3 rounded-md border border-stone-300 shadow right-1.5 top-1.5 max-w-[420px] w-[100vw]">
-                                  <p class="text-sm font-semibold mb-1">From
-                                    <template x-if="answer.citation_file">
-                                      <a :href="answer.citation_file" x-text="answer.citation_file.split('/').pop()" target="_new" class="text-primary hover:opacity-80">Download File</a>
-                                    </template>
-                                    <template x-if="answer.citation_page">
-                                      <span class="font-normal">
-                                        (on page <span x-text="answer.citation_page"></span>):
-                                      </span>
-                                    </template>
-                                  </p>  
+                                  <div class="flex items-start">
+                                    <p class="text-sm font-semibold mb-1">From
+                                      <template x-if="answer.citation_file">
+                                        <a :href="answer.citation_file" x-text="answer.citation_file.split('/').pop()" target="_new" class="text-primary hover:opacity-80">Download File</a>
+                                      </template>
+                                      <template x-if="answer.citation_page">
+                                        <span class="font-normal">
+                                          (on page <span x-text="answer.citation_page"></span>):
+                                        </span>
+                                      </template>
+                                    </p>    
+                                    <svg @click="open = false" class="ml-auto w-4 h-4 cursor-pointer text-stone-500 hover:text-stone-900" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 01-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clip-rule="evenodd"></path></svg>
+                                  </div>
                                   <span x-text="answer.citation_index" class="line-clamp-5"></span>
                                 </div>  
                               </template>
-                              <span @click="open = true" class="cursor-help absolute right-0 top-0 inline-flex items-center justify-center text-xs font-semibold bg-stone-200 w-5 h-5 ml-1 rounded-full">
+                              <span @click="open = true" class="cursor-help absolute right-0 top-0 inline-flex items-center justify-center text-xs font-semibold bg-stone-200 w-5 h-5 ml-1 rounded-full hover:bg-stone-300">
                                 <template x-if="answer.citation_page">
                                   <span x-text="answer.citation_page"></span>
                                 </template>
