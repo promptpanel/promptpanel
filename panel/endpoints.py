@@ -951,7 +951,7 @@ def file_list_panel(request, panel_id):
         file_list = [
             {
                 "id": file.id,
-                "filepath": file.filepath,
+                "filepath": file.filepath.replace("/app/", "/"),
                 "panel_id": file.panel_id,
                 "thread_id": file.thread_id,
                 "created_by": file.created_by.username,
@@ -1106,7 +1106,7 @@ def file_update(request, file_id):
             "created_on": file.created_on,
             "updated_at": file.updated_at,
             "meta": file.meta,
-            "filepath": file.filepath,
+            "filepath": file.filepath.replace("/app/", "/"),
         }
         return JsonResponse(response_data)
     except Exception as e:
