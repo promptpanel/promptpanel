@@ -32,6 +32,8 @@ def file_stream(file, thread, panel):
         settings = panel.meta
         model_selected = settings.get("Model", "GPT-3.5")
         if model_selected == "GPT-4":
+            completion_model = "gpt-4"
+        elif model_selected == "GPT-4 Turbo":
             completion_model = "gpt-4-turbo"
         elif model_selected == "GPT-4o":
             completion_model = "gpt-4o"
@@ -110,6 +112,8 @@ def chat_stream(message, thread, panel):
         logger.info("** 2. Enrich incoming message with token_count.")
         model_selected = settings.get("Model", "GPT-3.5")
         if model_selected == "GPT-4":
+            completion_model = "gpt-4"
+        elif model_selected == "GPT-4 Turbo":
             completion_model = "gpt-4-turbo"
         elif model_selected == "GPT-4o":
             temp__token_model = "gpt-4-turbo"
@@ -126,6 +130,8 @@ def chat_stream(message, thread, panel):
 
         ## ----- 3. Get max context and system message.
         if model_selected == "GPT-4":
+            max_tokens = 8192
+        elif model_selected == "GPT-4 Turbo":
             max_tokens = 128000
         elif model_selected == "GPT-4o":
             max_tokens = 128000
