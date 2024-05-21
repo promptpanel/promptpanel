@@ -33,6 +33,8 @@ def file_stream(file, thread, panel):
         model_selected = settings.get("Model", "Gemini Pro 1.5")
         if model_selected == "Gemini Pro 1.0":
             completion_model = "gemini/gemini-pro"
+        elif model_selected == "Gemini Flash 1.5":
+            completion_model = "gemini/gemini-1.5-flash-latest"
         else:
             completion_model = "gemini/gemini-1.5-pro-latest"
 
@@ -107,6 +109,8 @@ def chat_stream(message, thread, panel):
         model_selected = settings.get("Model", "Gemini Pro 1.5")
         if model_selected == "Gemini Pro 1.0":
             completion_model = "gemini/gemini-pro"
+        elif model_selected == "Gemini Flash 1.5":
+            completion_model = "gemini/gemini-1.5-flash-latest"
         else:
             completion_model = "gemini/gemini-1.5-pro-latest"
 
@@ -120,6 +124,8 @@ def chat_stream(message, thread, panel):
         ## ----- 3. Get max context and system message.
         if model_selected == "Gemini Pro 1.5":
             max_tokens = 1000000
+        elif model_selected == "Gemini Flash 1.5":
+            max_tokens = "gemini/gemini-1.5-flash-latest"
         else:
             max_tokens = 32000
 
@@ -308,7 +314,7 @@ def chat_stream(message, thread, panel):
             )
             title_settings = {
                 "stream": False,
-                "model": "gemini/gemini-1.5-pro-latest",
+                "model": "gemini/gemini-1.5-flash-latest",
                 "messages": title_enrich,
                 "api_key": settings.get("API Key"),
                 "max_tokens": 34,
