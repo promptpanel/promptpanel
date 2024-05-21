@@ -373,7 +373,9 @@ def chat_stream(message, thread, panel):
         ## ----- 5. Execute chat.
         logger.info("** 6. Enrich response with context content. Save.")
         if thread_files.exists():
-            file_id_to_filepath = {file.id: file.filepath for file in thread_files}
+            file_id_to_filepath = {
+                file.id: file.filepath.replace("/app/", "/") for file in thread_files
+            }
             sorted_sentences = [x[0] for x in sorted_similarity]
             for entry in answer_response:
                 # Enrich / replace file
