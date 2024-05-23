@@ -254,24 +254,6 @@ def user_update(request, user_id):
     try:
         data = json.loads(request.body.decode("utf-8"))
         target_user = get_user_model().objects.get(pk=user_id)
-        # Check if the updated email is allowed
-        new_email = data.get("email", target_user.email)
-        allowed_endings = os.getenv("PROMPT_USER_ALLOWED_DOMAINS", "")
-        allowed_endings = [
-            ending.strip().lower()
-            for ending in allowed_endings.split(",")
-            if ending.strip()
-        ]
-        if allowed_endings and not any(
-            new_email.endswith(ending) for ending in allowed_endings
-        ):
-            return JsonResponse(
-                {
-                    "status": "error",
-                    "message": "PROMPT_USER_ALLOWED_DOMAINS is active. The account email does not end with any allowed domains or emails.",
-                },
-                status=400,
-            )
         # Check if the requesting user is the target user or an admin
         if request.user != target_user and not request.user.is_staff:
             return JsonResponse(
@@ -282,7 +264,28 @@ def user_update(request, user_id):
                 status=403,
             )
         target_user.username = data.get("username", target_user.username)
-        target_user.email = data.get("email", target_user.email)
+        ## TODO: Only allow updating email forw now until SMTP integration complete
+        # At that time, check new user email
+        if request.user.is_staff:
+            updated_email = data.get("email", False)
+            if updated_email:
+                allowed_endings = os.getenv("PROMPT_USER_ALLOWED_DOMAINS", "")
+                allowed_endings = [
+                    ending.strip().lower()
+                    for ending in allowed_endings.split(",")
+                    if ending.strip()
+                ]
+                if allowed_endings and not any(
+                    updated_email.endswith(ending) for ending in allowed_endings
+                ):
+                    return JsonResponse(
+                        {
+                            "status": "error",
+                            "message": "PROMPT_USER_ALLOWED_DOMAINS is active. The account email does not end with any allowed domains or emails.",
+                        },
+                        status=400,
+                    )
+                target_user.email = updated_email
         if "password" in data:
             target_user.set_password(data["password"])
         if request.user.is_staff:

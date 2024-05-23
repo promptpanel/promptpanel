@@ -31,6 +31,7 @@ def file_stream(file, thread, panel):
         logger.info("** 1. Get settings.")
         settings = panel.meta
         model_selected = settings.get("Model", "GPT-3.5")
+        temp__token_model = None
         if model_selected == "GPT-4":
             completion_model = "gpt-4-turbo"
         else:
@@ -102,7 +103,13 @@ def chat_stream(message, thread, panel):
         ## ----- 2. Enrich incoming message with token_count.
         logger.info("** 2. Enrich incoming message with token_count.")
         model_selected = settings.get("Model", "GPT-3.5")
-        if model_selected == "GPT-4o":
+        temp__token_model = None
+        if model_selected == "GPT-4":
+            completion_model = "gpt-4"
+        elif model_selected == "GPT-4 Turbo":
+            completion_model = "gpt-4-turbo"
+        elif model_selected == "GPT-4o":
+            temp__token_model = "gpt-4-turbo"
             completion_model = "gpt-4o"
         if model_selected == "GPT-4":
             completion_model = "gpt-4-turbo"

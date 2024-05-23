@@ -11,7 +11,7 @@ services:
       - ./plugins/openai:/app/plugins/openai
       - ./plugins/anthropic:/app/plugins/anthropic
       - ./plugins/cohere:/app/plugins/cohere
-      - ./plugins/ollama:/app/plugins/ollama 
+      - ./plugins/ollama:/app/plugins/ollama
       - ./plugins/completion_chat:/app/plugins/completion
       - ./plugins/llm_universal:/app/plugins/llm_universal
       ## Your new plugins

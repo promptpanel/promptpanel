@@ -62,13 +62,15 @@ This `./plugins` directory contains the community plugin agents found in Prompt 
 - The other community plugin agents give you references to sample from.
 - The `docker-compose-agent-dev.yml` file gives you a sample with the various mounts and environment variables we recommend for development.
 
-To get more information about how to build your first plugin we recommend giving a read to: 
+To get more information about how to build your first plugin we recommend giving a read to:
+
 - <a href="https://promptpanel.com/plugin-agent-authoring/building-plugin-agents/" target="_new">Building Plugin Agents</a>
 - <a href="https://promptpanel.com/data-model/data-model/" target="_new">Data Model</a>
 
 Running `DEV_PORT=4001 docker compose up -f docker-compose-agent-dev.yml` from this directory with a development port set will bring up a development environment you can use to start developing your agent plugin.
 
 Command:
+
 ```bash
 DEV_PORT=4001 docker compose up -f docker-compose-agent-dev.yml
 ```
