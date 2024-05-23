@@ -1,0 +1,1 @@
+An agent plugin for taking uploaded documents, breaking them into parts, and then searching those parts using an LLM in order to retrieve an answer. <a class="text-sm underline hover:text-primary" href="https://promptpanel.com/overview/packaged-plugins-models/" target="_new">More Info</a>

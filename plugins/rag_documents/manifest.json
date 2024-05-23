@@ -1,6 +1,6 @@
 {
-  "name": "LLM Universal",
-  "category": " Base Models",
+  "name": "RAG Documents",
+  "category": "Power Tools",
   "settings": [
     {
       "name": "Model",
@@ -117,9 +117,58 @@
       "required": true
     },
     {
+      "name": "Embedding Model",
+      "description": "The hosted embedding model you want to use. Any LiteLLM embedding provider is available: https://docs.litellm.ai/docs/embedding/supported_embedding",
+      "default": "",
+      "type": "text",
+      "selections": [
+        {
+          "group": "OpenAI",
+          "values": [
+            "text-embedding-ada-002",
+            "text-embedding-3-large",
+            "text-embedding-3-small"
+          ]
+        },
+        {
+          "group": "Cohere",
+          "values": [
+            "embed-english-v3.0",
+            "embed-english-light-v3.0",
+            "embed-multilingual-v3.0",
+            "embed-multilingual-light-v3.0",
+            "embed-english-v2.0",
+            "embed-english-light-v2.0",
+            "embed-multilingual-v2.0"
+          ]
+        },
+        {
+          "group": "Mistral",
+          "values": [
+            "mistral/mistral-embed"
+          ]
+        },
+        {
+          "group": "Voyage",
+          "values": [
+            "voyage-01",
+            "voyage-lite-01",
+            "voyage-lite-01-instruct"
+          ]
+        }
+      ]
+    },
+    {
       "name": "Context Size",
       "description": "The max context size your model supports. Extend this for most newer models (for example: 8192, 16385, or 128000)",
-      "default": "4096",
+      "default": "8192",
+      "type": "number",
+      "required": true
+    },
+    {
+      "name": "Document Context Size",
+      "description": "How much of your total context (above) should be filled with context from your documents?",
+      "default": "4000",
       "type": "number",
       "required": true
     },
@@ -131,8 +180,14 @@
       "required": true
     },
     {
-      "name": "API Key",
-      "description": "API access key for connecting to API.",
+      "name": "Embedding API Key",
+      "description": "API access key for connecting to your embedding model for embedding your context.",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "LLM Model API Key",
+      "description": "API access key for connecting to your LLM model for inference.",
       "type": "text",
       "required": true
     },
