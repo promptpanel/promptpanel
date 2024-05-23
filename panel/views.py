@@ -31,7 +31,6 @@ def panel_frame(request, panel_id=None, thread_id=None, message_id=None):
         "thread_id": thread_id if thread_id is not None else "",
         "message_id": message_id if message_id is not None else "",
     }
-    logger.debug(context)
     return render(request, "frame.html", context)
 
 
@@ -181,12 +180,39 @@ def media_protected(request, path):
 
 
 @user_authenticated
+def media_protected(request, path):
+    file_path = os.path.join(settings.MEDIA_ROOT, path)
+    try:
+        file_obj = get_object_or_404(File, filepath=file_path)
+    except Exception as e:
+        logger.error(e, exc_info=True)
+        raise Http404
+
+    panel = file_obj.panel
+    if request.user.is_staff:
+        pass
+    else:
+        if not (
+            panel.is_global
+            or panel.users_with_access.filter(id=request.user.id).exists()
+            or file_obj.created_by == request.user
+        ):
+            logger.error("User does not have access to this media.", exc_info=True)
+            raise Http404
+    with open(file_path, "rb") as file:
+        response = HttpResponse(file.read(), content_type="application/octet-stream")
+        response["Content-Disposition"] = "inline; filename=" + os.path.basename(
+            file_path
+        )
+        return response
+
+
+@user_authenticated
 def plugin_static(request, path):
     base_dir = os.path.join(settings.BASE_DIR, "plugins")
     file_path = os.path.join(base_dir, path)
     if not file_path.startswith(base_dir):
         raise Http404
-    # Ensure it's part of static directory
     static_dir_path = os.path.join("/static/")
     # OS differences (if app)
     if static_dir_path not in file_path.replace("\\", "/"):
