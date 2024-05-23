@@ -125,7 +125,7 @@ def chat_stream(message, thread, panel):
         if model_selected == "Gemini Pro 1.5":
             max_tokens = 1000000
         elif model_selected == "Gemini Flash 1.5":
-            max_tokens = "gemini/gemini-1.5-flash-latest"
+            max_tokens = 1000000
         else:
             max_tokens = 32000
 
