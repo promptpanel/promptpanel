@@ -111,6 +111,8 @@ def chat_stream(message, thread, panel):
         ## ----- 2. Enrich incoming message with token_count.
         logger.info("** 2. Enrich incoming message with token_count.")
         model_selected = settings.get("Model", "GPT-3.5")
+        if model_selected == "GPT-4o":
+            completion_model = "gpt-4o"
         if model_selected == "GPT-4":
             completion_model = "gpt-4"
         elif model_selected == "GPT-4 Turbo":
@@ -134,6 +136,8 @@ def chat_stream(message, thread, panel):
         elif model_selected == "GPT-4 Turbo":
             max_tokens = 128000
         elif model_selected == "GPT-4o":
+            max_tokens = 128000
+        if model_selected == "GPT-4o":
             max_tokens = 128000
         else:
             max_tokens = 16385
