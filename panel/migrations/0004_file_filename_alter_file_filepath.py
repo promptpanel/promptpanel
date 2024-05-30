@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('panel', '0003_panel_users_with_access'),
+        ("panel", "0003_panel_users_with_access"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='file',
-            name='filename',
-            field=models.TextField(default=''),
+            model_name="file",
+            name="filename",
+            field=models.TextField(default=""),
         ),
         migrations.AlterField(
-            model_name='file',
-            name='filepath',
-            field=models.TextField(default=''),
+            model_name="file",
+            name="filepath",
+            field=models.TextField(default=""),
         ),
     ]
