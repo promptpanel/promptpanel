@@ -174,14 +174,14 @@
       "required": true
     },
     {
-      "name": "Embedding API Key",
-      "description": "API access key for connecting to your embedding model for embedding your context.",
+      "name": "LLM Model API Key",
+      "description": "API access key for connecting to your LLM model for inference.",
       "type": "text",
       "required": true
     },
     {
-      "name": "LLM Model API Key",
-      "description": "API access key for connecting to your LLM model for inference.",
+      "name": "Embedding API Key",
+      "description": "API access key for connecting to your embedding model for embedding your context.",
       "type": "text",
       "required": true
     },
