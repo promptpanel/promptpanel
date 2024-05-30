@@ -7,14 +7,16 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('panel', '0002_panel_display_image'),
+        ("panel", "0002_panel_display_image"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='panel',
-            name='users_with_access',
-            field=models.ManyToManyField(related_name='panel_access', to=settings.AUTH_USER_MODEL),
+            model_name="panel",
+            name="users_with_access",
+            field=models.ManyToManyField(
+                related_name="panel_access", to=settings.AUTH_USER_MODEL
+            ),
         ),
     ]

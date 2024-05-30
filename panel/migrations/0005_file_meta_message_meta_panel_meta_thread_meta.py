@@ -6,28 +6,28 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('panel', '0004_file_filename_alter_file_filepath'),
+        ("panel", "0004_file_filename_alter_file_filepath"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='file',
-            name='meta',
+            model_name="file",
+            name="meta",
             field=models.JSONField(default=dict),
         ),
         migrations.AddField(
-            model_name='message',
-            name='meta',
+            model_name="message",
+            name="meta",
             field=models.JSONField(default=dict),
         ),
         migrations.AddField(
-            model_name='panel',
-            name='meta',
+            model_name="panel",
+            name="meta",
             field=models.JSONField(default=dict),
         ),
         migrations.AddField(
-            model_name='thread',
-            name='meta',
+            model_name="thread",
+            name="meta",
             field=models.JSONField(default=dict),
         ),
     ]
