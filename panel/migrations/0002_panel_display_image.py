@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('panel', '0001_initial'),
+        ("panel", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='panel',
-            name='display_image',
+            model_name="panel",
+            name="display_image",
             field=models.TextField(blank=True, null=True),
         ),
     ]
