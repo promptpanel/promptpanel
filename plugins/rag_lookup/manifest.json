@@ -1,5 +1,5 @@
 {
-  "name": "RAG Documents",
+  "name": "Document Lookup",
   "category": "Power Tools",
   "settings": [
     {
@@ -14,7 +14,11 @@
         },
         {
           "group": "Google Gemini",
-          "values": ["gemini/gemini-pro", "gemini/gemini-1.5-pro-latest"]
+          "values": [
+            "gemini/gemini-pro",
+            "gemini/gemini-1.5-flash-latest",
+            "gemini/gemini-1.5-pro-latest"
+          ]
         },
         {
           "group": "Anthropic",
@@ -45,7 +49,11 @@
             "mistral/mistral-tiny",
             "mistral/mistral-small",
             "mistral/mistral-medium",
-            "mistral/mistral-large-latest"
+            "mistral/mistral-large-latest",
+            "mistral/open-mistral-7b",
+            "mistral/open-mixtral-8x7b",
+            "mistral/open-mixtral-8x22b",
+            "mistral/codestral-latest"
           ]
         },
         {
@@ -174,14 +182,14 @@
       "required": true
     },
     {
-      "name": "Embedding API Key",
-      "description": "API access key for connecting to your embedding model for embedding your context.",
+      "name": "LLM Model API Key",
+      "description": "API access key for connecting to your LLM model for inference.",
       "type": "text",
       "required": true
     },
     {
-      "name": "LLM Model API Key",
-      "description": "API access key for connecting to your LLM model for inference.",
+      "name": "Embedding API Key",
+      "description": "API access key for connecting to your embedding model for embedding your context.",
       "type": "text",
       "required": true
     },

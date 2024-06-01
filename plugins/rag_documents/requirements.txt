@@ -1,2 +1,0 @@
-litellm==1.38.0
-unstructured[all-docs]==0.14.2

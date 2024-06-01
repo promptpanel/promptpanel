@@ -4,8 +4,10 @@ import json
 import logging
 import litellm
 import pickle
+import re
 from panel.models import File, Message, Panel, Thread
 from django.http import JsonResponse, StreamingHttpResponse
+from nltk.tokenize import sent_tokenize
 from scipy.spatial.distance import cosine
 from unstructured.partition.auto import partition
 
@@ -83,14 +85,12 @@ def message_handler(message, thread, panel):
 def chat_stream(message, thread, panel):
     ## Function:
     ## 1. Get settings.
-    ## 2. Enrich incoming message with token_count.
-    ## 3. Get max context and system message.
-    ## 4. Build document context.
-    ## 5. Build message history.
-    ## 6. Execute chat.
-    ## 7. Save warnings as needed.
-    ## 8. Cleanup message text, enrich with token count, and save.
-    ## 9. Enrich / append a title to the chat.
+    ## 2. Get max context and system message.
+    ## 3. Build document context.
+    ## 4. Build message history.
+    ## 5. Execute chat.
+    ## 6. Enrich with citations and save.
+    ## 7. Enrich / append a title to the chat.
 
     try:
         ## ----- 1. Get settings.
@@ -105,14 +105,20 @@ def chat_stream(message, thread, panel):
         if completion_model == "gpt-4o":
             temp__token_model = "gpt-4-turbo"
         token_model = temp__token_model if temp__token_model else completion_model
-
         embedding_model = settings["Embedding Model"]
 
         ## ----- 2. Get max context and system message.
+        logger.info("** 2. Get max context and system message.")
         context_size = int(settings.get("Context Size"))
+        system_message_text = settings.get("System Message", "")
+        system_message_instruct = """
+        \n\nPlease use the following format for citing document context if it is used in your answer:\n
+        This is my example answer {file: 1, index: 1, page: 1}. This is another part of my answer {file: 1, index: 4, page: 10}. This is a final part of my answer {file: 2, index: 12, page: 4}.\n
+        It is important that the citations MUST match this format, do not format the objects any other way.
+        """.strip()
         system_message = {
             "role": "system",
-            "content": settings.get("System Message", ""),
+            "content": system_message_text + system_message_instruct,
         }
         system_message_token_count = litellm.token_counter(
             model=token_model, messages=[system_message]
@@ -127,7 +133,7 @@ def chat_stream(message, thread, panel):
             remaining_tokens = context_size - system_message_token_count
 
         ## ----- 3. Build document context.
-        logger.info("** 4. Build document context.")
+        logger.info("** 3. Build document context.")
         thread_files = File.objects.filter(thread=thread, meta__enabled=True)
         # Check if any files are active first
         if thread_files.exists():
@@ -193,7 +199,7 @@ def chat_stream(message, thread, panel):
                 # Using the top 20 > can be extended
                 sentence_to_add = ""
                 if doc_context == "":
-                    sentence_to_add += "Please use the following document context to help inform your answer. Include multiple answers if they come from different citations. \n\n"
+                    sentence_to_add += "Please use the following document context to help inform your answer: \n\n"
                 sentence_to_add += f"From File ID: {file}, Index ID: {index}, On Page Number: {page_number}, Context: {sentence} \n\n"
                 doc_msg = {
                     "role": "user",
@@ -213,7 +219,7 @@ def chat_stream(message, thread, panel):
             doc_context = False
 
         ## ----- 4. Build message history.
-        logger.info("** 5. Build message history.")
+        logger.info("** 4. Build message history.")
         messages = Message.objects.filter(
             created_by=message.created_by, thread_id=thread.id
         ).order_by("-created_on")
@@ -259,46 +265,10 @@ def chat_stream(message, thread, panel):
         message_history.reverse()
 
         ## ----- 5. Execute chat.
-        logger.info("** 6. Execute chat.")
+        logger.info("** 5. Execute chat.")
         logger.info("Message history: " + str(message_history))
-        answer_tools = [
-            {
-                "type": "function",
-                "function": {
-                    "name": "get_answer",
-                    "description": "Answer the question and add citations from document context.",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "answers": {
-                                "description": "Include multiple answers if they come from different citations.",
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "question_answer": {
-                                            "description": "Answer to the question which was asked. Do not add citations here.",
-                                            "type": "string",
-                                        },
-                                        "citation_file": {
-                                            "type": "number",
-                                        },
-                                        "citation_index": {
-                                            "type": "number",
-                                        },
-                                        "citation_page": {
-                                            "type": "number",
-                                        },
-                                    },
-                                },
-                            }
-                        },
-                    },
-                },
-            }
-        ]
         completion_settings = {
-            "stream": False,
+            "stream": True,
             "model": completion_model,
             "messages": message_history,
             "api_key": settings.get("LLM Model API Key"),
@@ -336,9 +306,6 @@ def chat_stream(message, thread, panel):
                 else None
             ),
         }
-        if doc_context:
-            completion_settings["tools"] = answer_tools
-            completion_settings["tool_choice"] = "required"
         litellm.drop_params = True
         completion_settings_trimmed = {
             key: value
@@ -346,77 +313,101 @@ def chat_stream(message, thread, panel):
             if value is not None
         }
         response = litellm.completion(**completion_settings_trimmed)
-        if doc_context:
-            answer_response = []
-            for tool_call in response.choices[0].message.tool_calls:
-                try:
-                    response_data = json.loads(tool_call.function.arguments)
-                    answer_response.extend(response_data["answers"])
-                except Exception as e:
-                    logger.info("Could not parse answer parts from response.")
-                    try:
-                        answer_response = [
-                            {"question_answer": response.choices[0].message.content}
-                        ]
-                    except Exception as e:
-                        logger.info("Could not fallback to plain message response.")
-                        raise Exception(
-                            "Could not parse document context citations, could not fallback to plain message response."
-                        )
-        else:
-            answer_response = [{"question_answer": response.choices[0].message.content}]
-        question_answer_textonly = ""
-        for item in answer_response:
-            question_answer_textonly += item.get("question_answer", "") + " "
-        yield question_answer_textonly
-        logger.info(answer_response)
+        logger.info("Raw Response: " + str(response))
+        response_content = ""
+        for part in response:
+            try:
+                delta = part.choices[0].delta.content or ""
+                response_content += delta
+                yield delta
+            except Exception as e:
+                logger.info("Skipped chunk: " + str(e))
+                pass
 
-        ## ----- 5. Execute chat.
-        logger.info("** 6. Enrich response with context content. Save.")
-        if thread_files.exists():
-            file_id_to_filepath = {
-                file.id: file.filepath.replace("/app/", "/") for file in thread_files
+        ## ----- 6. Enrich with citations and save.
+        logger.info("** 6. Enrich with citations and save")
+        citation_pattern = r"\{file: (\d+), index: (\d+), page: (\d+)\}"
+        response_sentences = sent_tokenize(response_content)
+        file_with_filepath = (
+            {
+                file.id: {
+                    "filepath": file.filepath.replace("/app/", "/"),
+                    "filename": file.filename,
+                }
+                for file in thread_files
             }
-            sorted_sentences = [x[0] for x in sorted_similarity]
-            for entry in answer_response:
-                # Enrich / replace file
-                citation_file_id = entry.get("citation_file")
-                if citation_file_id is not None:
-                    file_path = file_id_to_filepath.get(citation_file_id)
-                    if file_path:
-                        entry["citation_file"] = file_path
+            if thread_files.exists()
+            else {}
+        )
+        sorted_sentences = [x[0] for x in sorted_similarity]
+        sentences = []
+        previous_sentence_obj = None
 
-                # Enrich / replace citation
-                citation_index = entry.get("citation_index")
-                if citation_index is not None:
-                    if citation_index < len(sorted_sentences):
-                        entry["citation_index"] = sorted_sentences[citation_index]
-                    else:
-                        entry["citation_index"] = "Index out of range"
+        # Breakdown citations and nest them under sentences
+        for sentence in response_sentences:
+            matches = list(re.finditer(citation_pattern, sentence))
+            stripped_sentence = re.sub(citation_pattern, "", sentence).strip()
+            sentence_obj = (
+                {"sentence": stripped_sentence, "citations": []}
+                if stripped_sentence
+                else None
+            )
+
+            # Handle citations that belong to the previous sentence
+            if matches and previous_sentence_obj is not None:
+                for match in matches:
+                    file_id, index, page = map(int, match.groups())
+                    file_info = file_with_filepath.get(file_id)
+                    filepath = file_info.get("filepath") if file_info else None
+                    filename = file_info.get("filename") if file_info else None
+                    citation_excerpt = (
+                        sorted_sentences[index] if index < len(sorted_sentences) else ""
+                    )
+                    previous_sentence_obj["citations"].append(
+                        {
+                            "filepath": filepath,
+                            "filename": filename,
+                            "citation_excerpt": citation_excerpt,
+                            "page_num": page,
+                        }
+                    )
+                if sentence_obj is not None:
+                    sentences.append(sentence_obj)
+            elif sentence_obj is not None:
+                sentences.append(sentence_obj)
+            previous_sentence_obj = sentence_obj
+
+        # Check for dangling citations
+        if previous_sentence_obj is not None and previous_sentence_obj["citations"]:
+            sentences.append(previous_sentence_obj)
 
         # Save message
         response_message = Message(
-            content=question_answer_textonly,
+            content=response_content,
             thread=thread,
             panel=panel,
             created_by=message.created_by,
-            meta={"answers": answer_response, "sender": "assistant"},
+            meta={"sender": "assistant", "sentences": sentences},
         )
         response_message.save()
 
-        ## ----- 6. Enrich / append a title to the chat.
-        logger.info("** 9. Enrich / append a title to the chat")
+        ## ----- 7. Enrich / append a title to the chat.
+        logger.info("** 7. Enrich / append a title to the chat.")
         if user_message_count == 1:
             title_enrich = []
             title_content = """
                 You are an assistant who writes informative titles based on questions which are asked by the user. 
                 Please only provide a summary, do not provide the answer to the question.
-                Title Examples:
+                Examples:
+                ```
                 Code: Solution to the fizz buzz problem
                 History: Who won the 1998 NBA Finals?
                 Brainstorm: New ideas for blog posts
-                Translate: Ordering food in Japanese 
-            """
+                Translate: Ordering food in Japanese
+                Summary: Instruction manual
+                Lookup: Information from document source
+                ```
+            """.strip()
             title_enrich.append(
                 {
                     "role": "system",
@@ -426,7 +417,7 @@ def chat_stream(message, thread, panel):
             title_enrich.append(
                 {
                     "role": "user",
-                    "content": f"Please create a title for the following content: {message.content} \n\n Title:",
+                    "content": f"Please create a title for the following content: {message.content}",
                 }
             )
             title_settings = {
