@@ -588,6 +588,7 @@ var pluginState = () => {
       })
         .then((response) => response.json())
         .then((data) => {
+          let mdConverter = new showdown.Converter();
           // Reset message state
           this.messageFormatted = "";
           this.messageImages = [];
@@ -597,6 +598,12 @@ var pluginState = () => {
           this.newMessage = "";
           this.newRawMessage = "";
           setTimeout(() => {
+            // Convert any markdown fields
+            document.querySelectorAll('.markdown-convert').forEach((element) => {
+              var markdownText = element.textContent;
+              var html = mdConverter.makeHtml(markdownText);
+              element.innerHTML = html; // Replace content with HTML            
+            });
             // Check for any un-highlighted blocks
             document.querySelectorAll("pre code").forEach((block) => {
               if (!block.classList.contains("hljs")) {
