@@ -14,7 +14,7 @@
         },
         {
           "group": "Google Gemini",
-          "values": ["gemini/gemini-pro", "gemini/gemini-1.5-pro-latest"]
+          "values": ["gemini/gemini-pro", "gemini/gemini-1.5-flash-latest", "gemini/gemini-1.5-pro-latest"]
         },
         {
           "group": "Anthropic",
@@ -45,7 +45,11 @@
             "mistral/mistral-tiny",
             "mistral/mistral-small",
             "mistral/mistral-medium",
-            "mistral/mistral-large-latest"
+            "mistral/mistral-large-latest",
+            "mistral/open-mistral-7b",
+            "mistral/open-mixtral-8x7b",
+            "mistral/open-mixtral-8x22b",
+            "mistral/codestral-latest"
           ]
         },
         {
