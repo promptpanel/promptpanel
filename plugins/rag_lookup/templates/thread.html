@@ -168,12 +168,7 @@
         </div>
       </div>
 
-      <div  
-        @click="modalDocuments = false, modalMessageEdit = false, modalThreadEdit = false"
-        :class="{'w-px h-px bg-stone-50/0': !modalDocuments && !modalMessageEdit && !modalThreadEdit, 'w-full h-full bg-stone-50/50': modalDocuments || modalMessageEdit || modalThreadEdit}" 
-        class="cursor-pointer fixed top-0 left-0 backdrop-blur-sm z-[100] transition-all"
-      >
-      </div>
+      <div @click="modalDocuments = false, modalMessageEdit = false, modalThreadEdit = false" :class="{'w-px h-px bg-stone-50/0': !modalDocuments && !modalMessageEdit && !modalThreadEdit, 'w-full h-full bg-stone-50/50': modalDocuments || modalMessageEdit || modalThreadEdit}" class="cursor-pointer fixed top-0 left-0 backdrop-blur-sm z-[100] transition-all"></div>
 
       <!-- Sidebar -->
       <div :class="{'-lg:-left-[100vw]': !mobileOpen, '-lg:left-0': mobileOpen}" id="sidebar" class="transition-all absolute w-80 h-full bg-stone-50 border-r border-stone-200 overflow-y-auto -lg:top-12 -lg:w-full -lg:z-[60]">
@@ -300,12 +295,9 @@
 
             <template x-for="message in messages" :key="message.id">
               <div>
-
                 <template x-if="message.meta?.sender == 'assistant'">
                   <div class="mb-10">
-
                     <div x-data="{modalOpen: false, filename: '', filepath: '',  page_num: '', excerpt: ''}" class="relative space-y-3 rounded-t-md rounded-br-md w-11/12 -mt-2.5 py-2.5">
-
                       <div :class="{'-right-[100vw]': !modalOpen, 'right-0': modalOpen}" class="transition-all top-0 fixed mx-auto z-[101] max-w-xl w-full h-full bg-white border-x border-stone-200 -lg:border-none -lg:max-w-[100vw] -lg:shadow-none shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.05)]">
                         <div class="flex items-center px-3 pt-3 mb-1.5">
                           <button @click="modalOpen = false" class="mr-1.5 cursor-pointer flex items-center justify-center text-sm font-semibold text-stone-500 rounded hover:text-stone-900 hover:bg-stone-200 h-7 w-7 -lg:min-h-9 -lg:min-w-9">
@@ -326,9 +318,7 @@
                           </div>
                           <div>
                             <p class="mb-0.5">Citation (Page <span x-text="page_num"></span>):</p>
-                            <div x-text="excerpt" class="p-3 rounded-md bg-stone-100">
-                              Lorem ipsum...
-                            </div>
+                            <div x-text="excerpt" class="p-3 rounded-md bg-stone-100">Lorem ipsum...</div>
                           </div>
                         </div>
                         <div class="fixed bottom-0 py-2 px-3 border-t border-stone-200 w-full max-w-xl -lg:max-w-[100vw]">
@@ -337,38 +327,28 @@
                           </div>
                         </div>
                       </div>
-                      <div  
-                        @click="modalOpen = false"
-                        :class="{'w-px h-px bg-stone-50/0': !modalOpen, 'w-full h-full bg-stone-50/50': modalOpen}" 
-                        class="cursor-pointer fixed top-0 left-0 backdrop-blur-sm z-[100] transition-all"
-                      >
-                      </div>
+                      <div @click="modalOpen = false" :class="{'w-px h-px bg-stone-50/0': !modalOpen, 'w-full h-full bg-stone-50/50': modalOpen}" class="cursor-pointer fixed top-0 left-0 backdrop-blur-sm z-[100] transition-all"></div>
 
                       <template x-if="message.meta?.sentences && message.meta.sentences.length > 0">
                         <template x-for="sentence in message.meta.sentences">
                           <div x-data="{tooltipOpen: false}" @mouseleave="tooltipOpen = false" class="relative flex items-end space-x-1">
-
                             <p x-text="sentence.sentence" class="markdown-convert pr-6 w-full text-lg"></p>
 
                             <div x-show="tooltipOpen" class="absolute bottom-6 right-0 bg-white p-3 border rounded-md border-stone-300 shadow">
-                              <p><span x-text="filename" class="font-semibold"></span> <span class="text-sm">(Page <span x-text="page_num"></span>)</span> </p>
+                              <p>
+                                <span x-text="filename" class="font-semibold"></span> <span class="text-sm">(Page <span x-text="page_num"></span>)</span>
+                              </p>
                               <p x-text="excerpt" class="text-sm line-clamp-2">Excerpt</p>
                             </div>
 
                             <template x-for="(citation, index) in sentence.citations">
-                              <div x-text="index + 1" 
-                                @mouseover="tooltipOpen = true, filename = citation.filename, page_num = citation.page_num, excerpt = citation.citation_excerpt" 
-                                @click="tooltipOpen = false, modalOpen = true, filepath = citation.filepath, filename = citation.filename, page_num = citation.page_num, excerpt = citation.citation_excerpt"
-                                class="cursor-pointer text-xs w-5 h-5 mb-1 rounded-full flex items-center justify-center bg-stone-200 hover:bg-stone-300">
-                                1
-                              </div>
+                              <div x-text="index + 1" @mouseover="tooltipOpen = true, filename = citation.filename, page_num = citation.page_num, excerpt = citation.citation_excerpt" @click="tooltipOpen = false, modalOpen = true, filepath = citation.filepath, filename = citation.filename, page_num = citation.page_num, excerpt = citation.citation_excerpt" class="cursor-pointer text-xs w-5 h-5 mb-1 rounded-full flex items-center justify-center bg-stone-200 hover:bg-stone-300">1</div>
                             </template>
-
                           </div>
                         </template>
                       </template>
-                  </div>
-          
+                    </div>
+
                     <div class="flex items-center text-sm text-stone-500 w-full mt-0.5">
                       <p>Assistant</p>
                       <p class="mx-1">•</p>

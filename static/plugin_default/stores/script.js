@@ -599,10 +599,10 @@ var pluginState = () => {
           this.newRawMessage = "";
           setTimeout(() => {
             // Convert any markdown fields
-            document.querySelectorAll('.markdown-convert').forEach((element) => {
+            document.querySelectorAll(".markdown-convert").forEach((element) => {
               var markdownText = element.textContent;
               var html = mdConverter.makeHtml(markdownText);
-              element.innerHTML = html; // Replace content with HTML            
+              element.innerHTML = html; // Replace content with HTML
             });
             // Check for any un-highlighted blocks
             document.querySelectorAll("pre code").forEach((block) => {
