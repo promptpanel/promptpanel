@@ -82,14 +82,13 @@ def message_handler(message, thread, panel):
 def chat_stream(message, thread, panel):
     ## Function:
     ## 1. Get settings.
-    ## 2. Enrich incoming message with token_count.
-    ## 3. Get max context and system message.
-    ## 4. Build document context.
-    ## 5. Build message history.
-    ## 6. Execute chat.
-    ## 7. Save warnings as needed.
-    ## 8. Cleanup message text, enrich with token count, and save.
-    ## 9. Enrich / append a title to the chat.
+    ## 2. Get max context and system message.
+    ## 3. Build document context.
+    ## 4. Build message history.
+    ## 5. Execute chat.
+    ## 6. Save warnings as needed.
+    ## 7. Cleanup message text, enrich with token count, and save.
+    ## 8. Enrich / append a title to the chat.
 
     try:
         ## ----- 1. Get settings.
@@ -99,18 +98,10 @@ def chat_stream(message, thread, panel):
         keys_to_remove = [k for k, v in settings.items() if v == ""]
         for key in keys_to_remove:
             del settings[key]
-
-        ## ----- 2. Enrich incoming message with token_count.
-        logger.info("** 2. Enrich incoming message with token_count.")
         completion_model = settings.get("Model")
-        token_count = litellm.token_counter(
-            model=completion_model,
-            messages=[{"role": "user", "content": message.content}],
-        )
-        message.meta.update({"token_count": token_count})
-        message.save()
 
-        ## ----- 3. Get max context and system message.
+        ## ----- 2. Get max context and system message.
+        logger.info("** 2. Get max context and system message.")
         max_tokens = int(settings.get("Context Size"))
         system_message = settings.get("System Message", "")
         system_message_token_count = litellm.token_counter(
@@ -134,8 +125,8 @@ def chat_stream(message, thread, panel):
                 max_tokens - prompt_template_token_count - system_message_token_count
             )
 
-        ## ----- 4. Build document context.
-        logger.info("** 4. Build document context.")
+        ## ----- 3. Build document context.
+        logger.info("** 3. Build document context.")
         # Allow 80% of context to be filled
         doc_token_limit = remaining_tokens * 0.8
         doc_current_tokens = 0
@@ -165,8 +156,8 @@ def chat_stream(message, thread, panel):
             # Set tokens after adding docs
             remaining_tokens = remaining_tokens - doc_current_tokens
 
-        ## ----- 5. Build message history.
-        logger.info("** 5. Build message history.")
+        ## ----- 4. Build message history.
+        logger.info("** 4. Build message history.")
         messages = Message.objects.filter(
             created_by=message.created_by, thread_id=thread.id
         ).order_by("-created_on")
@@ -174,29 +165,37 @@ def chat_stream(message, thread, panel):
         message_history_token_count = 0
         user_message_count = 0
         for msg in messages:
-            if (
-                msg.meta.get("token_count", 0) + message_history_token_count
-                <= remaining_tokens
-            ):
+            role = msg.meta.get("sender", "user")
+            if role == "user" or role == "assistant":
+                msg_content_row = [{"role": role, "content": msg.content}]
+                msg_token_count = litellm.token_counter(
+                    model=completion_model, messages=msg_content_row
+                )
+            if msg_token_count + message_history_token_count <= remaining_tokens:
                 # Container for message
-                skipped_images = False
-                if msg.meta.get("images"):
-                    skipped_images = True
-                # Append if user or assistant
-                role = msg.meta.get("sender", "user")
-                message_history_token_count += msg.meta.get("token_count", 0)
                 if role == "user":
-                    user_message_count = user_message_count + 1
-                    message_history.append({"role": "user", "content": msg.content})
-                if role == "assistant":
+                    user_message_count += 1
+                    message_history_token_count += msg_token_count
                     message_history.append(
-                        {"role": "assistant", "content": msg.content}
+                        {
+                            "role": "user",
+                            "content": msg.content,
+                        }
+                    )
+                if role == "assistant":
+                    message_history_token_count += msg_token_count
+                    message_history.append(
+                        {
+                            "role": "assistant",
+                            "content": msg.content,
+                        }
                     )
             else:
                 break
         if thread_files.exists():
             message_history.append(document_context)
         message_history.reverse()
+
         # Create chat template
         message_context = {
             "system_message": system_message,
@@ -205,8 +204,8 @@ def chat_stream(message, thread, panel):
         template = Template(prompt_template, trim_blocks=True, lstrip_blocks=True)
         message_prepped = template.render(message_context)
 
-        ## ----- 6. Execute chat.
-        logger.info("** 6. Execute chat.")
+        ## ----- 5. Execute chat.
+        logger.info("** 5. Execute chat.")
         logger.info("Message history: " + str(message_history))
         client_settings = {
             "api_key": settings.get("API Key"),
@@ -258,8 +257,6 @@ def chat_stream(message, thread, panel):
             if value is not None
         }
         response_content = ""
-        if skipped_images:
-            yield "> Vision is not available with this model.\n\n"
         if skipped_docs:
             yield "> Some of your documents exceeded the context window (text size) for your AI. We recommend using a retrieval-augmented generation (RAG) based solution to surface only the relevant information when querying your AI.\n\n"
         for part in openai_client.completions.create(**completion_settings_trimmed):
@@ -272,8 +269,8 @@ def chat_stream(message, thread, panel):
                 pass
         logger.info("response_content: " + str(response_content))
 
-        ## ----- 7. Save warnings as needed.
-        logger.info("** 7. Save warnings as needed.")
+        ## ----- 6. Save warnings as needed.
+        logger.info("** 6. Save warnings as needed.")
         if skipped_docs:
             warning_docs = Message(
                 content="Some of your documents exceeded the context window (text size) for your AI. We recommend using a retrieval-augmented generation (RAG) based solution to surface only the relevant information when querying your AI.",
@@ -283,18 +280,9 @@ def chat_stream(message, thread, panel):
                 meta={"sender": "warning"},
             )
             warning_docs.save()
-        if skipped_images:
-            warning_images = Message(
-                content="Vision is not available with this model.",
-                thread=thread,
-                panel=panel,
-                created_by=message.created_by,
-                meta={"sender": "warning"},
-            )
-            warning_images.save()
 
-        ## ----- 8. Cleanup message text, enrich with token count, and save.
-        logger.info("** 8. Cleanup message text, enrich with token count, and save.")
+        ## ----- 7. Cleanup message text, enrich with token count, and save.
+        logger.info("** 7. Cleanup message text, enrich with token count, and save.")
         # Cleanup
         last_period_pos = response_content.rfind(".")
         last_question_mark_pos = response_content.rfind("?")
@@ -327,19 +315,22 @@ def chat_stream(message, thread, panel):
         )
         response_message.save()
 
-        ## ----- 9. Enrich / append a title to the chat.
-        logger.info("** 9. Enrich / append a title to the chat")
+        ## ----- 8. Enrich / append a title to the chat.
+        logger.info("** 8. Enrich / append a title to the chat")
         if user_message_count == 1:
-            title_enrich = (
-                "## Context: "
-                + "You are an assistant who writes titles based on questions which are asked by the user. Please only provide a summary, do not provide the answer to the question."
-                + "\n"
-                + "Please create a title for the following content: "
-                + "\n"
-                + message.content
-                + "\n\n"
-                + "Title: "
-            )
+            title_enrich = """
+                You are an assistant who writes informative titles based on questions which are asked by the user. 
+                Please only provide a summary, do not provide the answer to the question.
+                Examples:
+                ```
+                Code: Solution to the fizz buzz problem
+                History: Who won the 1998 NBA Finals?
+                Brainstorm: New ideas for blog posts
+                Translate: Ordering food in Japanese
+                Summary: Instruction manual
+                Lookup: Information from document source
+                ```
+            """.strip()
             title_settings = {
                 "stream": False,
                 "model": settings.get("Model"),
