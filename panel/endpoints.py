@@ -8,6 +8,7 @@ from panel.models import File, Message, Panel, Thread
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.files.storage import FileSystemStorage
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q, Max
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
@@ -433,6 +434,9 @@ def panel_retry(request, panel_id):
 @require_http_methods(["GET"])
 def thread_list(request):
     try:
+        limit = int(request.GET.get("limit", 40))
+        offset = int(request.GET.get("offset", 0))
+        sort_by = request.GET.get("sort_by", "-created_on")
         show_all = request.GET.get("show_all") == "true"
         if request.user.is_staff and show_all:
             threads = Thread.objects.all()
@@ -459,7 +463,14 @@ def thread_list(request):
                 thread.last_active = last_file
             else:
                 thread.last_active = thread.updated_at
-        sorted_threads = sorted(threads, key=lambda x: x.last_active, reverse=True)
+        # Pagination
+        paginator = Paginator(threads.order_by(sort_by), limit)
+        try:
+            page = paginator.page(offset // limit + 1)
+        except PageNotAnInteger:
+            page = paginator.page(1)
+        except EmptyPage:
+            page = paginator.page(paginator.num_pages)
         thread_list = [
             {
                 "id": thread.id,
@@ -470,8 +481,9 @@ def thread_list(request):
                 "updated_at": thread.updated_at,
                 "meta": thread.meta,
                 "last_active": thread.last_active,
+                "page": page.number
             }
-            for thread in sorted_threads
+            for thread in page.object_list
         ]
         return JsonResponse(thread_list, safe=False)
     except Exception as e:
@@ -483,6 +495,9 @@ def thread_list(request):
 @require_http_methods(["GET"])
 def thread_list_panel(request, panel_id):
     try:
+        limit = int(request.GET.get("limit", 40))
+        offset = int(request.GET.get("offset", 0))
+        sort_by = request.GET.get("sort_by", "-created_on")
         show_all = request.GET.get("show_all") == "true"
         if request.user.is_staff and show_all:
             threads = Thread.objects.filter(panel_id=panel_id)
@@ -510,7 +525,14 @@ def thread_list_panel(request, panel_id):
                 thread.last_active = last_file
             else:
                 thread.last_active = thread.updated_at
-        sorted_threads = sorted(threads, key=lambda x: x.last_active, reverse=True)
+        # Pagination
+        paginator = Paginator(threads.order_by(sort_by), limit)
+        try:
+            page = paginator.page(offset // limit + 1)
+        except PageNotAnInteger:
+            page = paginator.page(1)
+        except EmptyPage:
+            page = paginator.page(paginator.num_pages)
         thread_list = [
             {
                 "id": thread.id,
@@ -521,8 +543,9 @@ def thread_list_panel(request, panel_id):
                 "updated_at": thread.updated_at,
                 "meta": thread.meta,
                 "last_active": thread.last_active,
+                "page": page.number
             }
-            for thread in sorted_threads
+            for thread in page.object_list
         ]
         return JsonResponse(thread_list, safe=False)
     except Exception as e:
@@ -748,6 +771,9 @@ def thread_delete(request, thread_id):
 @require_http_methods(["GET"])
 def message_list_panel(request, panel_id):
     try:
+        limit = int(request.GET.get("limit", 40))
+        offset = int(request.GET.get("offset", 0))
+        sort_by = request.GET.get("sort_by", "-created_on")
         show_all = request.GET.get("show_all") == "true"
         if request.user.is_staff and show_all:
             panel_messages = Message.objects.filter(panel_id=panel_id)
@@ -762,6 +788,14 @@ def message_list_panel(request, panel_id):
                 | Q(panel__users_with_access=request.user),
                 panel_id=panel_id,
             ).distinct()
+        # Pagination
+        paginator = Paginator(panel_messages.order_by(sort_by), limit)
+        try:
+            page = paginator.page(offset // limit + 1)
+        except PageNotAnInteger:
+            page = paginator.page(1)
+        except EmptyPage:
+            page = paginator.page(paginator.num_pages)
         message_list = [
             {
                 "id": message.id,
@@ -775,8 +809,9 @@ def message_list_panel(request, panel_id):
                 "created_on": message.created_on,
                 "updated_at": message.updated_at,
                 "meta": message.meta,
+                "page": page.number
             }
-            for message in panel_messages
+            for message in page.object_list
         ]
         return JsonResponse(message_list, safe=False)
     except Exception as e:
@@ -788,6 +823,9 @@ def message_list_panel(request, panel_id):
 @require_http_methods(["GET"])
 def message_list_thread(request, thread_id):
     try:
+        limit = int(request.GET.get("limit", 40))
+        offset = int(request.GET.get("offset", 0))
+        sort_by = request.GET.get("sort_by", "-created_on")
         show_all = request.GET.get("show_all") == "true"
         if request.user.is_staff and show_all:
             thread_messages = Message.objects.filter(thread_id=thread_id)
@@ -802,6 +840,14 @@ def message_list_thread(request, thread_id):
                 | Q(panel__users_with_access=request.user),
                 thread_id=thread_id,
             ).distinct()
+        # Pagination
+        paginator = Paginator(thread_messages.order_by(sort_by), limit)
+        try:
+            page = paginator.page(offset // limit + 1)
+        except PageNotAnInteger:
+            page = paginator.page(1)
+        except EmptyPage:
+            page = paginator.page(paginator.num_pages)
         message_list = [
             {
                 "id": message.id,
@@ -815,8 +861,9 @@ def message_list_thread(request, thread_id):
                 "created_on": message.created_on,
                 "updated_at": message.updated_at,
                 "meta": message.meta,
+                "page": page.number
             }
-            for message in thread_messages
+            for message in page.object_list
         ]
         return JsonResponse(message_list, safe=False)
     except Exception as e:
@@ -936,6 +983,9 @@ def message_delete(request, message_id):
 @require_http_methods(["GET"])
 def file_list_panel(request, panel_id):
     try:
+        limit = int(request.GET.get("limit", 40))
+        offset = int(request.GET.get("offset", 0))
+        sort_by = request.GET.get("sort_by", "-created_on")
         show_all = request.GET.get("show_all") == "true"
         if request.user.is_staff and show_all:
             files = File.objects.filter(panel_id=panel_id)
@@ -948,6 +998,14 @@ def file_list_panel(request, panel_id):
                 | Q(panel__users_with_access=request.user),
                 panel_id=panel_id,
             ).distinct()
+        # Pagination
+        paginator = Paginator(files.order_by(sort_by), limit)
+        try:
+            page = paginator.page(offset // limit + 1)
+        except PageNotAnInteger:
+            page = paginator.page(1)
+        except EmptyPage:
+            page = paginator.page(paginator.num_pages)
         file_list = [
             {
                 "id": file.id,
@@ -958,8 +1016,9 @@ def file_list_panel(request, panel_id):
                 "created_on": file.created_on,
                 "updated_at": file.updated_at,
                 "meta": file.meta,
+                "page": page.number
             }
-            for file in files
+            for file in page.object_list
         ]
         return JsonResponse(file_list, safe=False)
     except Exception as e:
@@ -971,6 +1030,9 @@ def file_list_panel(request, panel_id):
 @require_http_methods(["GET"])
 def file_list_thread(request, thread_id):
     try:
+        limit = int(request.GET.get("limit", 40))
+        offset = int(request.GET.get("offset", 0))
+        sort_by = request.GET.get("sort_by", "-created_on")
         show_all = request.GET.get("show_all") == "true"
         if request.user.is_staff and show_all:
             files = File.objects.filter(thread_id=thread_id)
@@ -983,6 +1045,14 @@ def file_list_thread(request, thread_id):
                 | Q(panel__users_with_access=request.user),
                 thread_id=thread_id,
             ).distinct()
+        # Pagination
+        paginator = Paginator(files.order_by(sort_by), limit)
+        try:
+            page = paginator.page(offset // limit + 1)
+        except PageNotAnInteger:
+            page = paginator.page(1)
+        except EmptyPage:
+            page = paginator.page(paginator.num_pages)
         file_list = [
             {
                 "id": file.id,
@@ -994,8 +1064,9 @@ def file_list_thread(request, thread_id):
                 "created_on": file.created_on,
                 "updated_at": file.updated_at,
                 "meta": file.meta,
+                "page": page.number
             }
-            for file in files
+            for file in page.object_list
         ]
         return JsonResponse(file_list, safe=False)
     except Exception as e:
@@ -1177,3 +1248,45 @@ def ollama_proxy(request, route):
             {"status": "error", "message": "Ollama request failed: " + str(e)},
             status=502,
         )
+
+@user_authenticated
+@require_http_methods(["GET"])
+def search(request):
+    try:
+        # Prep query
+        query = request.GET.get("q", "").strip()
+        if not query:
+            return JsonResponse({"error": "Missing search query (q)"}, status=400)
+        show_all = request.GET.get("show_all") == "true"
+        limit = int(request.GET.get("limit", 20)) 
+
+        # Panels
+        panels = Panel.objects.all() if show_all and request.user.is_staff else Panel.objects.filter(
+            Q(is_global=True) | Q(created_by=request.user) | Q(users_with_access=request.user)
+        ).distinct()
+        panels = panels.filter(
+            Q(name__icontains=query) | Q(plugin__icontains=query)
+        )[:limit] 
+        # Threads
+        threads = Thread.objects.all() if show_all and request.user.is_staff else Thread.objects.filter(
+            Q(panel__is_global=True) | Q(created_by=request.user) | Q(panel__users_with_access=request.user)
+        ).distinct()
+        threads = threads.filter(Q(title__icontains=query))[:limit]
+        # Messages
+        messages = Message.objects.all() if show_all and request.user.is_staff else Message.objects.filter(
+            Q(panel__is_global=True) | Q(created_by=request.user) | Q(panel__users_with_access=request.user)
+        ).distinct()
+        messages = messages.filter(Q(content__icontains=query))[:limit]
+
+        results = {
+            "panels": [{"panel_id": p.id, "panel_title": p.name} for p in panels],
+            "threads": [{"thread_id": t.id, "thread_title": t.title, "panel_id": t.panel.id} for t in threads],
+            "messages": [
+                {"message_id": m.id, "message_content": markdown(m.content, extensions=["fenced_code", "nl2br"]), "panel_id": m.panel.id} 
+                for m in messages
+            ],
+        }
+        return JsonResponse(results)
+    except Exception as e:
+        logger.error(e, exc_info=True)
+        return JsonResponse({"status": "error", "message": str(e)}, status=400)
