@@ -134,7 +134,7 @@ def panel_list(request):
             ).distinct()
         panels = panels.annotate(
             last_message=Max("messages_x_panel__created_on"),
-            last_file=Max("file_x_panel__created_on")
+            last_file=Max("file_x_panel__created_on"),
         )
         panel_data_list = []
         # Enrich panels
@@ -185,7 +185,9 @@ def panel_list(request):
                 "created_on": panel.created_on,
                 "updated_at": panel.updated_at,
                 "meta": filtered_metadata,
-                "last_active": (panel.last_message or panel.last_file or panel.updated_at),
+                "last_active": (
+                    panel.last_message or panel.last_file or panel.updated_at
+                ),
                 "display_image": display_image,
             }
             if request.user.is_staff:
@@ -445,7 +447,7 @@ def thread_list(request):
             ).distinct()
         threads = threads.annotate(
             last_message=Max("messages_x_thread__created_on"),
-            last_file=Max("file_x_thread__created_on")
+            last_file=Max("file_x_thread__created_on"),
         )
         # Pagination
         paginator = Paginator(threads.order_by(sort_by), limit)
@@ -464,8 +466,10 @@ def thread_list(request):
                 "created_on": thread.created_on,
                 "updated_at": thread.updated_at,
                 "meta": thread.meta,
-                "last_active": (thread.last_message or thread.last_file or thread.updated_at),  
-                "page": page.number
+                "last_active": (
+                    thread.last_message or thread.last_file or thread.updated_at
+                ),
+                "page": page.number,
             }
             for thread in page.object_list
         ]
@@ -496,7 +500,7 @@ def thread_list_panel(request, panel_id):
             ).distinct()
         threads = threads.annotate(
             last_message=Max("messages_x_thread__created_on"),
-            last_file=Max("file_x_thread__created_on")
+            last_file=Max("file_x_thread__created_on"),
         )
         # Pagination
         paginator = Paginator(threads.order_by(sort_by), limit)
@@ -515,8 +519,10 @@ def thread_list_panel(request, panel_id):
                 "created_on": thread.created_on,
                 "updated_at": thread.updated_at,
                 "meta": thread.meta,
-                "last_active": (thread.last_message or thread.last_file or thread.updated_at),  
-                "page": page.number
+                "last_active": (
+                    thread.last_message or thread.last_file or thread.updated_at
+                ),
+                "page": page.number,
             }
             for thread in page.object_list
         ]
@@ -782,7 +788,7 @@ def message_list_panel(request, panel_id):
                 "created_on": message.created_on,
                 "updated_at": message.updated_at,
                 "meta": message.meta,
-                "page": page.number
+                "page": page.number,
             }
             for message in page.object_list
         ]
@@ -834,7 +840,7 @@ def message_list_thread(request, thread_id):
                 "created_on": message.created_on,
                 "updated_at": message.updated_at,
                 "meta": message.meta,
-                "page": page.number
+                "page": page.number,
             }
             for message in page.object_list
         ]
@@ -989,7 +995,7 @@ def file_list_panel(request, panel_id):
                 "created_on": file.created_on,
                 "updated_at": file.updated_at,
                 "meta": file.meta,
-                "page": page.number
+                "page": page.number,
             }
             for file in page.object_list
         ]
@@ -1037,7 +1043,7 @@ def file_list_thread(request, thread_id):
                 "created_on": file.created_on,
                 "updated_at": file.updated_at,
                 "meta": file.meta,
-                "page": page.number
+                "page": page.number,
             }
             for file in page.object_list
         ]
@@ -1222,6 +1228,7 @@ def ollama_proxy(request, route):
             status=502,
         )
 
+
 @user_authenticated
 @require_http_methods(["GET"])
 def search(request):
@@ -1231,31 +1238,58 @@ def search(request):
         if not query:
             return JsonResponse({"error": "Missing search query (q)"}, status=400)
         show_all = request.GET.get("show_all") == "true"
-        limit = int(request.GET.get("limit", 20)) 
+        limit = int(request.GET.get("limit", 20))
 
         # Panels
-        panels = Panel.objects.all() if show_all and request.user.is_staff else Panel.objects.filter(
-            Q(is_global=True) | Q(created_by=request.user) | Q(users_with_access=request.user)
-        ).distinct()
-        panels = panels.filter(
-            Q(name__icontains=query) | Q(plugin__icontains=query)
-        )[:limit] 
+        panels = (
+            Panel.objects.all()
+            if show_all and request.user.is_staff
+            else Panel.objects.filter(
+                Q(is_global=True)
+                | Q(created_by=request.user)
+                | Q(users_with_access=request.user)
+            ).distinct()
+        )
+        panels = panels.filter(Q(name__icontains=query) | Q(plugin__icontains=query))[
+            :limit
+        ]
         # Threads
-        threads = Thread.objects.all() if show_all and request.user.is_staff else Thread.objects.filter(
-            Q(panel__is_global=True) | Q(created_by=request.user) | Q(panel__users_with_access=request.user)
-        ).distinct()
+        threads = (
+            Thread.objects.all()
+            if show_all and request.user.is_staff
+            else Thread.objects.filter(
+                Q(panel__is_global=True)
+                | Q(created_by=request.user)
+                | Q(panel__users_with_access=request.user)
+            ).distinct()
+        )
         threads = threads.filter(Q(title__icontains=query))[:limit]
         # Messages
-        messages = Message.objects.all() if show_all and request.user.is_staff else Message.objects.filter(
-            Q(panel__is_global=True) | Q(created_by=request.user) | Q(panel__users_with_access=request.user)
-        ).distinct()
+        messages = (
+            Message.objects.all()
+            if show_all and request.user.is_staff
+            else Message.objects.filter(
+                Q(panel__is_global=True)
+                | Q(created_by=request.user)
+                | Q(panel__users_with_access=request.user)
+            ).distinct()
+        )
         messages = messages.filter(Q(content__icontains=query))[:limit]
 
         results = {
             "panels": [{"panel_id": p.id, "panel_title": p.name} for p in panels],
-            "threads": [{"thread_id": t.id, "thread_title": t.title, "panel_id": t.panel.id} for t in threads],
+            "threads": [
+                {"thread_id": t.id, "thread_title": t.title, "panel_id": t.panel.id}
+                for t in threads
+            ],
             "messages": [
-                {"message_id": m.id, "message_content": markdown(m.content, extensions=["fenced_code", "nl2br"]), "panel_id": m.panel.id} 
+                {
+                    "message_id": m.id,
+                    "message_content": markdown(
+                        m.content, extensions=["fenced_code", "nl2br"]
+                    ),
+                    "panel_id": m.panel.id,
+                }
                 for m in messages
             ],
         }

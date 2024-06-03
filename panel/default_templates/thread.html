@@ -265,10 +265,8 @@
               </div>
             </div>
 
-            <button @click="getMessages(true, false)" x-show="!(messages.length < messageLimit)" class="mx-auto mb-3 flex items-center justify-center font-semibold bg-stone50 px-3 h-9 rounded-full shadow-sm border border-stone-200 transition duration-500 hover:shadow focus:shadow-none">
-              Load More
-            </button>
-          
+            <button @click="getMessages(true, false)" x-show="!(messages.length < messageLimit)" class="mx-auto mb-3 flex items-center justify-center font-semibold bg-stone50 px-3 h-9 rounded-full shadow-sm border border-stone-200 transition duration-500 hover:shadow focus:shadow-none">Load More</button>
+
             <template x-if="!loadedMessages">
               <div>
                 <div class="mb-10">

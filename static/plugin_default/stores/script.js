@@ -581,11 +581,11 @@ var pluginState = () => {
     },
     getMessages(incrementLimit = false, setLimit = true) {
       const hostname = window.location.origin;
-      if(incrementLimit){
-        this.messageLimit = this.messageLimit + 40
+      if (incrementLimit) {
+        this.messageLimit = this.messageLimit + 40;
       }
-      if(setLimit){
-        this.messageLimit = 40
+      if (setLimit) {
+        this.messageLimit = 40;
       }
       const url = hostname + "/api/v1/app/messages/thread/" + Alpine.store("active").threadId + "/?limit=" + this.messageLimit;
       fetch(url, {
@@ -603,7 +603,7 @@ var pluginState = () => {
           this.messageImages = [];
           this.responseStream = "";
           // Add new messages (re-sorted by date)
-          this.messages = data.sort((a, b) => new Date(a.created_on) - new Date(b.created_on)); 
+          this.messages = data.sort((a, b) => new Date(a.created_on) - new Date(b.created_on));
           this.newMessage = "";
           this.newRawMessage = "";
           setTimeout(() => {
@@ -624,7 +624,7 @@ var pluginState = () => {
                 hljs.highlightElement(block);
               }
             });
-            if (!incrementLimit){
+            if (!incrementLimit) {
               document.querySelector("#content-area").scrollTop = document.querySelector("#content-area").scrollHeight;
             }
           }, 80);
