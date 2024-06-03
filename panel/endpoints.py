@@ -132,6 +132,10 @@ def panel_list(request):
                 | Q(created_by=request.user)
                 | Q(users_with_access=request.user)
             ).distinct()
+        panels = panels.annotate(
+            last_message=Max("messages_x_panel__created_on"),
+            last_file=Max("file_x_panel__created_on")
+        )
         panel_data_list = []
         # Enrich panels
         for panel in panels:
@@ -171,16 +175,6 @@ def panel_list(request):
             plugin_icon_path = os.path.join(plugin_dir, "static", "icon.png")
             if not panel.display_image and os.path.exists(plugin_icon_path):
                 display_image = f"/plugins/{panel.plugin}/static/icon.png"
-            last_message = panel.messages_x_panel.aggregate(Max("created_on"))[
-                "created_on__max"
-            ]
-            last_file = panel.file_x_panel.aggregate(Max("created_on"))[
-                "created_on__max"
-            ]
-            last_active = max(
-                last_message if last_message else panel.updated_at,
-                last_file if last_file else panel.updated_at,
-            )
             panel_data = {
                 "id": panel.id,
                 "name": panel.name,
@@ -191,7 +185,7 @@ def panel_list(request):
                 "created_on": panel.created_on,
                 "updated_at": panel.updated_at,
                 "meta": filtered_metadata,
-                "last_active": last_active,
+                "last_active": (panel.last_message or panel.last_file or panel.updated_at),
                 "display_image": display_image,
             }
             if request.user.is_staff:
@@ -449,21 +443,10 @@ def thread_list(request):
                 | Q(created_by=request.user)
                 | Q(panel__users_with_access=request.user)
             ).distinct()
-        for thread in threads:
-            last_message = thread.messages_x_thread.aggregate(Max("created_on"))[
-                "created_on__max"
-            ]
-            last_file = thread.file_x_thread.aggregate(Max("created_on"))[
-                "created_on__max"
-            ]
-            if last_message and last_file:
-                thread.last_active = max(last_message, last_file)
-            elif last_message:
-                thread.last_active = last_message
-            elif last_file:
-                thread.last_active = last_file
-            else:
-                thread.last_active = thread.updated_at
+        threads = threads.annotate(
+            last_message=Max("messages_x_thread__created_on"),
+            last_file=Max("file_x_thread__created_on")
+        )
         # Pagination
         paginator = Paginator(threads.order_by(sort_by), limit)
         try:
@@ -481,7 +464,7 @@ def thread_list(request):
                 "created_on": thread.created_on,
                 "updated_at": thread.updated_at,
                 "meta": thread.meta,
-                "last_active": thread.last_active,
+                "last_active": (thread.last_message or thread.last_file or thread.updated_at),  
                 "page": page.number
             }
             for thread in page.object_list
@@ -511,21 +494,10 @@ def thread_list_panel(request, panel_id):
                 | Q(panel__users_with_access=request.user),
                 panel_id=panel_id,
             ).distinct()
-        for thread in threads:
-            last_message = thread.messages_x_thread.aggregate(Max("created_on"))[
-                "created_on__max"
-            ]
-            last_file = thread.file_x_thread.aggregate(Max("created_on"))[
-                "created_on__max"
-            ]
-            if last_message and last_file:
-                thread.last_active = max(last_message, last_file)
-            elif last_message:
-                thread.last_active = last_message
-            elif last_file:
-                thread.last_active = last_file
-            else:
-                thread.last_active = thread.updated_at
+        threads = threads.annotate(
+            last_message=Max("messages_x_thread__created_on"),
+            last_file=Max("file_x_thread__created_on")
+        )
         # Pagination
         paginator = Paginator(threads.order_by(sort_by), limit)
         try:
@@ -543,7 +515,7 @@ def thread_list_panel(request, panel_id):
                 "created_on": thread.created_on,
                 "updated_at": thread.updated_at,
                 "meta": thread.meta,
-                "last_active": thread.last_active,
+                "last_active": (thread.last_message or thread.last_file or thread.updated_at),  
                 "page": page.number
             }
             for thread in page.object_list
