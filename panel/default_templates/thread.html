@@ -237,7 +237,6 @@
                 <h1 class="text-xl font-semibold line-clamp-1 rounded-md w-max text-stone-200 bg-stone-200">-----------------------------</h1>
               </template>
               <h1 x-text="activeThread.title" class="text-xl font-semibold line-clamp-1"></h1>
-
               <button class="ml-1.5 flex items-center justify-center font-semibold bg-transparent text-stone-500 group-hover:text-stone-800">
                 <svg class="min-w-5 min-h-5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
                   <path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 000-3.712zM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 00-1.32 2.214l-.8 2.685a.75.75 0 00.933.933l2.685-.8a5.25 5.25 0 002.214-1.32l8.4-8.4z"></path>
@@ -264,6 +263,10 @@
               </div>
             </div>
 
+            <button @click="getMessages(true, false)" x-show="!(messages.length < messageLimit)" class="mx-auto mb-3 flex items-center justify-center font-semibold bg-stone50 px-3 h-9 rounded-full shadow-sm border border-stone-200 transition duration-500 hover:shadow focus:shadow-none">
+              Load More
+            </button>
+          
             <template x-if="!loadedMessages">
               <div>
                 <div class="mb-10">
