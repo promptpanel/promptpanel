@@ -133,6 +133,7 @@ def panel_list(request):
                 | Q(users_with_access=request.user)
             ).distinct()
         panel_data_list = []
+        # Enrich panels
         for panel in panels:
             # Plugin info and settings
             plugins_dir = os.path.join(os.path.dirname(__file__), "..", "plugins")
@@ -170,7 +171,6 @@ def panel_list(request):
             plugin_icon_path = os.path.join(plugin_dir, "static", "icon.png")
             if not panel.display_image and os.path.exists(plugin_icon_path):
                 display_image = f"/plugins/{panel.plugin}/static/icon.png"
-            # Calculate last_active
             last_message = panel.messages_x_panel.aggregate(Max("created_on"))[
                 "created_on__max"
             ]
@@ -201,6 +201,7 @@ def panel_list(request):
                 ]
             panel_data_list.append(panel_data)
         # Sort panels by last active timestamp before response
+        # TODO: Evaluate best method for this (if last_active is good for users?)
         sorted_panels = sorted(
             panel_data_list, key=lambda x: x["last_active"], reverse=True
         )
