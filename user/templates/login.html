@@ -108,11 +108,11 @@
         <label for="password" class="block text-stone-500 mb-1">Password</label>
         <input x-model="$store.loginStore.password" type="password" required id="password" name="password" placeholder="Password..." class="cursor-text w-full px-2.5 h-9 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
       </div>
-      <button type="submit" class="flex items-center justify-center w-full font-semibold bg-primary px-2.5 h-9 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none focus:opacity-80">Sign In</button>
+      <button type="submit" class="flex items-center justify-center w-full font-semibold bg-primary px-2.5 h-10 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none focus:opacity-80">Sign In</button>
     </form>
 
     {% if env_oidc_display %}
-    <a href="/oauth/login" class="-mt-3 flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 rounded-md transition duration-500 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300">
+    <a href="/oauth/login" class="-mt-3 flex items-center justify-center font-semibold text-stone-500 px-2.5 h-10 rounded-md transition duration-500 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300">
       <svg class="mr-1.5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" dataSlot="icon" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M15.75 1.5a6.75 6.75 0 0 0-6.651 7.906c.067.39-.032.717-.221.906l-6.5 6.499a3 3 0 0 0-.878 2.121v2.818c0 .414.336.75.75.75H6a.75.75 0 0 0 .75-.75v-1.5h1.5A.75.75 0 0 0 9 19.5V18h1.5a.75.75 0 0 0 .53-.22l2.658-2.658c.19-.189.517-.288.906-.22A6.75 6.75 0 1 0 15.75 1.5Zm0 3a.75.75 0 0 0 0 1.5A2.25 2.25 0 0 1 18 8.25a.75.75 0 0 0 1.5 0 3.75 3.75 0 0 0-3.75-3.75Z" clip-rule="evenodd"></path></svg>
       Sign in with {{ env_oidc_display }}
     </a>
