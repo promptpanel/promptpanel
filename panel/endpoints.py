@@ -336,7 +336,7 @@ def panel_create(request):
 def panel_update(request, panel_id):
     try:
         data = json.loads(request.body.decode("utf-8"))
-        panel = get_object_or_404(Panel, id=panel_id, created_by=request.user)
+        panel = get_object_or_404(Panel, id=panel_id)
         panel.name = data.get("name", panel.name)
         panel.plugin = data.get("plugin", panel.plugin)
         panel.display_image = data.get("display_image", panel.display_image)
