@@ -230,6 +230,9 @@
         </div>
       </div>
 
+      <div @click="modalDocuments = false, modalMessageEdit = false, modalThreadEdit = false, modalSelectModel = false" :class="{'w-px h-px bg-stone-50/0': !modalSelectModel && !modalDocuments && !modalMessageEdit && !modalThreadEdit, 'w-full h-full bg-stone-50/50': modalSelectModel || modalDocuments || modalMessageEdit || modalThreadEdit}" class="cursor-pointer fixed top-0 left-0 backdrop-blur-sm z-[100] transition-all"></div>
+
+
       <!-- Sidebar -->
       <div :class="{'-lg:-left-[100vw]': !mobileOpen, '-lg:left-0': mobileOpen}" id="sidebar" class="transition-all absolute w-80 h-full bg-stone-50 border-r border-stone-200 overflow-y-auto -lg:top-12 -lg:w-full -lg:z-[60]">
         <div class="fixed -top-px mt-px border-r border-stone-200 bg-stone-50 pt-3 pb-1 px-4 w-80 -lg:w-full">
