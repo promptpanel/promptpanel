@@ -37,6 +37,8 @@ urlpatterns = [
     path("file/delete/<int:file_id>/", endpoints.file_delete, name="api_file_delete"),
     ### Ollama Proxy
     path("ollama/<path:route>/", endpoints.ollama_proxy, name="api_ollama_proxy"),
+    ### Search
+    path("search/", endpoints.search, name="api_Search_global"),
 ]
 
 # Add pro routes
