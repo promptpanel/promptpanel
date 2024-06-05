@@ -332,13 +332,13 @@ def chat_stream(message, thread, panel):
             title_enrich.append(
                 {
                     "role": "system",
-                    "content": "You are an assistant who writes titles based on questions which are asked by the user. Please only provide a summary, do not provide the answer to the question.",
+                    "content": title_content
                 }
             )
             title_enrich.append(
                 {
                     "role": "user",
-                    "content": f"Please create a title for the following content: {message.content} \n\n Title:",
+                    "content": f"Please create a title for the following content: {message.content}",
                 }
             )
             title_settings = {

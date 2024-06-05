@@ -328,17 +328,17 @@ def chat_stream(message, thread, panel):
         logger.info("** 8. Enrich / append a title to the chat")
         if user_message_count == 1:
             title_enrich = """
-                You are an assistant who writes informative titles based on questions which are asked by the user. 
-                Please only provide a summary, do not provide the answer to the question.
-                Examples:
-                ```
-                Code: Solution to the fizz buzz problem
-                History: Who won the 1998 NBA Finals?
-                Brainstorm: New ideas for blog posts
-                Translate: Ordering food in Japanese
-                Summary: Instruction manual
-                Lookup: Information from document source
-                ```
+You are an assistant who writes informative titles based on questions which are asked by the user. 
+Please only provide a summary, do not provide the answer to the question.
+Examples:
+```
+Code: Solution to the fizz buzz problem
+History: Who won the 1998 NBA Finals?
+Brainstorm: New ideas for blog posts
+Translate: Ordering food in Japanese
+Summary: Instruction manual
+Lookup: Information from document source
+```
             """.strip()
             title_settings = {
                 "stream": False,
