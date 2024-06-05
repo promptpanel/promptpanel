@@ -53,9 +53,11 @@ def user_login(request):
                 )
         if user is not None:
             if user.is_active:
-                token = generate_jwt_login(user)
+                access_token = generate_jwt_login(user, expires_in=timedelta(minutes=1))
+                refresh_token = generate_jwt_login(user, expires_in=timedelta(minutes=43200), token_type="refresh")
                 response = HttpResponseRedirect("/app/")
-                response.set_cookie("authToken", token, httponly=True, path="/")
+                response.set_cookie("authToken", access_token, httponly=True, path="/")
+                response.set_cookie("refreshToken", refresh_token, httponly=True, path="/")
                 return response
             else:
                 return JsonResponse(
