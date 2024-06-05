@@ -325,7 +325,7 @@ var pluginState = () => {
         });
     },
     retryThread() {
-      if (!confirm("Are you sure you want to trye this thread (your last message will be replaced)?")) {
+      if (!confirm("Are you sure you want to retry this message (your last message will be replaced)?")) {
         return;
       }
       let mdConverter = new showdown.Converter();
@@ -842,7 +842,7 @@ var pluginState = () => {
         .then((stream) => new Response(stream))
         .then((response) => response.text())
         .catch((err) => {
-          if (error.name === "AbortError") {
+          if (err.name === "AbortError") {
             fileItem.status = "cancelled";
             this.indicateFile = false;
             this.processNextFile();

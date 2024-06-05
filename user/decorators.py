@@ -1,5 +1,7 @@
+import os
 import logging
 import jwt
+from datetime import datetime, timedelta
 from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
 from django.conf import settings
@@ -7,7 +9,7 @@ from django.http import JsonResponse, HttpResponseRedirect
 from functools import wraps
 from urllib.parse import urlencode
 from user.models import TokenLog
-from promptpanel.utils import get_licence
+from promptpanel.utils import get_licence, generate_jwt_login
 
 logger = logging.getLogger("app")
 
@@ -63,6 +65,20 @@ def user_authenticated(view_func):
                     return HttpResponseRedirect(f"/login/?{query_string}")
             request.user = user
             return view_func(request, *args, **kwargs)
+        except jwt.ExpiredSignatureError:
+            # Handle expired access token by trying to refresh it
+            refresh_token = request.COOKIES.get("refreshToken")
+            if refresh_token:
+                try:
+                    logger.info("Renewing access token")
+                    access_token = generate_jwt_login(user, None, "access")
+                    response = view_func(request, *args, **kwargs)
+                    response.set_cookie("authToken", access_token, httponly=True, path="/")
+                    return response
+                except Exception as e:
+                    logger.error(str(e), exc_info=True)
+                    query_string = urlencode({"next": request.get_full_path()})
+                    return HttpResponseRedirect(f"/login/?{query_string}")
         except Exception as e:
             if "api" in request.path:
                 return JsonResponse(

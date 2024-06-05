@@ -2,13 +2,14 @@ import os
 import json
 import logging
 from authlib.integrations.django_client import OAuth
+from datetime import datetime, timedelta
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from user.decorators import user_authenticated
-from user.endpoints import generate_jwt_login
-
+from user.models import TokenLog
+from promptpanel.utils import generate_jwt_login
 
 logger = logging.getLogger("app")
 
@@ -86,9 +87,24 @@ def ollama_model(request):
 
 
 def logout(request):
-    response = HttpResponseRedirect("/login/?logged_out=true")
-    response.delete_cookie("authToken", path="/")
-    return response
+    try:
+        response = HttpResponseRedirect("/login/?logged_out=true")
+        access_token = request.COOKIES.get("authToken")
+        refresh_token = request.COOKIES.get("refreshToken")
+        access_token_log = TokenLog.objects.get(token=access_token)
+        access_token_log.disabled = True
+        access_token_log.save()
+        response.delete_cookie("authToken", path="/")
+        refresh_token_log = TokenLog.objects.get(token=refresh_token)
+        refresh_token_log.disabled = True
+        refresh_token_log.save()
+        response.delete_cookie("refreshToken", path="/")
+        return response
+    except Exception as e:
+        logger.error(str(e), exc_info=True)
+        response = HttpResponseRedirect("/login/?logged_out=true")
+        response.delete_cookie("authToken", path="/")
+        return response
 
 
 def oauth_login(request):
@@ -137,9 +153,11 @@ def oauth_callback(request):
         try:
             user = User.objects.get(email=email)
             if user.is_active:
-                jwt_token = generate_jwt_login(user)
+                access_token = generate_jwt_login(user, None, "access")
+                refresh_token = generate_jwt_login(user, None, "refresh")
                 response = HttpResponseRedirect("/app/")
-                response.set_cookie("authToken", jwt_token, httponly=True, path="/")
+                response.set_cookie("authToken", access_token, httponly=True, path="/")
+                response.set_cookie("refreshToken", refresh_token, httponly=True, path="/")
                 return response
             else:
                 logger.error("OAuth error: User's Prompt Panel account is deactivated.")
@@ -165,9 +183,11 @@ def oauth_callback(request):
             user.set_unusable_password()
             user.save()
             if user.is_active:
-                jwt_token = generate_jwt_login(user)
+                access_token = generate_jwt_login(user, None, "access")
+                refresh_token = generate_jwt_login(user, None, "refresh")
                 response = HttpResponseRedirect("/onboarding/first/")
-                response.set_cookie("authToken", jwt_token, httponly=True, path="/")
+                response.set_cookie("authToken", access_token, httponly=True, path="/")
+                response.set_cookie("refreshToken", refresh_token, httponly=True, path="/")
                 return response
             else:
                 return JsonResponse(

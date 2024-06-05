@@ -17,9 +17,12 @@ logger = logging.getLogger("app")
 # File Entrypoint
 def file_handler(file, thread, panel):
     try:
-        return StreamingHttpResponse(
-            file_stream(file, thread, panel), content_type="text/plain"
+        response = StreamingHttpResponse(
+            streaming_content=file_stream(file, thread, panel), content_type="text/event-stream"
         )
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
+        return response    
     except Exception as e:
         logger.error(e, exc_info=True)
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
@@ -75,9 +78,12 @@ def file_stream(file, thread, panel):
 # Message Entrypoint
 def message_handler(message, thread, panel):
     try:
-        return StreamingHttpResponse(
-            chat_stream(message, thread, panel), content_type="text/plain"
+        response = StreamingHttpResponse(
+            streaming_content=chat_stream(message, thread, panel), content_type="text/event-stream"
         )
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
+        return response    
     except Exception as e:
         logger.error(e, exc_info=True)
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
@@ -397,22 +403,22 @@ def chat_stream(message, thread, panel):
         if user_message_count == 1:
             title_enrich = []
             title_content = """
-                You are an assistant who writes informative titles based on questions which are asked by the user. 
-                Please only provide a summary, do not provide the answer to the question.
-                Examples:
-                ```
-                Code: Solution to the fizz buzz problem
-                History: Who won the 1998 NBA Finals?
-                Brainstorm: New ideas for blog posts
-                Translate: Ordering food in Japanese
-                Summary: Instruction manual
-                Lookup: Information from document source
-                ```
+You are an assistant who writes informative titles based on questions which are asked by the user. 
+Please only provide a summary, do not provide the answer to the question.
+Examples:
+```
+Code: Solution to the fizz buzz problem
+History: Who won the 1998 NBA Finals?
+Brainstorm: New ideas for blog posts
+Translate: Ordering food in Japanese
+Summary: Instruction manual
+Lookup: Information from document source
+```
             """.strip()
             title_enrich.append(
                 {
                     "role": "system",
-                    "content": title_content,
+                    "content": title_content
                 }
             )
             title_enrich.append(
