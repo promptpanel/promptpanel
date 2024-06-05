@@ -12,9 +12,12 @@ logger = logging.getLogger("app")
 # File Entrypoint
 def file_handler(file, thread, panel):
     try:
-        return StreamingHttpResponse(
-            file_stream(file, thread, panel), content_type="text/plain"
+        response = StreamingHttpResponse(
+            streaming_content=file_stream(file, thread, panel), content_type="text/event-stream"
         )
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
+        return response    
     except Exception as e:
         logger.error(e, exc_info=True)
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
@@ -80,9 +83,12 @@ def file_stream(file, thread, panel):
 # Message Entrypoint
 def message_handler(message, thread, panel):
     try:
-        return StreamingHttpResponse(
-            chat_stream(message, thread, panel), content_type="text/plain"
+        response = StreamingHttpResponse(
+            streaming_content=chat_stream(message, thread, panel), content_type="text/event-stream"
         )
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
+        return response    
     except Exception as e:
         logger.error(e, exc_info=True)
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
