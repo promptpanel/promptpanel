@@ -8,6 +8,7 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from user.decorators import user_authenticated
 from user.endpoints import generate_jwt_login
+from user.models import TokenLog
 
 
 logger = logging.getLogger("app")
@@ -86,9 +87,24 @@ def ollama_model(request):
 
 
 def logout(request):
-    response = HttpResponseRedirect("/login/?logged_out=true")
-    response.delete_cookie("authToken", path="/")
-    return response
+    try:
+        access_token = request.COOKIES.get("authToken")
+        refresh_token = request.COOKIES.get("refreshToken")
+        access_token_log = TokenLog.objects.get(token=access_token)
+        access_token_log.disabled = True
+        access_token_log.save()
+        response.delete_cookie("authToken", path="/")
+        refresh_token_log = TokenLog.objects.get(token=refresh_token)
+        refresh_token_log.disabled = True
+        refresh_token_log.save()
+        response.delete_cookie("refreshToken", path="/")
+        response = HttpResponseRedirect("/login/?logged_out=true")
+        return response
+    except Exception as e:
+        logger.error(str(e), exc_info=True)
+        response = HttpResponseRedirect("/login/?logged_out=true")
+        response.delete_cookie("authToken", path="/")
+        return response
 
 
 def oauth_login(request):
