@@ -45,7 +45,7 @@ def file_stream(file, thread, panel):
                 output_file.write(str(element) + "\n")
 
         ## ----- 3. Enrich file metadata with token_count / text_file_path.
-        logger.info("** 2. Enrich file metadata with token_count / text_file_path.")
+        logger.info("** 3. Enrich file metadata with token_count / text_file_path.")
         yield "Counting tokens..."
         with open(output_filepath, "r", encoding="utf-8") as input_file:
             output_text = input_file.read()
