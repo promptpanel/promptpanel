@@ -223,6 +223,8 @@ if os.environ.get("PROMPT_MODE") == "PRODUCTION":
 # Media setup
 # MEDIA_URL = "media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+DATA_UPLOAD_MAX_MEMORY_SIZE = int(os.getenv("PROMPT_MAX_FILESIZE", 26214400))
+FILE_UPLOAD_MAX_MEMORY_SIZE = int(os.getenv("PROMPT_MAX_FILESIZE", 26214400))
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
