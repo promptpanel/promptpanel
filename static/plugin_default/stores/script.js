@@ -842,7 +842,7 @@ var pluginState = () => {
         .then((stream) => new Response(stream))
         .then((response) => response.text())
         .catch((err) => {
-          if (error.name === "AbortError") {
+          if (err.name === "AbortError") {
             fileItem.status = "cancelled";
             this.indicateFile = false;
             this.processNextFile();
