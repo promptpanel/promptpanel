@@ -53,8 +53,8 @@ def user_login(request):
                 )
         if user is not None:
             if user.is_active:
-                access_token = generate_jwt_login(user, expires_in=timedelta(minutes=1))
-                refresh_token = generate_jwt_login(user, expires_in=timedelta(minutes=43200), token_type="refresh")
+                access_token = generate_jwt_login(user, expires_in=timedelta(minutes=int(os.getenv("PROMPT_TOKEN_ACCESS_MINS", 10))))
+                refresh_token = generate_jwt_login(user, expires_in=timedelta(minutes=int(os.getenv("PROMPT_TOKEN_REFRESH_MINS", 43200))), token_type="refresh")
                 response = HttpResponseRedirect("/app/")
                 response.set_cookie("authToken", access_token, httponly=True, path="/")
                 response.set_cookie("refreshToken", refresh_token, httponly=True, path="/")
@@ -107,7 +107,8 @@ def user_onboard(request):
                 is_active=is_first_user,
             )
             user = authenticate(request, username=username, password=password)
-            token = generate_jwt_login(user)
+            access_token = generate_jwt_login(user, expires_in=timedelta(minutes=int(os.getenv("PROMPT_TOKEN_ACCESS_MINS", 10))))
+            refresh_token = generate_jwt_login(user, expires_in=timedelta(minutes=int(os.getenv("PROMPT_TOKEN_REFRESH_MINS", 43200))), token_type="refresh")
             try:
                 app_id = settings.APP_ID
                 base_url = os.environ.get("PROMPT_OPS_BASE")
@@ -121,7 +122,8 @@ def user_onboard(request):
                 logger.info("Could not connect to ops host")
                 pass
             response = HttpResponseRedirect("/onboarding/first/")
-            response.set_cookie("authToken", token, httponly=True, path="/")
+            response.set_cookie("authToken", access_token, httponly=True, path="/")
+            response.set_cookie("refreshToken", refresh_token, httponly=True, path="/")
             return response
         else:
             return JsonResponse(

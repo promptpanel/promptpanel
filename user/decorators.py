@@ -1,3 +1,4 @@
+import os
 import logging
 import jwt
 from datetime import datetime, timedelta
@@ -71,7 +72,7 @@ def user_authenticated(view_func):
             if refresh_token:
                 try:
                     logger.info("Renewing access token")
-                    access_token = generate_jwt_login(user, expires_in=timedelta(hours=1))
+                    access_token = generate_jwt_login(user, expires_in=timedelta(minutes=int(os.getenv("PROMPT_TOKEN_ACCESS_MINS", 10))))
                     response = view_func(request, *args, **kwargs)
                     response.set_cookie("authToken", access_token, httponly=True, path="/")
                     return response
