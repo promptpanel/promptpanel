@@ -43,7 +43,6 @@ def file_stream(file, thread, panel):
 
         ## ----- 2. Parse file and save to .txt file.
         logger.info("** 2. Parse file and save to .txt file.")
-        yield "Parsing file to text..."
         elements = partition(filename=file.filepath, strategy="fast")
         output_filepath = file.filepath + ".txt"
         with open(output_filepath, "w", encoding="utf-8") as output_file:
@@ -52,7 +51,6 @@ def file_stream(file, thread, panel):
 
         ## ----- 3. Enrich file metadata with token_count / text_file_path.
         logger.info("** 3. Enrich file metadata with token_count / text_file_path.")
-        yield "Counting tokens..."
         with open(output_filepath, "r", encoding="utf-8") as input_file:
             output_text = input_file.read()
         output_text_formatted = f"{file.filename} Context:\n {output_text} \n\n"
@@ -61,18 +59,23 @@ def file_stream(file, thread, panel):
         file.meta.update(
             {
                 "enabled": True,
+                "upload_status": "success",
                 "token_count": token_count,
                 "text_file_path": output_filepath,
             }
         )
         file.save()
-        yield "File upload and parsing complete..."
-
     except Exception as e:
-        logger.info("** Upload failed")
-        yield "File upload and parsing failed..."
-        file.delete()
+        logger.info("** Upload failed:" + str(e))
         logger.error(e, exc_info=True)
+        file.meta.update(
+            {
+                "enabled": False,
+                "upload_status": "failed",
+                "fail_reason": str(e)
+            }
+        )
+        file.save()
 
 
 # Message Entrypoint

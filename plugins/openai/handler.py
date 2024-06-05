@@ -70,7 +70,7 @@ def file_stream(file, thread, panel):
         )
         file.save()
     except Exception as e:
-        logger.info("** Upload failed")
+        logger.info("** Upload failed:" + str(e))
         logger.error(e, exc_info=True)
         file.meta.update(
             {
