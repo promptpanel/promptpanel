@@ -88,6 +88,7 @@ def ollama_model(request):
 
 def logout(request):
     try:
+        response = HttpResponseRedirect("/login/?logged_out=true")
         access_token = request.COOKIES.get("authToken")
         refresh_token = request.COOKIES.get("refreshToken")
         access_token_log = TokenLog.objects.get(token=access_token)
@@ -98,7 +99,6 @@ def logout(request):
         refresh_token_log.disabled = True
         refresh_token_log.save()
         response.delete_cookie("refreshToken", path="/")
-        response = HttpResponseRedirect("/login/?logged_out=true")
         return response
     except Exception as e:
         logger.error(str(e), exc_info=True)
