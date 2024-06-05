@@ -9,7 +9,7 @@ Accelerating your AI agent adoption\
 ### Via Docker Compose:
 
 ```bash
-curl -sSL https://promptpanel.com/manifest/docker-compose.yml | docker compose -f - up
+curl -sSL https://promptpanel.com/manifest/docker-compose.yml > promptpanel-docker-compose.yml && docker compose -f promptpanel-docker-compose.yml pull && docker compose -f promptpanel-docker-compose.yml up -d
 ```
 
 which runs the following `docker-compose.yml`:
