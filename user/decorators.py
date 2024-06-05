@@ -9,8 +9,7 @@ from django.http import JsonResponse, HttpResponseRedirect
 from functools import wraps
 from urllib.parse import urlencode
 from user.models import TokenLog
-from user.endpoints import generate_jwt_login
-from promptpanel.utils import get_licence
+from promptpanel.utils import get_licence, generate_jwt_login
 
 logger = logging.getLogger("app")
 
@@ -72,7 +71,7 @@ def user_authenticated(view_func):
             if refresh_token:
                 try:
                     logger.info("Renewing access token")
-                    access_token = generate_jwt_login(user, expires_in=timedelta(minutes=int(os.getenv("PROMPT_TOKEN_ACCESS_MINS", 10))))
+                    access_token = generate_jwt_login(user, None, "access")
                     response = view_func(request, *args, **kwargs)
                     response.set_cookie("authToken", access_token, httponly=True, path="/")
                     return response

@@ -8,9 +8,8 @@ from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from user.decorators import user_authenticated
-from user.endpoints import generate_jwt_login
 from user.models import TokenLog
-
+from promptpanel.utils import generate_jwt_login
 
 logger = logging.getLogger("app")
 
@@ -154,8 +153,8 @@ def oauth_callback(request):
         try:
             user = User.objects.get(email=email)
             if user.is_active:
-                access_token = generate_jwt_login(user, expires_in=timedelta(minutes=int(os.getenv("PROMPT_TOKEN_ACCESS_MINS", 10))))
-                refresh_token = generate_jwt_login(user, expires_in=timedelta(minutes=int(os.getenv("PROMPT_TOKEN_REFRESH_MINS", 43200))), token_type="refresh")
+                access_token = generate_jwt_login(user, None, "access")
+                refresh_token = generate_jwt_login(user, None, "refresh")
                 response = HttpResponseRedirect("/app/")
                 response.set_cookie("authToken", access_token, httponly=True, path="/")
                 response.set_cookie("refreshToken", refresh_token, httponly=True, path="/")
@@ -184,8 +183,8 @@ def oauth_callback(request):
             user.set_unusable_password()
             user.save()
             if user.is_active:
-                access_token = generate_jwt_login(user, expires_in=timedelta(minutes=int(os.getenv("PROMPT_TOKEN_ACCESS_MINS", 10))))
-                refresh_token = generate_jwt_login(user, expires_in=timedelta(minutes=int(os.getenv("PROMPT_TOKEN_REFRESH_MINS", 43200))), token_type="refresh")
+                access_token = generate_jwt_login(user, None, "access")
+                refresh_token = generate_jwt_login(user, None, "refresh")
                 response = HttpResponseRedirect("/onboarding/first/")
                 response.set_cookie("authToken", access_token, httponly=True, path="/")
                 response.set_cookie("refreshToken", refresh_token, httponly=True, path="/")

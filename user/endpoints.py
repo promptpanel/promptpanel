@@ -12,27 +12,9 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from user.decorators import user_authenticated, user_is_staff
-from user.models import TokenLog
+from promptpanel.utils import generate_jwt_login
 
 logger = logging.getLogger("app")
-
-
-def generate_jwt_login(user):
-    expires_at = timezone.now() + timedelta(days=365)
-    payload = {
-        "user_id": user.id,
-        "exp": int(expires_at.timestamp()),
-        "iat": int(timezone.now().timestamp()),
-    }
-    token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
-    TokenLog.objects.create(
-        token=token,
-        token_type="login",
-        created_by=user,
-        expires_at=expires_at,
-    )
-    return token
-
 
 @require_http_methods(["POST"])
 def user_login(request):
@@ -53,8 +35,8 @@ def user_login(request):
                 )
         if user is not None:
             if user.is_active:
-                access_token = generate_jwt_login(user, expires_in=timedelta(minutes=int(os.getenv("PROMPT_TOKEN_ACCESS_MINS", 10))))
-                refresh_token = generate_jwt_login(user, expires_in=timedelta(minutes=int(os.getenv("PROMPT_TOKEN_REFRESH_MINS", 43200))), token_type="refresh")
+                access_token = generate_jwt_login(user, None, "access")
+                refresh_token = generate_jwt_login(user, None, "refresh")
                 response = HttpResponseRedirect("/app/")
                 response.set_cookie("authToken", access_token, httponly=True, path="/")
                 response.set_cookie("refreshToken", refresh_token, httponly=True, path="/")
@@ -107,8 +89,8 @@ def user_onboard(request):
                 is_active=is_first_user,
             )
             user = authenticate(request, username=username, password=password)
-            access_token = generate_jwt_login(user, expires_in=timedelta(minutes=int(os.getenv("PROMPT_TOKEN_ACCESS_MINS", 10))))
-            refresh_token = generate_jwt_login(user, expires_in=timedelta(minutes=int(os.getenv("PROMPT_TOKEN_REFRESH_MINS", 43200))), token_type="refresh")
+            access_token = generate_jwt_login(user, None, "access")
+            refresh_token = generate_jwt_login(user, None, "refresh")
             try:
                 app_id = settings.APP_ID
                 base_url = os.environ.get("PROMPT_OPS_BASE")
