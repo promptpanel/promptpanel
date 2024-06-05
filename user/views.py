@@ -2,6 +2,7 @@ import os
 import json
 import logging
 from authlib.integrations.django_client import OAuth
+from datetime import datetime, timedelta
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, redirect
@@ -153,9 +154,11 @@ def oauth_callback(request):
         try:
             user = User.objects.get(email=email)
             if user.is_active:
-                jwt_token = generate_jwt_login(user)
+                access_token = generate_jwt_login(user, expires_in=timedelta(minutes=int(os.getenv("PROMPT_TOKEN_ACCESS_MINS", 10))))
+                refresh_token = generate_jwt_login(user, expires_in=timedelta(minutes=int(os.getenv("PROMPT_TOKEN_REFRESH_MINS", 43200))), token_type="refresh")
                 response = HttpResponseRedirect("/app/")
-                response.set_cookie("authToken", jwt_token, httponly=True, path="/")
+                response.set_cookie("authToken", access_token, httponly=True, path="/")
+                response.set_cookie("refreshToken", refresh_token, httponly=True, path="/")
                 return response
             else:
                 logger.error("OAuth error: User's Prompt Panel account is deactivated.")
@@ -181,9 +184,11 @@ def oauth_callback(request):
             user.set_unusable_password()
             user.save()
             if user.is_active:
-                jwt_token = generate_jwt_login(user)
+                access_token = generate_jwt_login(user, expires_in=timedelta(minutes=int(os.getenv("PROMPT_TOKEN_ACCESS_MINS", 10))))
+                refresh_token = generate_jwt_login(user, expires_in=timedelta(minutes=int(os.getenv("PROMPT_TOKEN_REFRESH_MINS", 43200))), token_type="refresh")
                 response = HttpResponseRedirect("/onboarding/first/")
-                response.set_cookie("authToken", jwt_token, httponly=True, path="/")
+                response.set_cookie("authToken", access_token, httponly=True, path="/")
+                response.set_cookie("refreshToken", refresh_token, httponly=True, path="/")
                 return response
             else:
                 return JsonResponse(
