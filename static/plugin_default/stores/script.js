@@ -6,6 +6,7 @@ var pluginState = () => {
     loadedThreads: false,
     loadedMessages: false,
     // Threads
+    threadLimit: 100000,
     activeThread: {},
     threadSearchInput: "",
     threads: [],
@@ -16,6 +17,7 @@ var pluginState = () => {
     ollamaNotFoundError: false,
     selectedOllamaModel: null,
     // Messages
+    messageLimit: 40,
     messages: [],
     responseStream: "",
     messageFormatted: "",
@@ -23,6 +25,7 @@ var pluginState = () => {
     // Message UI
     osPlatform: "",
     // Files
+    fileLimit: 100000,
     files: [],
     filesQueue: [],
     isFileDragged: false,
@@ -193,7 +196,7 @@ var pluginState = () => {
     },
     getThreads() {
       const hostname = window.location.origin;
-      const url = hostname + "/api/v1/app/threads/panel/" + Alpine.store("active").panelId + "/";
+      const url = hostname + "/api/v1/app/threads/panel/" + Alpine.store("active").panelId + "/?limit=" + this.threadLimit;
       fetch(url, {
         method: "GET",
         headers: {
@@ -576,9 +579,15 @@ var pluginState = () => {
           Alpine.store("toastStore").addToast(failToast);
         });
     },
-    getMessages() {
+    getMessages(incrementLimit = false, setLimit = true) {
       const hostname = window.location.origin;
-      const url = hostname + "/api/v1/app/messages/thread/" + Alpine.store("active").threadId + "/";
+      if (incrementLimit) {
+        this.messageLimit = this.messageLimit + 40;
+      }
+      if (setLimit) {
+        this.messageLimit = 40;
+      }
+      const url = hostname + "/api/v1/app/messages/thread/" + Alpine.store("active").threadId + "/?limit=" + this.messageLimit;
       fetch(url, {
         method: "GET",
         headers: {
@@ -593,8 +602,8 @@ var pluginState = () => {
           this.messageFormatted = "";
           this.messageImages = [];
           this.responseStream = "";
-          // Add new messages
-          this.messages = data;
+          // Add new messages (re-sorted by date)
+          this.messages = data.sort((a, b) => new Date(a.created_on) - new Date(b.created_on));
           this.newMessage = "";
           this.newRawMessage = "";
           setTimeout(() => {
@@ -615,7 +624,9 @@ var pluginState = () => {
                 hljs.highlightElement(block);
               }
             });
-            document.querySelector("#content-area").scrollTop = document.querySelector("#content-area").scrollHeight;
+            if (!incrementLimit) {
+              document.querySelector("#content-area").scrollTop = document.querySelector("#content-area").scrollHeight;
+            }
           }, 80);
           this.loadedMessages = true;
         })
@@ -708,7 +719,7 @@ var pluginState = () => {
     // Files
     getFiles() {
       const hostname = window.location.origin;
-      const url = hostname + "/api/v1/app/files/thread/" + Alpine.store("active").threadId + "/";
+      const url = hostname + "/api/v1/app/files/thread/" + Alpine.store("active").threadId + "/?limit=" + this.fileLimit;
       fetch(url, {
         method: "GET",
         headers: {

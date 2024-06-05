@@ -168,6 +168,8 @@
         </div>
       </div>
 
+      <div @click="modalDocuments = false, modalMessageEdit = false, modalThreadEdit = false" :class="{'w-px h-px bg-stone-50/0': !modalDocuments && !modalMessageEdit && !modalThreadEdit, 'w-full h-full bg-stone-50/50': modalDocuments || modalMessageEdit || modalThreadEdit}" class="cursor-pointer fixed top-0 left-0 backdrop-blur-sm z-[100] transition-all"></div>
+
       <!-- Sidebar -->
       <div :class="{'-lg:-left-[100vw]': !mobileOpen, '-lg:left-0': mobileOpen}" id="sidebar" class="transition-all absolute w-80 h-full bg-stone-50 border-r border-stone-200 overflow-y-auto -lg:top-12 -lg:w-full -lg:z-[60]">
         <div class="fixed -top-px mt-px border-r border-stone-200 bg-stone-50 pt-3 pb-1 px-4 w-80 -lg:w-full">
@@ -237,7 +239,6 @@
                 <h1 class="text-xl font-semibold line-clamp-1 rounded-md w-max text-stone-200 bg-stone-200">-----------------------------</h1>
               </template>
               <h1 x-text="activeThread.title" class="text-xl font-semibold line-clamp-1"></h1>
-
               <button class="ml-1.5 flex items-center justify-center font-semibold bg-transparent text-stone-500 group-hover:text-stone-800">
                 <svg class="min-w-5 min-h-5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
                   <path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 000-3.712zM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 00-1.32 2.214l-.8 2.685a.75.75 0 00.933.933l2.685-.8a5.25 5.25 0 002.214-1.32l8.4-8.4z"></path>
@@ -264,12 +265,14 @@
               </div>
             </div>
 
+            <button @click="getMessages(true, false)" x-show="!(messages.length < messageLimit)" class="mx-auto mb-3 flex items-center justify-center font-semibold bg-stone50 px-3 h-9 rounded-full shadow-sm border border-stone-200 transition duration-500 hover:shadow focus:shadow-none">Load More</button>
+
             <template x-if="!loadedMessages">
               <div>
                 <div class="mb-10">
                   <div class="z-[0] relative rounded-t-md rounded-br-md w-11/12 py-2.5">
                     <p class="mr-1.5 mb-0.5 w-full space-y-6 masked text-lg rounded-md w-max text-stone-200 bg-stone-200">----------------------------------------------------------</p>
-                    <p class="mr-1.5 w-full space-y-6 masked text-lg rounded-md w-max text-stone-200 bg-stone-200">-----------------------------</p>
+                    <p class="w-full space-y-6 masked text-lg rounded-md w-max text-stone-200 bg-stone-200">-----------------------------</p>
                   </div>
                   <div class="flex items-center text-sm text-stone-500 w-full mt-0.5">
                     <p class="rounded-md w-max text-stone-200 bg-stone-200">-----</p>
@@ -280,7 +283,7 @@
                 <div class="mb-6">
                   <div class="z-[0] relative ml-auto rounded-t-md rounded-bl-md bg-stone-100 w-11/12 px-3 py-2.5 overflow-x-auto">
                     <p class="mr-1.5 mb-0.5 w-full space-y-6 masked text-lg rounded-md w-max text-stone-200 bg-stone-200">----------------------------------------------------------</p>
-                    <p class="mr-1.5 w-full space-y-6 masked text-lg rounded-md w-max text-stone-200 bg-stone-200">-----------------------------</p>
+                    <p class="w-full space-y-6 masked text-lg rounded-md w-max text-stone-200 bg-stone-200">-----------------------------</p>
                   </div>
                   <div class="flex items-center text-sm text-stone-500 w-full mt-1.5">
                     <p class="ml-auto rounded-md w-max text-stone-200 bg-stone-200">-----</p>
@@ -296,7 +299,7 @@
                 <template x-if="message.meta?.sender == 'assistant'">
                   <div class="mb-10">
                     <div class="z-[0] relative rounded-t-md rounded-br-md w-11/12 py-2.5">
-                      <p x-html="message.content" class="mr-1.5 w-full space-y-6 masked text-lg">Message Content</p>
+                      <p x-html="message.content" class="w-full space-y-6 masked text-lg">Message Content</p>
                     </div>
                     <div class="flex items-center text-sm text-stone-500 w-full mt-0.5">
                       <p>Assistant</p>
@@ -331,7 +334,7 @@
                 <template x-if="message.meta?.sender == 'user'">
                   <div class="mb-6">
                     <div class="z-[0] relative ml-auto rounded-t-md rounded-bl-md bg-stone-100 w-11/12 px-3 py-2.5 overflow-x-auto">
-                      <p x-html="message.content" class="mr-1.5 w-full space-y-6 masked text-lg">Message Content</p>
+                      <p x-html="message.content" class="w-full space-y-6 masked text-lg">Message Content</p>
                       <template x-if="Array.isArray(message.meta?.images) && message.meta.images.length > 0">
                         <div class="flex items-center mt-1.5">
                           <template x-for="image in message.meta?.images" :key="index">
@@ -373,7 +376,7 @@
                 <template x-if="message.meta?.sender == 'warning'">
                   <div class="mb-10">
                     <div class="z-[0] relative border-l-2 border-stone-200 pl-4 ml-[0.35rem] w-11/12 py-2.5">
-                      <p x-html="message.content" class="mr-1.5 w-full space-y-6 masked text-lg">Message Content</p>
+                      <p x-html="message.content" class="w-full space-y-6 masked text-lg">Message Content</p>
                     </div>
                     <div class="flex items-center text-sm w-full text-stone-500 mt-0.5">
                       <svg class="w-3.5 h-3.5 mr-0.5 text-amber-500" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003ZM12 8.25a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V9a.75.75 0 0 1 .75-.75Zm0 8.25a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" clip-rule="evenodd"></path></svg>
@@ -394,7 +397,7 @@
                 <template x-if="message.meta?.sender == 'error'">
                   <div class="mb-10">
                     <div class="z-[0] relative border-l-2 border-stone-200 pl-4 ml-[0.35rem] w-11/12 py-2.5">
-                      <p x-html="message.content" class="mr-1.5 w-full space-y-6 masked text-lg">Message Content</p>
+                      <p x-html="message.content" class="w-full space-y-6 masked text-lg">Message Content</p>
                     </div>
                     <div class="flex items-center text-sm w-full text-stone-500 mt-0.5">
                       <svg class="w-3.5 h-3.5 mr-0.5 text-rose-600" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd"></path></svg>
@@ -417,7 +420,7 @@
             <div x-show="messageFormatted !== ''">
               <div class="mb-6">
                 <div class="z-[0] relative ml-auto rounded-t-md rounded-bl-md bg-stone-100 w-11/12 px-3 py-2.5 overflow-x-auto">
-                  <p x-html="messageFormatted" class="mr-1.5 w-full space-y-6 masked text-lg">Message Content</p>
+                  <p x-html="messageFormatted" class="w-full space-y-6 masked text-lg">Message Content</p>
                   <template x-if="Array.isArray(messageImages) && messageImages.length > 0">
                     <div class="flex items-center mt-1.5">
                       <template x-for="image in messageImages" :key="index">
@@ -442,7 +445,7 @@
             <div x-show="responseStream !== ''">
               <div class="mb-10">
                 <div class="z-[0] relative rounded-t-md rounded-br-md w-11/12 py-2.5">
-                  <p x-html="responseStream" class="mr-1.5 w-full space-y-6 masked text-lg">Message Content</p>
+                  <p x-html="responseStream" class="w-full space-y-6 masked text-lg">Message Content</p>
                 </div>
                 <div class="flex items-center text-sm text-stone-500 w-full mt-0.5">
                   <p>Assistant</p>
@@ -465,7 +468,7 @@
         </div>
 
         <!-- Editor -->
-        <div class="fixed w-[calc(100%-20rem)] bottom-0 bg-white px-6 pt-1 -lg:w-full">
+        <div class="fixed w-[calc(100%-21.15rem)] bottom-0 bg-white px-6 pt-1 -lg:w-full">
           <div class="max-w-3xl mx-auto">
             <div class="mt-3 relative w-full z-10">
               <!-- Send Button - Blank -->

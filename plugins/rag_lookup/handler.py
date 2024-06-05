@@ -37,6 +37,7 @@ def file_stream(file, thread, panel):
         settings = panel.meta
         embedding_api_key = settings.get("Embedding API Key")
         embedding_model = settings.get("Embedding Model")
+
         ## ----- 2. Parse file and save embeddings.
         logger.info("** 2. Parse file and save embeddings.")
         elements = partition(filename=file.filepath, chunking_strategy="by_title")
