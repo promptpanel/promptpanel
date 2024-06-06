@@ -9,9 +9,6 @@ tailwindcss
 *.bak 
 *.log
 
-# Pro folders
-entrypoint.sh
-
 # Builds
 _build/
 _build_pro/
