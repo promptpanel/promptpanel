@@ -14,11 +14,12 @@ logger = logging.getLogger("app")
 def file_handler(file, thread, panel):
     try:
         response = StreamingHttpResponse(
-            streaming_content=file_stream(file, thread, panel), content_type="text/event-stream"
+            streaming_content=file_stream(file, thread, panel),
+            content_type="text/event-stream",
         )
         response["Cache-Control"] = "no-cache"
         response["X-Accel-Buffering"] = "no"
-        return response    
+        return response
     except Exception as e:
         logger.error(e, exc_info=True)
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
@@ -63,11 +64,7 @@ def file_stream(file, thread, panel):
         logger.info("** Upload failed:" + str(e))
         logger.error(e, exc_info=True)
         file.meta.update(
-            {
-                "enabled": False,
-                "upload_status": "failed",
-                "fail_reason": str(e)
-            }
+            {"enabled": False, "upload_status": "failed", "fail_reason": str(e)}
         )
         file.save()
 
@@ -76,11 +73,12 @@ def file_stream(file, thread, panel):
 def message_handler(message, thread, panel):
     try:
         response = StreamingHttpResponse(
-            streaming_content=chat_stream(message, thread, panel), content_type="text/event-stream"
+            streaming_content=chat_stream(message, thread, panel),
+            content_type="text/event-stream",
         )
         response["Cache-Control"] = "no-cache"
         response["X-Accel-Buffering"] = "no"
-        return response    
+        return response
     except Exception as e:
         logger.error(e, exc_info=True)
         return JsonResponse({"status": "error", "message": str(e)}, status=400)

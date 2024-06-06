@@ -17,39 +17,13 @@
         <div x-show="searchInput.length > 2">
           <div class="px-3 pt-1.5 pb-3 max-h-[calc(100vh-11rem)]">
             <div class="my-1">
-              <button
-                @click="searchType = 'all'"
-                :class="{'border-primary bg-primary/10 text-primary': searchType == 'all', 'text-stone-600 border-stone-200 hover:bg-stone-200': !(searchType == 'all')}"
-                class="uppercase tracking-wider text-xs font-semibold rounded-full border py-0.5 px-2 mr-0.5"
-              >
-                All
-              </button>
-              <button
-                @click="searchType = 'messages'"
-                :class="{'border-primary bg-primary/10 text-primary': searchType == 'messages', 'text-stone-600 border-stone-200 hover:bg-stone-200': !(searchType == 'messages')}"
-                class="uppercase tracking-wider text-xs font-semibold rounded-full border py-0.5 px-2 mr-0.5"
-              >
-                Messages
-              </button>
-              <button
-                @click="searchType = 'threads'"
-                :class="{'border-primary bg-primary/10 text-primary': searchType == 'threads', 'text-stone-600 border-stone-200 hover:bg-stone-200': !(searchType == 'threads')}"
-                class="uppercase tracking-wider text-xs font-semibold rounded-full border py-0.5 px-2 mr-0.5"
-              >
-                Threads
-              </button>
-              <button
-                @click="searchType = 'panels'"
-                :class="{'border-primary bg-primary/10 text-primary': searchType == 'panels', 'text-stone-600 border-stone-200 hover:bg-stone-200': !(searchType == 'panels')}"
-                class="uppercase tracking-wider text-xs font-semibold rounded-full border py-0.5 px-2 mr-0.5"
-              >
-                Panels
-              </button>
+              <button @click="searchType = 'all'" :class="{'border-primary bg-primary/10 text-primary': searchType == 'all', 'text-stone-600 border-stone-200 hover:bg-stone-200': !(searchType == 'all')}" class="uppercase tracking-wider text-xs font-semibold rounded-full border py-0.5 px-2 mr-0.5">All</button>
+              <button @click="searchType = 'messages'" :class="{'border-primary bg-primary/10 text-primary': searchType == 'messages', 'text-stone-600 border-stone-200 hover:bg-stone-200': !(searchType == 'messages')}" class="uppercase tracking-wider text-xs font-semibold rounded-full border py-0.5 px-2 mr-0.5">Messages</button>
+              <button @click="searchType = 'threads'" :class="{'border-primary bg-primary/10 text-primary': searchType == 'threads', 'text-stone-600 border-stone-200 hover:bg-stone-200': !(searchType == 'threads')}" class="uppercase tracking-wider text-xs font-semibold rounded-full border py-0.5 px-2 mr-0.5">Threads</button>
+              <button @click="searchType = 'panels'" :class="{'border-primary bg-primary/10 text-primary': searchType == 'panels', 'text-stone-600 border-stone-200 hover:bg-stone-200': !(searchType == 'panels')}" class="uppercase tracking-wider text-xs font-semibold rounded-full border py-0.5 px-2 mr-0.5">Panels</button>
             </div>
             <div x-show="searchType == 'messages' || searchType == 'all'">
-              <p class="font-semibold text-xs text-stone-500 uppercase tracking-wider mx-2 mt-3 mb-1">
-                Messages
-              </p>
+              <p class="font-semibold text-xs text-stone-500 uppercase tracking-wider mx-2 mt-3 mb-1">Messages</p>
               <template x-if="searchLoading">
                 <div class="px-2 py-1 -lg:p-3">
                   <p class="rounded-md w-max bg-stone-200">---------------------------------------------</p>
@@ -61,7 +35,7 @@
                 <a :href="'/app/' + message.panel_id + '/' + message.thread_id + '/' + message.message_id + '/'">
                   <div class="px-2 py-1 rounded-md hover:bg-stone-200 -lg:p-3">
                     <p x-text="message.message_content" class="line-clamp-2">Content</p>
-                    <p class="font-semibold text-stone-500"> <span x-text="message.thread_title"></span> <span class="mx-0.5">•</span> <span x-text="message.panel_name"></span> </p>  
+                    <p class="font-semibold text-stone-500"><span x-text="message.thread_title"></span> <span class="mx-0.5">•</span> <span x-text="message.panel_name"></span></p>
                   </div>
                 </a>
               </template>
@@ -69,13 +43,11 @@
                 <div class="px-2 py-1 rounded-md -lg:p-3">
                   <p class="text-stone-500">No messages found...</p>
                 </div>
-              </template>  
+              </template>
             </div>
-  
+
             <div x-show="searchType == 'threads' || searchType == 'all'">
-              <p class="font-semibold text-xs text-stone-500 uppercase tracking-wider mx-2 mt-3 mb-1">
-                Threads
-              </p>
+              <p class="font-semibold text-xs text-stone-500 uppercase tracking-wider mx-2 mt-3 mb-1">Threads</p>
               <template x-if="searchLoading">
                 <div class="px-2 py-1 -lg:p-3">
                   <p class="rounded-md w-max bg-stone-200">---------------------------------------------</p>
@@ -87,7 +59,7 @@
                 <a :href="'/app/' + thread.panel_id + '/' + thread.thread_id + '/'">
                   <div class="px-2 py-1 rounded-md hover:bg-stone-200 -lg:p-3">
                     <p x-text="thread.thread_title" class="line-clamp-2">Content</p>
-                    <p class="font-semibold text-stone-500"> <span x-text="thread.panel_name"></span> </p>  
+                    <p class="font-semibold text-stone-500"><span x-text="thread.panel_name"></span></p>
                   </div>
                 </a>
               </template>
@@ -99,9 +71,7 @@
             </div>
 
             <div x-show="searchType == 'panels' || searchType == 'all'">
-              <p class="font-semibold text-xs text-stone-500 uppercase tracking-wider mx-2 mt-3 mb-1">
-                Panels
-              </p>
+              <p class="font-semibold text-xs text-stone-500 uppercase tracking-wider mx-2 mt-3 mb-1">Panels</p>
               <template x-if="searchLoading">
                 <div class="px-2 py-1 -lg:p-3">
                   <p class="rounded-md w-max bg-stone-200">---------------------------------------------</p>
@@ -122,7 +92,6 @@
                 </div>
               </template>
             </div>
-
           </div>
         </div>
       </div>

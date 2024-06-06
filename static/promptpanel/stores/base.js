@@ -30,7 +30,6 @@ var baseState = () => {
           .then((response) => response.json())
           .then((data) => {
             this.searchResults = data;
-            console.log(this.searchResults)
             this.searchLoading = false;
           })
           .catch((error) => {

@@ -54,7 +54,7 @@ var pluginState = () => {
         redirectUrl = `${hostname}/panel/${panelId}/${threadId}/`;
         window.location.href = redirectUrl;
       } else {
-        console.error("panelId or threadId not found.")
+        console.error("panelId or threadId not found.");
       }
     },
     redirectPanel() {

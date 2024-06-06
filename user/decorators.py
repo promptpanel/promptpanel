@@ -73,7 +73,9 @@ def user_authenticated(view_func):
                     logger.info("Renewing access token")
                     access_token = generate_jwt_login(user, None, "access")
                     response = view_func(request, *args, **kwargs)
-                    response.set_cookie("authToken", access_token, httponly=True, path="/")
+                    response.set_cookie(
+                        "authToken", access_token, httponly=True, path="/"
+                    )
                     return response
                 except Exception as e:
                     logger.error(str(e), exc_info=True)

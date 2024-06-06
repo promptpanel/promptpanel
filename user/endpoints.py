@@ -16,6 +16,7 @@ from promptpanel.utils import generate_jwt_login
 
 logger = logging.getLogger("app")
 
+
 @require_http_methods(["POST"])
 def user_login(request):
     try:
@@ -39,7 +40,9 @@ def user_login(request):
                 refresh_token = generate_jwt_login(user, None, "refresh")
                 response = HttpResponseRedirect("/app/")
                 response.set_cookie("authToken", access_token, httponly=True, path="/")
-                response.set_cookie("refreshToken", refresh_token, httponly=True, path="/")
+                response.set_cookie(
+                    "refreshToken", refresh_token, httponly=True, path="/"
+                )
                 return response
             else:
                 return JsonResponse(

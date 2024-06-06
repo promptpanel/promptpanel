@@ -1279,7 +1279,12 @@ def search(request):
         results = {
             "panels": [{"panel_id": p.id, "panel_name": p.name} for p in panels],
             "threads": [
-                {"thread_id": t.id, "thread_title": t.title, "panel_id": t.panel.id, "panel_name": t.panel.name,}
+                {
+                    "thread_id": t.id,
+                    "thread_title": t.title,
+                    "panel_id": t.panel.id,
+                    "panel_name": t.panel.name,
+                }
                 for t in threads
             ],
             "messages": [

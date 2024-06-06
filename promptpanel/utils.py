@@ -43,6 +43,7 @@ def get_system():
     except Exception as e:
         logger.error(e, exc_info=True)
 
+
 def generate_jwt_login(user, expires_in=None, token_type="access"):
     if expires_in is None:
         if token_type == "access":
@@ -50,7 +51,7 @@ def generate_jwt_login(user, expires_in=None, token_type="access"):
         elif token_type == "refresh":
             expiry_minutes = int(os.getenv("PROMPT_REFRESH_TOKEN_EXP_MINUTES", 43200))
         else:
-            raise Exception("Token type not set") 
+            raise Exception("Token type not set")
         expires_in = timedelta(minutes=expiry_minutes)
     expires_at = timezone.now() + expires_in
     payload = {
