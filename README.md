@@ -1,6 +1,6 @@
 <img src="https://promptpanel.com/images/logo.svg" alt="logo" style="width:64px;">
 
-**Prompt Panel**\
+**PromptPanel**\
 Accelerating your AI agent adoption\
 <a href="https://promptpanel.com/getting-started/quickstart/">Documentation</a> | <a href="https://hub.docker.com/r/promptpanel/promptpanel">DockerHub</a> | <a href="https://github.com/promptpanel/promptpanel">GitHub</a>
 
@@ -37,7 +37,7 @@ services:
 After running, your environment will be available at:
 `http://localhost:4000`
 
-Read more on <a href="https://promptpanel.com/getting-started/quickstart/" target="_new">running Prompt Panel</a>.
+Read more on <a href="https://promptpanel.com/getting-started/quickstart/" target="_new">running PromptPanel</a>.
 
 ---
 
@@ -56,7 +56,7 @@ Get started developing using a one-click cloud development environment using Git
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/promptpanel/promptpanel/tree/main)
 
-This `./plugins` directory contains the community plugin agents found in Prompt Panel as well as a sample agent as a template for you to get started with your own development.
+This `./plugins` directory contains the community plugin agents found in PromptPanel as well as a sample agent as a template for you to get started with your own development.
 
 - The `./hello_agent` directory gives you some scaffolding for a sample agent.
 - The other community plugin agents give you references to sample from.
