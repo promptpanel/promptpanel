@@ -1,6 +1,6 @@
 <img src="https://promptpanel.com/images/logo.svg" alt="logo" style="width:64px;">
 
-**Prompt Panel**\
+**PromptPanel**\
 Accelerating your AI agent adoption\
 <a href="https://promptpanel.com/getting-started/quickstart/">Documentation</a> | <a href="https://hub.docker.com/r/promptpanel/promptpanel">DockerHub</a> | <a href="https://github.com/promptpanel/promptpanel">GitHub</a>
 
