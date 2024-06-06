@@ -162,7 +162,7 @@ def oauth_callback(request):
                 )
                 return response
             else:
-                logger.error("OAuth error: User's Prompt Panel account is deactivated.")
+                logger.error("OAuth error: User's PromptPanel account is deactivated.")
                 return HttpResponseRedirect(f"/login/?oauth_failed_callback=true")
         # No user exists - create and onboard
         except User.DoesNotExist:
