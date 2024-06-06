@@ -2,6 +2,11 @@ var baseState = () => {
   return {
     panelId: Alpine.store("active").panelId,
     loadedPanels: false,
+    modalSearch: true,
+    searchResults: [],
+    searchType: "all",
+    searchInput: "",
+    searchLoading: false,
     panelData: {},
     panels: [],
     panelSearchInput: "",
@@ -9,6 +14,35 @@ var baseState = () => {
     mobileOpen: false,
     checkEditPage() {
       this.isEditPage = window.location.pathname.includes("panel/edit");
+    },
+    getSearchResults() {
+      if (this.searchInput.length > 2) {
+        this.searchLoading = true;
+        const hostname = window.location.origin;
+        const url = hostname + "/api/v1/app/search?q=" + this.searchInput;
+        fetch(url, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            this.searchResults = data;
+            console.log(this.searchResults)
+            this.searchLoading = false;
+          })
+          .catch((error) => {
+            this.searchLoading = false;
+            failToast = {
+              type: "error",
+              header: "We had a problem retrieving your search results. Please try again.",
+              message: error.message,
+            };
+            Alpine.store("toastStore").addToast(failToast);
+          });
+      }
     },
     getPanel() {
       if (this.panelId > 0) {
