@@ -157,7 +157,9 @@ def oauth_callback(request):
                 refresh_token = generate_jwt_login(user, None, "refresh")
                 response = HttpResponseRedirect("/app/")
                 response.set_cookie("authToken", access_token, httponly=True, path="/")
-                response.set_cookie("refreshToken", refresh_token, httponly=True, path="/")
+                response.set_cookie(
+                    "refreshToken", refresh_token, httponly=True, path="/"
+                )
                 return response
             else:
                 logger.error("OAuth error: User's Prompt Panel account is deactivated.")
@@ -187,7 +189,9 @@ def oauth_callback(request):
                 refresh_token = generate_jwt_login(user, None, "refresh")
                 response = HttpResponseRedirect("/onboarding/first/")
                 response.set_cookie("authToken", access_token, httponly=True, path="/")
-                response.set_cookie("refreshToken", refresh_token, httponly=True, path="/")
+                response.set_cookie(
+                    "refreshToken", refresh_token, httponly=True, path="/"
+                )
                 return response
             else:
                 return JsonResponse(

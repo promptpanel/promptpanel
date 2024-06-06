@@ -173,6 +173,7 @@
                     class="relative w-full"
                     x-data="{
                       isOpen: false,
+                      showAll: false,
                       filteredOptions() {
                           // Check if selections exists and is an array, default to empty array if not
                           const selections = Array.isArray(setting.selections) ? setting.selections : [];
@@ -185,7 +186,6 @@
                               }
                               return acc;
                           }, {});
-                  
                           if (!filterText) {
                               return Object.keys(groupedOptions).map(group => ({ group, values: groupedOptions[group] }));
                           }
@@ -200,20 +200,52 @@
                               }
                               return acc;
                           }, []);
-                      }
-                      }"
+                      },
+                      allOptions() {
+                        const selections = Array.isArray(setting.selections) ? setting.selections : [];
+                        const groupedOptions = selections.reduce((acc, option) => {
+                            if (typeof option === 'object' && option.group && Array.isArray(option.values)) {
+                                acc[option.group] = (acc[option.group] || []).concat(option.values);
+                            } else {
+                                acc['Other Options'] = (acc['Other Options'] || []).concat(option);
+                            }
+                            return acc;
+                        }, {});
+                        return Object.keys(groupedOptions).map(group => ({ group, values: groupedOptions[group] }));
+                    }        
+                    }"
                   >
                     <input type="search" autocomplete="off" x-model="createSetting[setting.name]" @focus="isOpen = true" @input="isOpen = true" :name="setting.name" :required="setting.required && !setting.private" class="w-full h-9 px-2.5 py-1 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
                     <!-- Only show dropdown if isOpen is true and there are filtered options to show -->
                     <div x-show="isOpen && filteredOptions().length > 0" class="absolute w-full bg-white mt-1 p-1 border border-stone-300 max-h-[50vh] rounded-md shadow-lg overflow-auto z-10">
-                      <template x-for="(groupedOption, index) in filteredOptions()" :key="index">
-                        <div class="">
-                          <div x-text="groupedOption.group" class="font-semibold text-xs text-stone-500 uppercase tracking-wider mx-2 mt-1.5 mb-1"></div>
-                          <template x-for="value in groupedOption.values" :key="value">
-                            <div x-text="value" @click="createSetting[setting.name] = value, isOpen = false" class="cursor-pointer px-2 py-1 rounded-md hover:bg-stone-200 focus:text-stone-800 -lg:p-3"></div>
-                          </template>
-                        </div>
-                      </template>
+                      <div x-show="!showAll" class="flex items-center font-semibold text-xs uppercase tracking-wider mx-2 mt-1.5 mb-1">
+                        <p>Suggested Options</p>
+                        <p @click="showAll = true" class="ml-auto cursor-pointer text-primary hover:text-primary/80">Show All Options</p>
+                      </div>
+                      <div x-show="!showAll">
+                        <template x-for="(groupedOption, index) in filteredOptions()" :key="index">
+                          <div class="">
+                            <div x-text="groupedOption.group" class="font-semibold text-xs text-stone-500 uppercase tracking-wider mx-2 mt-1.5 mb-1"></div>
+                            <template x-for="value in groupedOption.values" :key="value">
+                              <div x-text="value" @click="createSetting[setting.name] = value, isOpen = false" class="cursor-pointer px-2 py-1 rounded-md hover:bg-stone-200 focus:text-stone-800 -lg:p-3"></div>
+                            </template>
+                          </div>
+                        </template>
+                      </div>
+                      <div x-show="showAll" class="flex items-center font-semibold text-xs uppercase tracking-wider mx-2 mt-1.5 mb-1">
+                        <p>All Options</p>
+                        <p @click="showAll = false" class="ml-auto cursor-pointer text-primary hover:text-primary/80">Show Suggested Options</p>
+                      </div>
+                      <div x-show="showAll">
+                        <template x-for="(groupedOption, index) in allOptions()" :key="index">
+                          <div class="">
+                            <div x-text="groupedOption.group" class="font-semibold text-xs text-stone-500 uppercase tracking-wider mx-2 mt-1.5 mb-1"></div>
+                            <template x-for="value in groupedOption.values" :key="value">
+                              <div x-text="value" @click="createSetting[setting.name] = value, isOpen = false" class="cursor-pointer px-2 py-1 rounded-md hover:bg-stone-200 focus:text-stone-800 -lg:p-3"></div>
+                            </template>
+                          </div>
+                        </template>
+                      </div>
                     </div>
                   </div>
                 </template>

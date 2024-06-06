@@ -1277,18 +1277,24 @@ def search(request):
         messages = messages.filter(Q(content__icontains=query))[:limit]
 
         results = {
-            "panels": [{"panel_id": p.id, "panel_title": p.name} for p in panels],
+            "panels": [{"panel_id": p.id, "panel_name": p.name} for p in panels],
             "threads": [
-                {"thread_id": t.id, "thread_title": t.title, "panel_id": t.panel.id}
+                {
+                    "thread_id": t.id,
+                    "thread_title": t.title,
+                    "panel_id": t.panel.id,
+                    "panel_name": t.panel.name,
+                }
                 for t in threads
             ],
             "messages": [
                 {
                     "message_id": m.id,
-                    "message_content": markdown(
-                        m.content, extensions=["fenced_code", "nl2br"]
-                    ),
+                    "message_content": m.content,
+                    "thread_id": m.thread.id,
+                    "thread_title": m.thread.title,
                     "panel_id": m.panel.id,
+                    "panel_name": m.panel.name,
                 }
                 for m in messages
             ],

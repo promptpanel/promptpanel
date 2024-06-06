@@ -51,15 +51,11 @@ var pluginState = () => {
       hostname = window.location.origin;
       let redirectUrl = null;
       if (panelId && threadId) {
-        redirectUrl = `${hostname}/panel/${this.panelId}/${this.threadId}/`;
+        redirectUrl = `${hostname}/panel/${panelId}/${threadId}/`;
+        window.location.href = redirectUrl;
+      } else {
+        console.error("panelId or threadId not found.");
       }
-      if (panelId && !threadId) {
-        redirectUrl = `${hostname}/panel/${this.panelId}/`;
-      }
-      if (!panelId) {
-        redirectUrl = `${hostname}/panel/not-found/`;
-      }
-      window.location.href = redirectUrl;
     },
     redirectPanel() {
       const panelId = Alpine.store("active").panelId;

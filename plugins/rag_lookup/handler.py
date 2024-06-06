@@ -18,11 +18,12 @@ logger = logging.getLogger("app")
 def file_handler(file, thread, panel):
     try:
         response = StreamingHttpResponse(
-            streaming_content=file_stream(file, thread, panel), content_type="text/event-stream"
+            streaming_content=file_stream(file, thread, panel),
+            content_type="text/event-stream",
         )
         response["Cache-Control"] = "no-cache"
         response["X-Accel-Buffering"] = "no"
-        return response    
+        return response
     except Exception as e:
         logger.error(e, exc_info=True)
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
@@ -79,11 +80,12 @@ def file_stream(file, thread, panel):
 def message_handler(message, thread, panel):
     try:
         response = StreamingHttpResponse(
-            streaming_content=chat_stream(message, thread, panel), content_type="text/event-stream"
+            streaming_content=chat_stream(message, thread, panel),
+            content_type="text/event-stream",
         )
         response["Cache-Control"] = "no-cache"
         response["X-Accel-Buffering"] = "no"
-        return response    
+        return response
     except Exception as e:
         logger.error(e, exc_info=True)
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
@@ -415,12 +417,7 @@ Summary: Instruction manual
 Lookup: Information from document source
 ```
             """.strip()
-            title_enrich.append(
-                {
-                    "role": "system",
-                    "content": title_content
-                }
-            )
+            title_enrich.append({"role": "system", "content": title_content})
             title_enrich.append(
                 {
                     "role": "user",
