@@ -2,7 +2,7 @@ var baseState = () => {
   return {
     panelId: Alpine.store("active").panelId,
     loadedPanels: false,
-    modalSearch: true,
+    modalSearch: false,
     searchResults: [],
     searchType: "all",
     searchInput: "",
