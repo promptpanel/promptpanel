@@ -32,10 +32,10 @@ def file_stream(file, thread, panel):
     ## 3. Enrich file metadata with token_count.
 
     try:
+        yield "Processing"
         ## ----- 1. Get settings.
         logger.info("** 1. Get settings.")
         completion_model = "gpt-3.5-turbo"
-
         ## ----- 2. Parse file and save to .txt file.
         logger.info("** 2. Parse file and save to .txt file.")
         elements = partition(filename=file.filepath, strategy="fast")
@@ -43,7 +43,6 @@ def file_stream(file, thread, panel):
         with open(output_filepath, "w", encoding="utf-8") as output_file:
             for element in elements:
                 output_file.write(str(element) + "\n")
-
         ## ----- 3. Enrich file metadata with token_count / text_file_path.
         logger.info("** 3. Enrich file metadata with token_count / text_file_path.")
         with open(output_filepath, "r", encoding="utf-8") as input_file:
@@ -60,6 +59,7 @@ def file_stream(file, thread, panel):
             }
         )
         file.save()
+        yield "Completed"
     except Exception as e:
         logger.info("** Upload failed:" + str(e))
         logger.error(e, exc_info=True)
@@ -67,7 +67,7 @@ def file_stream(file, thread, panel):
             {"enabled": False, "upload_status": "failed", "fail_reason": str(e)}
         )
         file.save()
-
+        yield "Error"
 
 # Message Entrypoint
 def message_handler(message, thread, panel):

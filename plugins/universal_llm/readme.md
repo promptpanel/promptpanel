@@ -1,1 +1,1 @@
-Standard chat plugin backed by LiteLLM to be compatible with a wide range of large language models. <a class="text-sm underline hover:text-primary" href="https://promptpanel.com/overview/packaged-plugins-models/#llm-chat" target="_new">More Info</a>
+Standard chat plugin backed by LiteLLM to be compatible with a wide range of large language models. <a class="text-sm underline hover:text-primary" href="https://promptpanel.com/included-plugins/universal-llm/" target="_new">More Info</a>
