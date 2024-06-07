@@ -26,9 +26,9 @@
               <p class="font-semibold text-xs text-stone-500 uppercase tracking-wider mx-2 mt-3 mb-1">Messages</p>
               <template x-if="searchLoading">
                 <div class="px-2 py-1 -lg:p-3">
-                  <p class="rounded-md w-max bg-stone-200">---------------------------------------------</p>
-                  <p class="rounded-md w-max bg-stone-200">----------------------</p>
-                  <p class="rounded-md w-max bg-stone-200">---- ----</p>
+                  <p class="rounded-md w-max text-stone-200 bg-stone-200">---------------------------------------------</p>
+                  <p class="rounded-md w-max text-stone-200 bg-stone-200">----------------------</p>
+                  <p class="rounded-md w-max text-stone-200 bg-stone-200">---- ----</p>
                 </div>
               </template>
               <template x-if="!searchLoading && (searchResults.length > 0 && searchResults?.messages.length > 0)" x-for="message in searchResults.messages" :key="message.message_id">
@@ -50,9 +50,9 @@
               <p class="font-semibold text-xs text-stone-500 uppercase tracking-wider mx-2 mt-3 mb-1">Threads</p>
               <template x-if="searchLoading">
                 <div class="px-2 py-1 -lg:p-3">
-                  <p class="rounded-md w-max bg-stone-200">---------------------------------------------</p>
-                  <p class="rounded-md w-max bg-stone-200">----------------------</p>
-                  <p class="rounded-md w-max bg-stone-200">---- ----</p>
+                  <p class="rounded-md w-max text-stone-200 bg-stone-200">---------------------------------------------</p>
+                  <p class="rounded-md w-max text-stone-200 bg-stone-200">----------------------</p>
+                  <p class="rounded-md w-max text-stone-200 bg-stone-200">---- ----</p>
                 </div>
               </template>
               <template x-if="!searchLoading && (searchResults.length > 0 && searchResults?.threads.length > 0)" x-for="thread in searchResults.threads" :key="thread.thread_id">
@@ -74,9 +74,9 @@
               <p class="font-semibold text-xs text-stone-500 uppercase tracking-wider mx-2 mt-3 mb-1">Panels</p>
               <template x-if="searchLoading">
                 <div class="px-2 py-1 -lg:p-3">
-                  <p class="rounded-md w-max bg-stone-200">---------------------------------------------</p>
-                  <p class="rounded-md w-max bg-stone-200">----------------------</p>
-                  <p class="rounded-md w-max bg-stone-200">---- ----</p>
+                  <p class="rounded-md w-max text-stone-200 bg-stone-200">---------------------------------------------</p>
+                  <p class="rounded-md w-max text-stone-200 bg-stone-200">----------------------</p>
+                  <p class="rounded-md w-max text-stone-200 bg-stone-200">---- ----</p>
                 </div>
               </template>
               <template x-if="!searchLoading && (searchResults.length > 0 && searchResults?.panels.length > 0)" x-for="panel in searchResults.panels" :key="panel.panel_id">
