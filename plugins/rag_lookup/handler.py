@@ -36,6 +36,7 @@ def file_stream(file, thread, panel):
     ## 3. Enrich file metadata with token_count.
 
     try:
+        yield "Processing"
         ## ----- 1. Get settings.
         logger.info("** 1. Get settings.")
         settings = panel.meta
@@ -68,12 +69,13 @@ def file_stream(file, thread, panel):
             pickle.dump(pickle_data, f)
         file.meta.update({"enabled": True, "pickle_file_path": pickle_path})
         file.save()
-        yield "Upload and parsing complete"
+        yield "Completed"
     except Exception as e:
         logger.info("** Upload failed")
         yield "File upload and parsing failed..."
         file.delete()
         logger.error(e, exc_info=True)
+        yield "Error"
 
 
 # Message Entrypoint

@@ -33,6 +33,7 @@ def file_stream(file, thread, panel):
     ## 3. Enrich file metadata with token_count.
 
     try:
+        yield "Processing"
         ## ----- 1. Get settings.
         logger.info("** 1. Get settings.")
         settings = panel.meta
@@ -62,6 +63,7 @@ def file_stream(file, thread, panel):
             }
         )
         file.save()
+        yield "Completed"
     except Exception as e:
         logger.info("** Upload failed:" + str(e))
         logger.error(e, exc_info=True)
@@ -69,6 +71,7 @@ def file_stream(file, thread, panel):
             {"enabled": False, "upload_status": "failed", "fail_reason": str(e)}
         )
         file.save()
+        yield "Error"
 
 
 # Message Entrypoint
