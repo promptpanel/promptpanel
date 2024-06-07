@@ -85,12 +85,12 @@ def user_authenticated(view_func):
                     query_string = urlencode({"next": request.get_full_path()})
                     return HttpResponseRedirect(f"/login/?{query_string}")
         except Exception as e:
+            logger.error(str(e), exc_info=True)
             if "api" in request.path:
                 return JsonResponse(
                     {"status": "error", "message": "Authentication failure: " + str(e)},
                     status=401,
                 )
-            logger.error(str(e), exc_info=True)
             query_string = urlencode({"next": request.get_full_path()})
             return HttpResponseRedirect(f"/login/?{query_string}")
 
