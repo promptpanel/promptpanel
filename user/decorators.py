@@ -71,6 +71,9 @@ def user_authenticated(view_func):
             if refresh_token:
                 try:
                     logger.info("Renewing access token")
+                    refresh_payload = jwt.decode(refresh_token, settings.SECRET_KEY, algorithms=["HS256"])
+                    user_id = refresh_payload["user_id"]
+                    user = get_user_model().objects.get(id=user_id)  
                     access_token = generate_jwt_login(user, None, "access")
                     response = view_func(request, *args, **kwargs)
                     response.set_cookie(
