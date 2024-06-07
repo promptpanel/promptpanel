@@ -1,0 +1,236 @@
+repo_name: promptpanel/promptpanel
+report_id: 122fd17b31e8b8fd3a78de1394678f4a
+version: 0.1
+repo_type: Public
+timestamp: '2024-06-06T19:53:14+00:00'
+requested_by: promptpanel
+provider: github
+branch: main
+detected_tools_count: 18
+tools:
+- name: CSS 3
+  description: The latest evolution of the Cascading Style Sheets language
+  website_url: https://developer.mozilla.org/en-US/docs/Web/CSS/CSS3
+  open_source: true
+  hosted_saas: false
+  category: Languages & Frameworks
+  sub_category: Languages
+  image_url: https://img.stackshare.io/service/6727/css.png
+  detection_source_url: https://github.com/promptpanel/promptpanel
+  detection_source: Repo Metadata
+- name: JavaScript
+  description: Lightweight, interpreted, object-oriented language with first-class
+    functions
+  website_url: https://developer.mozilla.org/en-US/docs/Web/JavaScript
+  open_source: true
+  hosted_saas: false
+  category: Languages & Frameworks
+  sub_category: Languages
+  image_url: https://img.stackshare.io/service/1209/javascript.jpeg
+  detection_source_url: https://github.com/promptpanel/promptpanel
+  detection_source: Repo Metadata
+- name: Python
+  description: A clear and powerful object-oriented programming language, comparable
+    to Perl, Ruby, Scheme, or Java.
+  website_url: https://www.python.org
+  open_source: true
+  hosted_saas: false
+  category: Languages & Frameworks
+  sub_category: Languages
+  image_url: https://img.stackshare.io/service/993/pUBY5pVj.png
+  detection_source_url: https://github.com/promptpanel/promptpanel
+  detection_source: Repo Metadata
+- name: Node.js
+  description: A platform built on Chrome's JavaScript runtime for easily building
+    fast, scalable network applications
+  website_url: http://nodejs.org/
+  open_source: true
+  hosted_saas: false
+  category: Languages & Frameworks
+  sub_category: Frameworks (Full Stack)
+  image_url: https://img.stackshare.io/service/1011/n1JRsFeB_400x400.png
+  detection_source_url: https://github.com/promptpanel/promptpanel/blob/main/format/Dockerfile
+  detection_source: format/Dockerfile
+  last_updated_by: PromptPanel
+  last_updated_on: 2024-05-30 13:59:56.000000000 Z
+- name: Docker
+  description: Enterprise Container Platform for High-Velocity Innovation.
+  website_url: https://www.docker.com/
+  license: Apache-2.0
+  open_source: true
+  hosted_saas: false
+  category: Build, Test, Deploy
+  sub_category: Virtual Machine Platforms & Containers
+  image_url: https://img.stackshare.io/service/586/n4u37v9t_400x400.png
+  detection_source_url: https://github.com/promptpanel/promptpanel
+  detection_source: Repo Metadata
+- name: Git
+  description: Fast, scalable, distributed revision control system
+  website_url: http://git-scm.com/
+  open_source: true
+  hosted_saas: false
+  category: Build, Test, Deploy
+  sub_category: Version Control System
+  image_url: https://img.stackshare.io/service/1046/git.png
+  detection_source_url: https://github.com/promptpanel/promptpanel
+  detection_source: Repo Metadata
+- name: PyPI
+  description: A repository of software for the Python programming language
+  website_url: https://pypi.org/
+  open_source: false
+  hosted_saas: false
+  category: Build, Test, Deploy
+  sub_category: Hosted Package Repository
+  image_url: https://img.stackshare.io/service/12572/-RIWgodF_400x400.jpg
+  detection_source_url: https://github.com/promptpanel/promptpanel/blob/main/requirements.txt
+  detection_source: requirements.txt
+  last_updated_by: PromptPanel
+  last_updated_on: 2024-03-21 15:52:09.000000000 Z
+- name: Ollama
+  description: Get up and running with large language models locally
+  website_url: https://ollama.ai/
+  open_source: false
+  hosted_saas: false
+  category: Communications
+  sub_category: Large Language Model Tools
+  image_url: https://img.stackshare.io/service/109220/default_e499cccf9d15d22b9084679d5d7ebcb5f3e96c47.jpg
+  detection_source_url: https://github.com/promptpanel/promptpanel/blob/main/docker-compose.yml
+  detection_source: docker-compose.yml
+  last_updated_by: PromptPanel
+  last_updated_on: 2024-03-21 15:52:09.000000000 Z
+- name: OpenAI
+  description: Creating safe AGI that benefits all
+  website_url: https://openai.com/
+  version: 1.30.5
+  open_source: false
+  hosted_saas: false
+  category: Communications
+  sub_category: Large Language Models
+  image_url: https://img.stackshare.io/service/48786/default_8b1119bcbb159cebebc2f6cfc9cd2e359b169d22.jpg
+  detection_source_url: https://github.com/promptpanel/promptpanel/blob/main/plugins/completion_chat/requirements.txt
+  detection_source: plugins/completion_chat/requirements.txt
+  last_updated_by: PromptPanel
+  last_updated_on: 2024-06-01 20:09:55.000000000 Z
+- name: Shell
+  description: A shell is a text-based terminal, used for manipulating programs and
+    files. Shell scripts typically manage program execution.
+  website_url: https://en.wikipedia.org/wiki/Shell_script
+  open_source: false
+  hosted_saas: false
+  category: Languages & Frameworks
+  sub_category: Languages
+  image_url: https://img.stackshare.io/service/4631/default_c2062d40130562bdc836c13dbca02d318205a962.png
+  detection_source_url: https://github.com/promptpanel/promptpanel
+  detection_source: Repo Metadata
+- name: Authlib
+  description: The ultimate Python library in building OAuth and OpenID Connect servers
+  package_url: https://pypi.org/project/Authlib
+  version: 1.3.0
+  license: BSD-3-Clause
+  open_source: true
+  hosted_saas: false
+  category: Libraries
+  sub_category: PyPI Packages
+  image_url: https://img.stackshare.io/package/20752/default_cf2c193a97e2b1ce404093ff2bc569ddeeeb005b.png
+  detection_source_url: https://github.com/promptpanel/promptpanel/blob/main/requirements.txt
+  detection_source: requirements.txt
+  last_updated_by: PromptPanel
+  last_updated_on: 2024-04-24 21:34:26.000000000 Z
+- name: Django
+  description: A high-level Python Web framework that encourages rapid development
+    and clean
+  package_url: https://pypi.org/project/Django
+  version: 5.0.4
+  license: BSD-3-Clause
+  open_source: true
+  hosted_saas: false
+  category: Libraries
+  sub_category: PyPI Packages
+  image_url: https://img.stackshare.io/package/19832/default_58dbe7b4d7ec447b62773209af0f9a31bbabf5bd.png
+  detection_source_url: https://github.com/promptpanel/promptpanel/blob/main/requirements.txt
+  detection_source: requirements.txt
+  last_updated_by: PromptPanel
+  last_updated_on: 2024-04-13 02:19:16.000000000 Z
+- name: Markdown
+  description: Python implementation of Markdown
+  package_url: https://pypi.org/project/Markdown
+  version: '3.6'
+  license: BSD-3-Clause
+  open_source: true
+  hosted_saas: false
+  category: Libraries
+  sub_category: PyPI Packages
+  image_url: https://img.stackshare.io/package/19908/default_67f813d4aac73d024261bcfded6ef2b918e384a0.png
+  detection_source_url: https://github.com/promptpanel/promptpanel/blob/main/requirements.txt
+  detection_source: requirements.txt
+  last_updated_by: PromptPanel
+  last_updated_on: 2024-04-13 02:19:16.000000000 Z
+- name: PyJWT
+  description: JSON Web Token implementation in Python
+  package_url: https://pypi.org/project/PyJWT
+  version: 2.8.0
+  license: MIT
+  open_source: true
+  hosted_saas: false
+  category: Libraries
+  sub_category: PyPI Packages
+  image_url: https://img.stackshare.io/package/19883/default_3863c7bb51d307217c188e059f67ca417c51efe3.png
+  detection_source_url: https://github.com/promptpanel/promptpanel/blob/main/requirements.txt
+  detection_source: requirements.txt
+  last_updated_by: PromptPanel
+  last_updated_on: 2024-03-21 15:52:09.000000000 Z
+- name: gunicorn
+  description: WSGI HTTP Server for UNIX
+  package_url: https://pypi.org/project/gunicorn
+  version: 22.0.0
+  license: MIT
+  open_source: true
+  hosted_saas: false
+  category: Libraries
+  sub_category: PyPI Packages
+  image_url: https://img.stackshare.io/package/19931/default_74a0c20721d3a0a1484d69586401591fe8993db2.png
+  detection_source_url: https://github.com/promptpanel/promptpanel/blob/main/requirements.txt
+  detection_source: requirements.txt
+  last_updated_by: PromptPanel
+  last_updated_on: 2024-04-24 21:34:26.000000000 Z
+- name: openai
+  description: The official Python library for the openai API
+  package_url: https://pypi.org/project/openai
+  version: 1.30.5
+  open_source: false
+  hosted_saas: false
+  category: Build, Test, Deploy
+  sub_category: Package Managers
+  image_url: https://img.stackshare.io/package/pypi/image.png
+  detection_source_url: https://github.com/promptpanel/promptpanel/blob/main/plugins/completion_chat/requirements.txt
+  detection_source: plugins/completion_chat/requirements.txt
+  last_updated_by: PromptPanel
+  last_updated_on: 2024-06-01 20:09:55.000000000 Z
+- name: requests
+  description: Python HTTP for Humans
+  package_url: https://pypi.org/project/requests
+  version: 2.32.2
+  license: Apache-2.0
+  open_source: true
+  hosted_saas: false
+  category: Libraries
+  sub_category: PyPI Packages
+  image_url: https://img.stackshare.io/package/19826/default_d7c684bf2673f008a9f02ac93901229297a22d7e.png
+  detection_source_url: https://github.com/promptpanel/promptpanel/blob/main/requirements.txt
+  detection_source: requirements.txt
+  last_updated_by: dependabot[bot]
+  last_updated_on: 2024-06-05 20:52:44.000000000 Z
+- name: whitenoise
+  description: Radically simplified static file serving for WSGI applications
+  package_url: https://pypi.org/project/whitenoise
+  version: 6.6.0
+  license: MIT
+  open_source: true
+  hosted_saas: false
+  category: Libraries
+  sub_category: PyPI Packages
+  image_url: https://img.stackshare.io/package/20302/default_e6bfb9eb79752f0f359e80676966e216a56792ab.png
+  detection_source_url: https://github.com/promptpanel/promptpanel/blob/main/requirements.txt
+  detection_source: requirements.txt
+  last_updated_by: PromptPanel
+  last_updated_on: 2024-03-21 15:52:09.000000000 Z
