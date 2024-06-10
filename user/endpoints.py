@@ -15,7 +15,7 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.views.decorators.http import require_http_methods
 from user.decorators import user_authenticated, user_is_staff
-from user.models import AcccountActivationToken, PasswordResetToken
+from user.models import AccountActivationToken, PasswordResetToken
 from promptpanel.utils import generate_jwt_login
 
 
@@ -209,20 +209,20 @@ def user_create(request):
             ):
                 token = get_random_string(32)
                 expires_at = timezone.now() + timedelta(minutes=15)
-                AcccountActivationToken.objects.create(
+                AccountActivationToken.objects.create(
                     user=user, token=token, expires_at=expires_at
                 )
                 verification_link = (
-                    f"{request.build_absolute_uri('/verify_email/')}?token={token}"
+                    f"{request.build_absolute_uri('/user_activate/')}?token={token}"
                 )
+                logger.info("Activation Token: " + token)
+                logger.info("Activation Link: " + verification_link)
                 context = {
                     "username": username,
                     "verification_link": verification_link,
                 }
                 subject = "PromptPanel: Verify Your Email"
-                html_message = render_to_string(
-                    "email_templates/verification_email.html", context
-                )
+                html_message = render_to_string("email_activation.html", context)
                 send_mail(
                     subject,
                     "",
@@ -359,14 +359,14 @@ def password_reset_request(request):
         expires_at = timezone.now() + timedelta(minutes=15)
         PasswordResetToken.objects.create(user=user, token=token, expires_at=expires_at)
         reset_link = f"{request.build_absolute_uri('/reset_password/')}?token={token}&email={email}"
+        logger.info("Reset Token: " + token)
+        logger.info("Reset Link: " + reset_link)
         context = {
             "username": user.username,
             "reset_link": reset_link,
         }
         subject = "Your Password Reset Request"
-        html_message = render_to_string(
-            "email_templates/password_reset_email.html", context
-        )
+        html_message = render_to_string("email_password_reset.html", context)
         send_mail(
             subject, "", settings.DEFAULT_FROM_EMAIL, [email], html_message=html_message
         )
@@ -389,7 +389,7 @@ def password_reset_request(request):
 
 
 @require_http_methods(["POST"])
-def reset_password(request):
+def password_reset(request):
     if os.getenv("PROMPT_USER_RESET_PASSWORD") != "ENABLED":
         return JsonResponse(
             {
