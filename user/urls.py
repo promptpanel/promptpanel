@@ -10,6 +10,8 @@ urlpatterns = [
     path("create/", endpoints.user_create, name="api_user_create"),
     path("list/", endpoints.user_list, name="api_user_list"),
     path("update/<int:user_id>/", endpoints.user_update, name="api_user_update"),
+    path("reset_password_request/", endpoints.password_reset_request, name="api_user_reset_password_request"),
+    path("reset_password/", endpoints.password_reset, name="api_user_reset_password"),
     path("licence/set/", endpoints.licence_set, name="api_licence_set"),
     path("licence/downgrade/", endpoints.licence_downgrade, name="api_licence_downgrade"),
 ]
