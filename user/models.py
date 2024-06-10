@@ -20,7 +20,7 @@ class AccountActivationToken(models.Model):
     expires_at = models.DateTimeField()
 
 
-class PaswordResetToken(models.Model):
+class PasswordResetToken(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     token = models.TextField()
     expires_at = models.DateTimeField()
