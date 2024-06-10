@@ -3,16 +3,21 @@ import json
 import jwt
 import requests
 import logging
-from datetime import datetime, timedelta
+from datetime import timedelta
+from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.models import User
 from django.http import JsonResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
+from django.template.loader import render_to_string
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 from django.views.decorators.http import require_http_methods
 from user.decorators import user_authenticated, user_is_staff
+from user.models import AcccountActivationToken, PasswordResetToken
 from promptpanel.utils import generate_jwt_login
+
 
 logger = logging.getLogger("app")
 
@@ -123,13 +128,12 @@ def user_onboard(request):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@user_authenticated
 @require_http_methods(["POST"])
 def user_create(request):
-    # Checks if public signup is disabled
+    ## Checks if public signup is disabled
     if (
         not request.user.is_staff
-        and os.environ.get("PROMPT_PUBLIC_SIGNUP", "DISABLED").strip().upper()
+        and os.environ.get("PROMPT_USER_SIGNUP", "DISABLED").strip().upper()
         != "ENABLED"
     ):
         return JsonResponse(
@@ -144,13 +148,14 @@ def user_create(request):
         username = data.get("username")
         email = data.get("email")
         password = data.get("password")
+        send_verification = data.get("sendVerification", False)
         # Only allow is_staff and is_active if user is an admin
         is_staff = False
         is_active = False
         if request.user.is_staff:
             is_staff = data.get("is_staff", False)
             is_active = data.get("is_active", False)
-        # Check if username already exists
+        ## Check: if username already exists
         if User.objects.filter(username=username).exists():
             return JsonResponse(
                 {
@@ -159,7 +164,7 @@ def user_create(request):
                 },
                 status=400,
             )
-        # Check if email already exists
+        ## Check: if email already exists
         if User.objects.filter(email=email).exists():
             return JsonResponse(
                 {
@@ -168,7 +173,7 @@ def user_create(request):
                 },
                 status=400,
             )
-        # Check if email is allowed before creating
+        ## Check: if email is allowed before creating
         allowed_endings = os.getenv("PROMPT_USER_ALLOWED_DOMAINS", "")
         allowed_endings = [
             ending.strip().lower()
@@ -186,19 +191,118 @@ def user_create(request):
                 status=400,
             )
         # Create user
-        User.objects.create_user(
+        user = User.objects.create_user(
             username=username,
             email=email,
             password=password,
             is_staff=is_staff,
             is_active=is_active,
         )
+        ## Verification / activation >
+        ## Check: if SMTP config is set for email verification + activation
+        try:
+            smtp_url = os.getenv("PROMPT_SMTP_HOST")
+            if (
+                os.getenv("PROMPT_USER_SIGNUP_ACTIVATE") == "ENABLED"
+                and send_verification
+                and smtp_url
+            ):
+                token = get_random_string(32)
+                expires_at = timezone.now() + timedelta(minutes=15)
+                AcccountActivationToken.objects.create(
+                    user=user, token=token, expires_at=expires_at
+                )
+                verification_link = (
+                    f"{request.build_absolute_uri('/verify_email/')}?token={token}"
+                )
+                context = {
+                    "username": username,
+                    "verification_link": verification_link,
+                }
+                subject = "PromptPanel: Verify Your Email"
+                html_message = render_to_string(
+                    "email_templates/verification_email.html", context
+                )
+                send_mail(
+                    subject,
+                    "",
+                    settings.DEFAULT_FROM_EMAIL,
+                    [email],
+                    html_message=html_message,
+                )
+                response_message = (
+                    "User created. Please check your email to verify your account."
+                )
+                return JsonResponse(
+                    {"status": "success", "message": response_message},
+                    status=201,
+                )
+        except Exception as e:
+            logger.error(e, exc_info=True)
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "message": "There was a problem sending your account activation email: "
+                    + str(e),
+                },
+                status=400,
+            )
+
+        ## Return if user not activating now
         return JsonResponse(
-            {
-                "status": "success",
-                "message": "User created successfully.",
-            },
+            {"status": "success", "message": "User created successfully."},
             status=201,
+        )
+    except Exception as e:
+        logger.error(e, exc_info=True)
+        return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
+
+@user_authenticated
+@require_http_methods(["PUT"])
+def user_update(request, user_id):
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+        target_user = get_user_model().objects.get(pk=user_id)
+        # Check if the requesting user is the target user or an admin.
+        if request.user != target_user and not request.user.is_staff:
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "message": "You do not have permission to edit this user. Please contact your administrator.",
+                },
+                status=403,
+            )
+        # Emails, usernames, etc. can only be updated by administrators.
+        # Passwords are updateable by their own users.
+        if "password" in data:
+            target_user.set_password(data["password"])
+        if request.user.is_staff:
+            updated_email = data.get("email", False)
+            if updated_email:
+                allowed_endings = os.getenv("PROMPT_USER_ALLOWED_DOMAINS", "")
+                allowed_endings = [
+                    ending.strip().lower()
+                    for ending in allowed_endings.split(",")
+                    if ending.strip()
+                ]
+                if allowed_endings and not any(
+                    updated_email.endswith(ending) for ending in allowed_endings
+                ):
+                    return JsonResponse(
+                        {
+                            "status": "error",
+                            "message": "PROMPT_USER_ALLOWED_DOMAINS is active. The account email does not end with any allowed domains or emails.",
+                        },
+                        status=400,
+                    )
+                target_user.email = updated_email
+            target_user.username = data.get("username", target_user.username)
+            target_user.is_active = data.get("is_active", target_user.is_active)
+            target_user.is_staff = data.get("is_staff", target_user.is_staff)
+        target_user.save()
+        return JsonResponse(
+            {"status": "success", "message": "User updated successfully."}
         )
     except Exception as e:
         logger.error(e, exc_info=True)
@@ -237,56 +341,94 @@ def user_list(request):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-@user_authenticated
-@require_http_methods(["PUT"])
-def user_update(request, user_id):
+@require_http_methods(["POST"])
+def password_reset_request(request):
+    if os.getenv("PROMPT_USER_RESET_PASSWORD") != "ENABLED":
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "Password reset is not supported by your application. Please contact your administrator.",
+            },
+            status=403,
+        )
     try:
         data = json.loads(request.body.decode("utf-8"))
-        target_user = get_user_model().objects.get(pk=user_id)
-        # Check if the requesting user is the target user or an admin
-        if request.user != target_user and not request.user.is_staff:
-            return JsonResponse(
-                {
-                    "status": "error",
-                    "message": "You do not have permission to edit this user. Please contact your administrator.",
-                },
-                status=403,
-            )
-        target_user.username = data.get("username", target_user.username)
-        ## TODO: Only allow updating email forw now until SMTP integration complete
-        # At that time, check new user email
-        if request.user.is_staff:
-            updated_email = data.get("email", False)
-            if updated_email:
-                allowed_endings = os.getenv("PROMPT_USER_ALLOWED_DOMAINS", "")
-                allowed_endings = [
-                    ending.strip().lower()
-                    for ending in allowed_endings.split(",")
-                    if ending.strip()
-                ]
-                if allowed_endings and not any(
-                    updated_email.endswith(ending) for ending in allowed_endings
-                ):
-                    return JsonResponse(
-                        {
-                            "status": "error",
-                            "message": "PROMPT_USER_ALLOWED_DOMAINS is active. The account email does not end with any allowed domains or emails.",
-                        },
-                        status=400,
-                    )
-                target_user.email = updated_email
-        if "password" in data:
-            target_user.set_password(data["password"])
-        if request.user.is_staff:
-            target_user.is_active = data.get("is_active", target_user.is_active)
-            target_user.is_staff = data.get("is_staff", target_user.is_staff)
-        target_user.save()
+        email = data.get("email")
+        user = get_object_or_404(User, email=email)
+        token = get_random_string(32)
+        expires_at = timezone.now() + timedelta(minutes=15)
+        PasswordResetToken.objects.create(user=user, token=token, expires_at=expires_at)
+        reset_link = f"{request.build_absolute_uri('/reset_password/')}?token={token}&email={email}"
+        context = {
+            "username": user.username,
+            "reset_link": reset_link,
+        }
+        subject = "Your Password Reset Request"
+        html_message = render_to_string(
+            "email_templates/password_reset_email.html", context
+        )
+        send_mail(
+            subject, "", settings.DEFAULT_FROM_EMAIL, [email], html_message=html_message
+        )
         return JsonResponse(
-            {"status": "success", "message": "User updated successfully."}
+            {
+                "status": "success",
+                "message": "Password reset link has been sent to the provided email if your account exists.",
+            },
+            status=200,
         )
     except Exception as e:
         logger.error(e, exc_info=True)
-        return JsonResponse({"status": "error", "message": str(e)}, status=400)
+        return JsonResponse(
+            {
+                "status": "success",
+                "message": "Password reset link has been sent to the provided email if your account exists.",
+            },
+            status=200,
+        )
+
+
+@require_http_methods(["POST"])
+def reset_password(request):
+    if os.getenv("PROMPT_USER_RESET_PASSWORD") != "ENABLED":
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "Password reset is not supported by your application. Please contact your administrator.",
+            },
+            status=403,
+        )
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+        email = data.get("email")
+        token = data.get("token")
+        new_password = data.get("new_password")
+        reset_token = get_object_or_404(
+            PasswordResetToken, token=token, user__email=email
+        )
+        if reset_token.expires_at < timezone.now():
+            reset_token.delete()
+            return JsonResponse(
+                {"status": "error", "message": "The reset link has expired."},
+                status=400,
+            )
+        user = reset_token.user
+        user.set_password(new_password)
+        user.save()
+        reset_token.delete()
+        return JsonResponse(
+            {"status": "success", "message": "Password has been reset successfully."},
+            status=200,
+        )
+    except Exception as e:
+        logger.error(e, exc_info=True)
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "There was a problem with your password reset token, please try again.",
+            },
+            status=400,
+        )
 
 
 @user_authenticated
