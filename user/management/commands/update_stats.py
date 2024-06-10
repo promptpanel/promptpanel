@@ -8,6 +8,7 @@ from django.core.cache import cache
 from django.contrib.auth.models import User
 from django.db.models.functions import Coalesce
 from django.db.models import Max, Value
+from django.utils import timezone
 from panel.models import File, Message, Panel, Thread
 from promptpanel.utils import get_licence
 
@@ -20,7 +21,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         try:
             last_run = cache.get("last_run_time_stats")
-            now = datetime.datetime.now()
+            now = datetime.timezone.now()
             if last_run:
                 next_run = last_run + datetime.timedelta(seconds=86400)
                 if now < next_run:
