@@ -21,7 +21,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         try:
             last_run = cache.get("last_run_time_stats")
-            now = datetime.timezone.now()
+            now = timezone.now()
             if last_run:
                 next_run = last_run + datetime.timedelta(seconds=86400)
                 if now < next_run:
