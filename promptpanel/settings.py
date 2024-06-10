@@ -200,16 +200,23 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
 LANGUAGE_CODE = "en-us"
-
 TIME_ZONE = "UTC"
-
 USE_I18N = True
-
 USE_TZ = True
 
+# Email Setup SMTP
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = os.getenv("PROMPT_SMTP_HOST")
+EMAIL_USE_TLS = os.getenv("PROMPT_SMTP_USE_TLS", "True") == "True"
+EMAIL_PORT = int(os.getenv("PROMPT_SMTP_PORT", 587))
+EMAIL_HOST_USER = os.getenv("PROMPT_SMTP_USER")
+EMAIL_HOST_PASSWORD = os.getenv("PROMPT_SMTP_PASSWORD")
+DEFAULT_FROM_EMAIL = os.getenv("PROMPT_SMTP_FROM_ADDRESS")
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
+
 STATICFILES_DIRS = []
 # STATICFILES_DIRS = [
 #     os.path.join(BASE_DIR, plugin_path) for plugin_path in glob.glob("plugins/*/static")
