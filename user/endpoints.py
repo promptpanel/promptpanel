@@ -208,13 +208,11 @@ def user_create(request):
                 and smtp_url
             ):
                 token = get_random_string(32)
-                expires_at = timezone.now() + timedelta(minutes=15)
+                expires_at = timezone.now() + timedelta(days=30)
                 AccountActivationToken.objects.create(
                     user=user, token=token, expires_at=expires_at
                 )
-                verification_link = (
-                    f"{request.build_absolute_uri('/user_activate/')}?token={token}"
-                )
+                verification_link = f"{request.build_absolute_uri('/user_activate/')}?token={token}&email={user.email}"
                 logger.info("Activation Token: " + token)
                 logger.info("Activation Link: " + verification_link)
                 context = {
