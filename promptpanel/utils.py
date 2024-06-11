@@ -46,7 +46,7 @@ def get_system():
 def generate_jwt_login(user, expires_in=None, token_type="access"):
     if expires_in is None:
         if token_type == "access":
-            expiry_minutes = int(os.getenv("PROMPT_ACCESS_TOKEN_EXP_MINUTES", 10))
+            expiry_minutes = int(os.getenv("PROMPT_ACCESS_TOKEN_EXP_MINUTES", 480))
         elif token_type == "refresh":
             expiry_minutes = int(os.getenv("PROMPT_REFRESH_TOKEN_EXP_MINUTES", 43200))
         else:
