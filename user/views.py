@@ -98,31 +98,30 @@ def user_reset_password(request):
     return render(request, "user_reset_password.html", context)
 
 
+def user_signup(request):
+    context = {}
+    return render(request, "user_signup.html", context)
+
+
 def user_activate(request):
     token = request.GET.get("token")
+    email = request.GET.get("email")
     context = {}
-    if not token:
-        context["status"] = "error"
-        context["message"] = "Token is required to activate the account."
-        return render(request, "user_activate.html", context)
+    if not token or not email:
+        return redirect("/login?activate_success=false")
     try:
         activation_token = get_object_or_404(AccountActivationToken, token=token)
-        if not activation_token.is_valid():
-            context["status"] = "error"
-            context["message"] = "The activation link has expired or is invalid."
-            return render(request, "user_activate.html", context)
+        if activation_token.user.email != email:
+            logger.errpr("Error: Activation token does not match email.")
+            return redirect("/login?activate_success=false")
         user = activation_token.user
         user.is_active = True
         user.save()
         activation_token.delete()
-        context["status"] = "success"
-        context["message"] = "Your account has been activated successfully."
-        return render(request, "user_activate.html", context)
+        return redirect("/login?activate_success=true")
     except Exception as e:
         logger.error(e, exc_info=True)
-        context["status"] = "error"
-        context["message"] = "An error occurred while activating your account."
-        return render(request, "user_activate.html", context)
+        return redirect("/login?activate_success=false")
 
 
 def logout(request):
