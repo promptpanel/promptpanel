@@ -26,6 +26,7 @@ def user_authenticated(view_func):
                 token = parts[1]
         if not token:
             token = request.COOKIES.get("authToken")
+            refresh_token = request.COOKIES.get("refreshToken")
         if not token:
             if "api" in request.path:
                 return JsonResponse(
@@ -47,10 +48,12 @@ def user_authenticated(view_func):
                 return HttpResponseRedirect(f"/login/?{query_string}")
         ## Do user lookup
         try:
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-            user_id = payload["user_id"]
+            access_payload = jwt.decode(
+                token, settings.SECRET_KEY, algorithms=["HS256"]
+            )
+            user_id = access_payload["user_id"]
             user = get_user_model().objects.get(id=user_id)
-            # Check: Make sure user is active
+            ## Check: Make sure user is active
             if not user.is_active:
                 if "api" in request.path:
                     return JsonResponse(
@@ -61,8 +64,30 @@ def user_authenticated(view_func):
                     logger.error("User account is not active.")
                     query_string = urlencode({"next": request.get_full_path()})
                     return HttpResponseRedirect(f"/login/?{query_string}")
+            ## Renew expiries if close before returning
+            ### Get access remaining time
+            access_expiry_time = datetime.fromtimestamp(access_payload["exp"])
+            access_remaining_time = access_expiry_time - datetime.now()
+            ### Get refresh payload / remaining time
+            refresh_payload = jwt.decode(
+                refresh_token, settings.SECRET_KEY, algorithms=["HS256"]
+            )
+            refresh_expiry_time = datetime.fromtimestamp(refresh_payload["exp"])
+            refresh_remaining_time = refresh_expiry_time - datetime.now()
+            ## Get view response
             request.user = user
-            return view_func(request, *args, **kwargs)
+            response = view_func(request, *args, **kwargs)
+            if access_remaining_time < timedelta(hours=2):
+                new_access_token = generate_jwt_login(user, None, "access")
+                response.set_cookie(
+                    "authToken", new_access_token, httponly=True, path="/"
+                )
+            if refresh_remaining_time < timedelta(hours=2):
+                new_refresh_token = generate_jwt_login(user, None, "refresh")
+                response.set_cookie(
+                    "refreshToken", new_refresh_token, httponly=True, path="/"
+                )
+            return response
         ## Handle expired access token by trying to refresh it
         except jwt.ExpiredSignatureError:
             refresh_token = request.COOKIES.get("refreshToken")
@@ -70,7 +95,10 @@ def user_authenticated(view_func):
                 if TokenBlacklist.objects.filter(token=refresh_token).exists():
                     if "api" in request.path:
                         return JsonResponse(
-                            {"status": "error", "message": "Refresh token is disabled."},
+                            {
+                                "status": "error",
+                                "message": "Refresh token is disabled.",
+                            },
                             status=401,
                         )
                     else:
@@ -78,9 +106,11 @@ def user_authenticated(view_func):
                         return HttpResponseRedirect(f"/login/?{query_string}")
                 try:
                     logger.info("Renewing access token")
-                    refresh_payload = jwt.decode(refresh_token, settings.SECRET_KEY, algorithms=["HS256"])
+                    refresh_payload = jwt.decode(
+                        refresh_token, settings.SECRET_KEY, algorithms=["HS256"]
+                    )
                     user_id = refresh_payload["user_id"]
-                    user = get_user_model().objects.get(id=user_id)  
+                    user = get_user_model().objects.get(id=user_id)
                     access_token = generate_jwt_login(user, None, "access")
                     response = view_func(request, *args, **kwargs)
                     response.set_cookie(
@@ -91,7 +121,10 @@ def user_authenticated(view_func):
                     logger.error(str(e), exc_info=True)
                     if "api" in request.path:
                         return JsonResponse(
-                            {"status": "error", "message": "Token refresh failure: " + str(e)},
+                            {
+                                "status": "error",
+                                "message": "Token refresh failure: " + str(e),
+                            },
                             status=401,
                         )
                     query_string = urlencode({"next": request.get_full_path()})
