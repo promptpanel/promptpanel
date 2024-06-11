@@ -19,6 +19,7 @@ urlpatterns = [
     path("reset_password_request/", user_views.user_reset_password_request, name="view_reset_password_request"),
     path("reset_password/", user_views.user_reset_password, name="view_reset_password"),
     path("user_activate/", user_views.user_activate, name="view_user_activate"),
+    path("signup/", user_views.user_signup, name="view_user_signup"),
     path("oauth/login/", user_views.oauth_login, name="view_oauth_login"),
     path("oauth/callback/", user_views.oauth_callback, name="view_oauth_callback"),
     ## System settings
