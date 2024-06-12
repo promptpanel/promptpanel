@@ -113,7 +113,9 @@
       </button>
     </form>
 
-    <hr class="my-3 border-stone-300" />
+    {% if env_oidc_display or env_user_signup or env_password_reset %}
+      <hr class="my-3 border-stone-300" />
+    {% endif %}
 
     <div class="space-y-3">
       {% if env_oidc_display %}
@@ -126,7 +128,7 @@
           Sign up with Email
         </a>
       {% endif %}
-      {% if env_user_signup %}
+      {% if env_password_reset %}
         <a href="/reset_password_request/" class="mb-1 ml-auto w-max flex items-center justify-center font-semibold text-primary px-2.5 h-10 rounded-md transition duration-500 hover:bg-primary/10">
           Reset Password
         </a>
