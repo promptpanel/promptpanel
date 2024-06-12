@@ -466,6 +466,14 @@ var pluginState = () => {
       field.style.height = height + "px";
     },
     // Messages
+    addPrompt(prompt){
+      if (!this.messageFromEditor.startsWith(prompt)){
+        if (!confirm("Are you sure you want to add this prompt, your current message will be replaced?")) {
+          return;
+        }  
+        this.messageFromEditor = prompt;
+      }
+    },
     createMessageSubmit() {
       if (typeof window.clarity === "function") {
         window.clarity("event", "messageSent");
@@ -810,6 +818,7 @@ var pluginState = () => {
                       fileItem.status = "completed";
                       this.processNextFile();
                       this.getFiles();
+                      this.getMessages();
                       return;
                     }
                     const string = new TextDecoder().decode(value);
@@ -978,6 +987,20 @@ var pluginState = () => {
       this.extractedImages.splice(index, 1);
     },
     // Utilities
+    get matchedActions() {
+      if (this.messageFromEditor === "") {
+        return [];
+      }
+      if (!this.messageFromEditor.startsWith('/')) {
+        return [];
+      }
+      let firstWord = this.messageFromEditor.split(' ')[0];
+      let actionSet = Alpine.store("actionStore").actions
+      console.log(firstWord)
+      console.log(actionSet)
+      console.log(actionSet.filter((action) => action.command.startsWith(firstWord)))
+      return actionSet.filter((action) => action.command.startsWith(firstWord));
+    },
     isLastAssistantMessage(messageId) {
       let lastAssistantMessageId = this.messages.reduce((lastId, current) => {
         return current.meta?.sender == "assistant" ? current.id : lastId;
@@ -1002,6 +1025,37 @@ var pluginState = () => {
         this.osPlatform = "windows";
       } else {
         this.osPlatform = "other";
+      }
+    },
+    copyToClipboard(text, type) {
+      // Copy text to clipboard
+      successToast = {
+        type: "success",
+        header: "Successfully copied your {type} to clipboard.",
+      };
+      Alpine.store("toastStore").addToast(successToast);
+    },
+    copyToClipboard(text, type) {
+      try {
+        // Use the Clipboard API for modern browsers
+        navigator.clipboard.writeText(text).then(() => {
+          Alpine.store("toastStore").addToast({
+            type: "success",
+            header: `Successfully copied your ${type} to clipboard.`
+          });
+        });
+      } catch (error) {
+        // Fallback for older browsers or if Clipboard API fails
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+        Alpine.store("toastStore").addToast({
+          type: "success",
+          header: `Successfully copied your ${type} to clipboard.`
+        });
       }
     },
     insertTab(event) {
