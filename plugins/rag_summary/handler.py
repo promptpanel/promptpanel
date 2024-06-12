@@ -49,7 +49,7 @@ def file_stream(file, thread, panel):
         file.save()
         ## ----- 2. Add file upload message / hinting for usage.
         logger.info("** 2. Add file upload message / hinting for usage.")
-        file_message_content = f"File uploaded successfully. To summarize, message `/summarize {file.filename} [question *optional]`"
+        file_message_content = f"File uploaded successfully.\n To summarize, message `/summarize {file.filename} [question:optional]`"
         file_message = Message(
             content=file_message_content,
             thread=thread,
@@ -265,15 +265,27 @@ def summarize_batch(
         ## ----- 2. Create response message with citations.
         logger.info("** 2. Create response message with citations.")
         sentences_with_citations = [{"sentence": summary.strip(), "citations": []}]
+        # Tracking
+        min_page = float("inf")
+        max_page = float("-inf")
+        combined_sentence = ""
         for sentence, page_number in zip(sentences, page_numbers):
-            sentences_with_citations[0]["citations"].append(
-                {
-                    "filepath": file.filepath,
-                    "filename": file.filename,
-                    "citation_excerpt": sentence,
-                    "page_num": page_number,
-                }
-            )
+            min_page = min(min_page, page_number)
+            max_page = max(max_page, page_number)
+            combined_sentence += sentence + " "  # Add sentence to combined excerpt
+        # Add single citation
+        sentences_with_citations[0]["citations"].append(
+            {
+                "filepath": file.filepath,
+                "filename": file.filename,
+                "citation_excerpt": combined_sentence.strip(),
+                "page_num": (
+                    f"{int(min_page)} - {int(max_page)}"
+                    if min_page != max_page
+                    else f"{int(min_page)}"
+                ),  # Format as "2-4" or just "2"
+            }
+        )
         response_message = Message(
             content=summary,
             thread=thread,

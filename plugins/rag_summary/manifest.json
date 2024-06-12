@@ -1,6 +1,15 @@
 {
   "name": "Document Summary",
   "category": "Power Tools",
+  "capabilities": {
+    "actions": [
+      {
+        "command": "/summarize",
+        "parameters": "[filename*] [question:optional]",
+        "description": "Summarize your file."
+      }
+    ]
+  },
   "settings": [
     {
       "name": "Model",
