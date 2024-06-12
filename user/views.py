@@ -1,14 +1,16 @@
 import os
 import json
+import jwt
 import logging
 from authlib.integrations.django_client import OAuth
 from datetime import datetime, timedelta
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect, JsonResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
 from user.decorators import user_authenticated
-from user.models import TokenLog
+from user.models import AccountActivationToken, TokenBlacklist
 from promptpanel.utils import generate_jwt_login
 
 logger = logging.getLogger("app")
@@ -86,24 +88,73 @@ def ollama_model(request):
     return render(request, "ollama_model.html", context)
 
 
+def user_reset_password_request(request):
+    context = {}
+    return render(request, "user_reset_password_request.html", context)
+
+
+def user_reset_password(request):
+    context = {}
+    return render(request, "user_reset_password.html", context)
+
+
+def user_signup(request):
+    context = {}
+    return render(request, "user_signup.html", context)
+
+
+def user_activate(request):
+    token = request.GET.get("token")
+    email = request.GET.get("email")
+    context = {}
+    if not token or not email:
+        return redirect("/login?activate_success=false")
+    try:
+        activation_token = get_object_or_404(AccountActivationToken, token=token)
+        if activation_token.user.email != email:
+            logger.errpr("Error: Activation token does not match email.")
+            return redirect("/login?activate_success=false")
+        user = activation_token.user
+        user.is_active = True
+        user.save()
+        activation_token.delete()
+        return redirect("/login?activate_success=true")
+    except Exception as e:
+        logger.error(e, exc_info=True)
+        return redirect("/login?activate_success=false")
+
+
 def logout(request):
     try:
         response = HttpResponseRedirect("/login/?logged_out=true")
         access_token = request.COOKIES.get("authToken")
         refresh_token = request.COOKIES.get("refreshToken")
-        access_token_log = TokenLog.objects.get(token=access_token)
-        access_token_log.disabled = True
-        access_token_log.save()
+        access_token_data = jwt.decode(
+            access_token, settings.SECRET_KEY, algorithms=["HS256"]
+        )
+        access_expires_at = datetime.fromtimestamp(
+            access_token_data["exp"], tz=timezone.utc
+        )
+        TokenBlacklist.objects.create(
+            token=access_token, expires_at=access_expires_at, comment="Logged out"
+        )
+        refresh_token_data = jwt.decode(
+            refresh_token, settings.SECRET_KEY, algorithms=["HS256"]
+        )
+        refresh_expires_at = datetime.fromtimestamp(
+            refresh_token_data["exp"], tz=timezone.utc
+        )
+        TokenBlacklist.objects.create(
+            token=refresh_token, expires_at=refresh_expires_at, comment="Logged out"
+        )
         response.delete_cookie("authToken", path="/")
-        refresh_token_log = TokenLog.objects.get(token=refresh_token)
-        refresh_token_log.disabled = True
-        refresh_token_log.save()
         response.delete_cookie("refreshToken", path="/")
         return response
     except Exception as e:
         logger.error(str(e), exc_info=True)
         response = HttpResponseRedirect("/login/?logged_out=true")
         response.delete_cookie("authToken", path="/")
+        response.delete_cookie("refreshToken", path="/")
         return response
 
 
@@ -121,7 +172,7 @@ def oauth_login(request):
         ):
             logger.error("One or more configuration variables for OAuth are empty.")
             return HttpResponseRedirect(f"/login/?oauth_failed_login=true")
-        redirect_uri = request.build_absolute_uri(reverse("pro_view_oauth_callback"))
+        redirect_uri = request.build_absolute_uri(reverse("oauth_callback"))
         return oauth.oauth_provider.authorize_redirect(request, redirect_uri)
     except Exception as e:
         logger.error(str(e), exc_info=True)

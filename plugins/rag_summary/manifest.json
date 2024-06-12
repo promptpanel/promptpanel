@@ -1,0 +1,216 @@
+{
+  "name": "Document Summary",
+  "category": "Power Tools",
+  "capabilities": {
+    "actions": [
+      {
+        "command": "/summarize",
+        "parameters": "[filename*] [question:optional]",
+        "description": "Summarize your file."
+      }
+    ]
+  },
+  "settings": [
+    {
+      "name": "Model",
+      "description": "The language model you want to use. Any LiteLLM model provider is available: https://docs.litellm.ai/docs/providers",
+      "default": "",
+      "type": "text",
+      "selections": [
+        {
+          "group": "OpenAI",
+          "values": ["gpt-4o", "gpt-4-turbo", "gpt-3.5-turbo", "gpt-4"]
+        },
+        {
+          "group": "Google Gemini",
+          "values": [
+            "gemini/gemini-pro",
+            "gemini/gemini-1.5-flash-latest",
+            "gemini/gemini-1.5-pro-latest"
+          ]
+        },
+        {
+          "group": "Anthropic",
+          "values": [
+            "claude-3-haiku-20240307",
+            "claude-3-opus-20240229",
+            "claude-3-sonnet-20240229",
+            "claude-2.1",
+            "claude-2",
+            "claude-instant-1.2",
+            "claude-instant-1"
+          ]
+        },
+        {
+          "group": "Cohere",
+          "values": [
+            "command-r",
+            "command-light",
+            "command-medium",
+            "command-medium-beta",
+            "command-xlarge-nightly",
+            "command-nightly"
+          ]
+        },
+        {
+          "group": "Mistral AI",
+          "values": [
+            "mistral/mistral-tiny",
+            "mistral/mistral-small",
+            "mistral/mistral-medium",
+            "mistral/mistral-large-latest",
+            "mistral/open-mistral-7b",
+            "mistral/open-mixtral-8x7b",
+            "mistral/open-mixtral-8x22b",
+            "mistral/codestral-latest"
+          ]
+        },
+        {
+          "group": "Groq",
+          "values": [
+            "groq/llama3-8b-8192",
+            "groq/llama3-70b-8192",
+            "groq/mixtral-8x7b-32768"
+          ]
+        }
+      ],
+      "required": true
+    },
+    {
+      "name": "Simple Model",
+      "description": "Used for miscellaneous tasks like titling threads for lower cost.",
+      "default": "",
+      "type": "text",
+      "selections": [
+        {
+          "group": "OpenAI",
+          "values": ["gpt-4o", "gpt-4-turbo", "gpt-3.5-turbo", "gpt-4"]
+        },
+        {
+          "group": "Google Gemini",
+          "values": ["gemini/gemini-pro", "gemini/gemini-1.5-pro-latest"]
+        },
+        {
+          "group": "Anthropic",
+          "values": [
+            "claude-3-haiku-20240307",
+            "claude-3-opus-20240229",
+            "claude-3-sonnet-20240229",
+            "claude-2.1",
+            "claude-2",
+            "claude-instant-1.2",
+            "claude-instant-1"
+          ]
+        },
+        {
+          "group": "Cohere",
+          "values": [
+            "command-r",
+            "command-light",
+            "command-medium",
+            "command-medium-beta",
+            "command-xlarge-nightly",
+            "command-nightly"
+          ]
+        },
+        {
+          "group": "Mistral AI API",
+          "values": [
+            "mistral/mistral-tiny",
+            "mistral/mistral-small",
+            "mistral/mistral-medium",
+            "mistral/mistral-large-latest"
+          ]
+        },
+        {
+          "group": "Groq",
+          "values": [
+            "groq/llama3-8b-8192",
+            "groq/llama3-70b-8192",
+            "groq/mixtral-8x7b-32768"
+          ]
+        }
+      ],
+      "required": true
+    },
+    {
+      "name": "Context Size",
+      "description": "The max context size your model supports. Extend this for most newer models (for example: 8192, 16385, or 128000)",
+      "default": "8192",
+      "type": "number",
+      "required": true
+    },
+    {
+      "name": "Document Context Size",
+      "description": "How much of your total context (above) should be filled with context from your documents?",
+      "default": "4000",
+      "type": "number",
+      "required": true
+    },
+    {
+      "name": "System Message",
+      "description": "A message to help instruct the model on it's usage and how to behave.",
+      "type": "textarea",
+      "default": "You are a helpful AI assistant.",
+      "required": true
+    },
+    {
+      "name": "LLM Model API Key",
+      "description": "API access key for connecting to your LLM model for inference.",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "Max Tokens to Generate",
+      "type": "number",
+      "advanced": true
+    },
+    {
+      "name": "URL Base",
+      "type": "text",
+      "advanced": true
+    },
+    {
+      "name": "Organization ID",
+      "description": "Used by some vendors to identify the organization using the API.",
+      "type": "text",
+      "advanced": true
+    },
+    {
+      "name": "API Version",
+      "description": "Used by some vendors to identify the API to use.",
+      "type": "text",
+      "advanced": true
+    },
+    {
+      "name": "Temperature",
+      "description": "Temperature as a setting that controls the AI's willingness to take risks in its word choices. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. (Between 0.0 to 2.0)",
+      "type": "number",
+      "advanced": true
+    },
+    {
+      "name": "Top P",
+      "description": "Top P controls the diversity of the AI's responses by only considering a subset of all possible next words that have a cumulative probability above a certain threshold. Recommended to use Temperature OR Top-P, not both. (Between 0.0 to 2.0)",
+      "type": "number",
+      "advanced": true
+    },
+    {
+      "name": "Stop Sequence",
+      "description": "Sequence where if generated the API will stop generating further tokens.",
+      "type": "text",
+      "advanced": true
+    },
+    {
+      "name": "Presence Penalty",
+      "description": "Aims to reduce the likelihood of the model repeating the same information or topics it has already mentioned in the current text generation task. (Between -2.0 to 2.0)",
+      "type": "number",
+      "advanced": true
+    },
+    {
+      "name": "Frequency Penalty",
+      "description": "Aims to decrease the repetition of individual words or phrases within the generated text. (Between -2.0 to 2.0)",
+      "type": "number",
+      "advanced": true
+    }
+  ]
+}

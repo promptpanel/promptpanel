@@ -2,10 +2,9 @@ import os
 import json
 import jwt
 import logging
-from datetime import datetime, timedelta
+from datetime import timedelta
 from django.conf import settings
 from django.utils import timezone
-from user.models import TokenLog
 
 logger = logging.getLogger("app")
 
@@ -47,7 +46,7 @@ def get_system():
 def generate_jwt_login(user, expires_in=None, token_type="access"):
     if expires_in is None:
         if token_type == "access":
-            expiry_minutes = int(os.getenv("PROMPT_ACCESS_TOKEN_EXP_MINUTES", 10))
+            expiry_minutes = int(os.getenv("PROMPT_ACCESS_TOKEN_EXP_MINUTES", 480))
         elif token_type == "refresh":
             expiry_minutes = int(os.getenv("PROMPT_REFRESH_TOKEN_EXP_MINUTES", 43200))
         else:
@@ -60,10 +59,4 @@ def generate_jwt_login(user, expires_in=None, token_type="access"):
         "iat": int(timezone.now().timestamp()),
     }
     token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
-    TokenLog.objects.create(
-        token=token,
-        token_type=token_type,
-        created_by=user,
-        expires_at=expires_at,
-    )
     return token

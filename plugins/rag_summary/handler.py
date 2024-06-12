@@ -1,0 +1,565 @@
+import logging
+import litellm
+import pickle
+from panel.models import File, Message, Panel, Thread
+from django.http import JsonResponse, StreamingHttpResponse
+from unstructured.partition.auto import partition
+
+logger = logging.getLogger("app")
+
+
+# File Entrypoint
+def file_handler(file, thread, panel):
+    try:
+        response = StreamingHttpResponse(
+            streaming_content=file_stream(file, thread, panel),
+            content_type="text/event-stream",
+        )
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
+        return response
+    except Exception as e:
+        logger.error(e, exc_info=True)
+        return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
+
+def file_stream(file, thread, panel):
+    ## Function:
+    ## 1. Parse file and save page content as chunks.
+    ## 2. Add file upload message / hinting for usage.
+    try:
+        yield "Processing"
+        ## ----- 1. Parse file and save page content as chunks.
+        logger.info("** 1. Parse file and save page content as chunks.")
+        elements = partition(filename=file.filepath, chunking_strategy="by_title")
+        sentences = []
+        page_numbers = []
+        for el in elements:
+            if str(el):
+                sentences.append(str(el))
+                if el.metadata.page_number:
+                    page_numbers.append(el.metadata.page_number)
+                else:
+                    page_numbers.append(1)
+        pickle_path = f"{file.filepath}.pkl"
+        pickle_data = (sentences, page_numbers)
+        with open(pickle_path, "wb") as f:
+            pickle.dump(pickle_data, f)
+        file.meta.update({"enabled": True, "pickle_file_path": pickle_path})
+        file.save()
+        ## ----- 2. Add file upload message / hinting for usage.
+        logger.info("** 2. Add file upload message / hinting for usage.")
+        file_message_content = f"File uploaded successfully.\n To summarize, message `/summarize {file.filename} [question:optional]`"
+        file_message = Message(
+            content=file_message_content,
+            thread=thread,
+            panel=panel,
+            created_by=file.created_by,
+            meta={
+                "sender": "info",
+                "prompt": f"/summarize {file.filename}",
+            },
+        )
+        file_message.save()
+        yield "Completed"
+    except Exception as e:
+        logger.info("** Upload failed")
+        yield "File upload and parsing failed..."
+        file.delete()
+        logger.error(e, exc_info=True)
+        yield "Error"
+
+
+# Message Entrypoint
+def message_handler(message, thread, panel):
+    try:
+        ## Function:
+        ## 1. Routing to messaging functions.
+        logger.info("** 1. Routing to messaging functions.")
+        if message.content.startswith("/summarize"):
+            response = StreamingHttpResponse(
+                streaming_content=summarize_stream(message, thread, panel),
+                content_type="text/event-stream",
+            )
+        else:
+            response = StreamingHttpResponse(
+                streaming_content=chat_stream(message, thread, panel),
+                content_type="text/event-stream",
+            )
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
+        return response
+    except Exception as e:
+        logger.error(e, exc_info=True)
+        return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
+
+def summarize_stream(message, thread, panel):
+    ## Function:
+    ## 1. Get settings / check incoming command + file.
+    ## 2. Batch up summarization by document context size.
+    try:
+        ## ----- 1. Get settings / check incoming command + file.
+        logger.info("** 1. Get settings / check incoming command + file.")
+        message.meta["sender"] = "user_command"
+        message.save()
+        settings = panel.meta
+        parts = message.content.split(" ", 2)
+        if len(parts) < 2:
+            yield "Error: Invalid summarize command format. Use `/summarize [filename] [question *optional]`"
+            return
+        command = parts[0]
+        filename = parts[1]
+        question = parts[2] if len(parts) > 2 else ""
+        selected_file = File.objects.filter(
+            thread=thread, meta__enabled=True, filename__iexact=filename
+        ).first()
+        if not selected_file:
+            yield f"Error: File '{filename}' not found in the current thread."
+            return
+        pickle_path = selected_file.meta.get("pickle_file_path")
+        with open(pickle_path, "rb") as f:
+            sentences, page_numbers = pickle.load(f)
+        completion_model = settings.get("Model")
+        token_model = (
+            completion_model if completion_model != "gpt-4o" else "gpt-4-turbo"
+        )
+        context_size = int(settings.get("Document Context Size"))
+
+        ## ----- 2. Batch up summarization by document context size.
+        logger.info("** 2. Batch up summarization by document context size.")
+        summarize_prompt = "Summarize the following text provided in the next message. Only provide a summary, no yapping."
+        if question:
+            summarize_prompt += f" Also, {question}"
+        summarize_prompt_tokens = litellm.token_counter(
+            model=token_model,
+            messages=[{"role": "system", "content": summarize_prompt}],
+        )
+        current_tokens = 0
+        batched_sentences = []
+        batched_page_numbers = []
+        for sentence, page_number in zip(sentences, page_numbers):
+            current_length = litellm.token_counter(
+                model=token_model, messages=[{"role": "user", "content": sentence}]
+            )
+            if (
+                summarize_prompt_tokens + current_tokens + current_length
+                <= context_size
+            ):
+                batched_sentences.append(sentence)
+                batched_page_numbers.append(page_number)
+                current_tokens += current_length
+            else:
+                yield from summarize_batch(
+                    batched_sentences,
+                    batched_page_numbers,
+                    selected_file,
+                    panel,
+                    thread,
+                    message,
+                    summarize_prompt,
+                    completion_model,
+                    settings,
+                )
+                # Reset after run
+                batched_sentences = []
+                batched_page_numbers = []
+                current_tokens = 0
+        if batched_sentences:
+            yield from summarize_batch(
+                batched_sentences,
+                batched_page_numbers,
+                selected_file,
+                panel,
+                thread,
+                message,
+                summarize_prompt,
+                completion_model,
+                settings,
+            )
+    except Exception as e:
+        logger.error(e, exc_info=True)
+        yield "Error: " + str(e)
+        response_message = Message(
+            content="Error Summarizing: " + str(e),
+            thread=thread,
+            panel=panel,
+            created_by=message.created_by,
+            meta={"sender": "error"},
+        )
+        response_message.save()
+
+
+def summarize_batch(
+    sentences,
+    page_numbers,
+    file,
+    panel,
+    thread,
+    message,
+    summarize_prompt,
+    completion_model,
+    settings,
+):
+    ## Function:
+    ## 1. Run batched content for summary.
+    try:
+        ## ----- 1. Run batched content for summary.
+        logger.info("** 1. Run batched content for summary.")
+        batched_content = "\n".join(sentences)
+        messages = [
+            {"role": "system", "content": summarize_prompt},
+            {"role": "user", "content": batched_content},
+        ]
+        completion_settings = {
+            "stream": True,
+            "model": completion_model,
+            "messages": messages,
+            "api_key": settings.get("LLM Model API Key"),
+            "api_base": (
+                settings.get("URL Base", "").rstrip("/")
+                if settings.get("URL Base") is not None
+                else None
+            ),
+            "api_version": settings.get("API Version"),
+            "organization": settings.get("Organization ID"),
+            "stop": settings.get("Stop Sequence"),
+            "temperature": (
+                float(settings.get("Temperature"))
+                if settings.get("Temperature") is not None
+                else None
+            ),
+            "top_p": (
+                float(settings.get("Top P"))
+                if settings.get("Top P") is not None
+                else None
+            ),
+            "presence_penalty": (
+                float(settings.get("Presence Penalty"))
+                if settings.get("Presence Penalty") is not None
+                else None
+            ),
+            "frequency_penalty": (
+                float(settings.get("Frequency Penalty"))
+                if settings.get("Frequency Penalty") is not None
+                else None
+            ),
+        }
+        litellm.drop_params = True
+        completion_settings_trimmed = {
+            key: value
+            for key, value in completion_settings.items()
+            if value is not None
+        }
+        response = litellm.completion(**completion_settings_trimmed)
+        summary = ""
+        for part in response:
+            try:
+                delta = part.choices[0].delta.content or ""
+                summary += delta
+                yield delta
+            except Exception as e:
+                logger.info("Skipped chunk: " + str(e))
+                pass
+
+        ## ----- 2. Create response message with citations.
+        logger.info("** 2. Create response message with citations.")
+        sentences_with_citations = [{"sentence": summary.strip(), "citations": []}]
+        # Tracking
+        min_page = float("inf")
+        max_page = float("-inf")
+        combined_sentence = ""
+        for sentence, page_number in zip(sentences, page_numbers):
+            min_page = min(min_page, page_number)
+            max_page = max(max_page, page_number)
+            combined_sentence += sentence + " "  # Add sentence to combined excerpt
+        # Add single citation
+        sentences_with_citations[0]["citations"].append(
+            {
+                "filepath": file.filepath,
+                "filename": file.filename,
+                "citation_excerpt": combined_sentence.strip(),
+                "page_num": (
+                    f"{int(min_page)} - {int(max_page)}"
+                    if min_page != max_page
+                    else f"{int(min_page)}"
+                ),  # Format as "2-4" or just "2"
+            }
+        )
+        response_message = Message(
+            content=summary,
+            thread=thread,
+            panel=panel,
+            created_by=message.created_by,
+            meta={
+                "sender": "assistant",
+                "sentences": sentences_with_citations,
+            },
+        )
+        response_message.save()
+    except Exception as e:
+        logger.error(e, exc_info=True)
+        response_message = Message(
+            content="Error Summarizing: " + str(e),
+            thread=thread,
+            panel=panel,
+            created_by=message.created_by,
+            meta={"sender": "error"},
+        )
+        response_message.save()
+        pass
+
+
+def chat_stream(message, thread, panel):
+    ## Function:
+    ## 1. Get settings.
+    ## 2. Enrich incoming message with token_count.
+    ## 3. Get max context and system message.
+    ## 4. Build message history.
+    ## 5. Execute chat.
+    ## 6. Save warnings as needed.
+    ## 7. Cleanup message text, enrich with token count, and save.
+    ## 8. Enrich / append a title to the chat.
+
+    try:
+        ## ----- 1. Get settings.
+        logger.info("** 1. Get settings.")
+        settings = panel.meta
+        ## Remove blank-string keys
+        keys_to_remove = [k for k, v in settings.items() if v == ""]
+        for key in keys_to_remove:
+            del settings[key]
+
+        ## ----- 2. Enrich incoming message with token_count.
+        logger.info("** 2. Enrich incoming message with token_count.")
+        completion_model = settings.get("Model")
+        token_count = litellm.token_counter(
+            model=completion_model,
+            messages=[{"role": "user", "content": message.content}],
+        )
+        message.meta.update({"token_count": token_count})
+        message.save()
+
+        ## ----- 3. Get max context and system message.
+        max_tokens = int(settings.get("Context Size"))
+        system_message = {
+            "role": "system",
+            "content": settings.get("System Message", ""),
+        }
+        system_message_token_count = litellm.token_counter(
+            model=completion_model, messages=[system_message]
+        )
+        if settings.get("Max Tokens to Generate") is not None:
+            remaining_tokens = (
+                max_tokens
+                - system_message_token_count
+                - int(settings.get("Max Tokens to Generate"))
+            )
+        else:
+            remaining_tokens = max_tokens - system_message_token_count
+
+        ## ----- 4. Build message history.
+        logger.info("** 5. Build message history.")
+        messages = Message.objects.filter(
+            created_by=message.created_by, thread_id=thread.id
+        ).order_by("-created_on")
+        message_history = []
+        message_history_token_count = 0
+        user_message_count = 0
+        for msg in messages:
+            if (
+                msg.meta.get("token_count", 0) + message_history_token_count
+                <= remaining_tokens
+            ):
+                # Container for message
+                skipped_images = False
+                role = msg.meta.get("sender", "user")
+                if role == "user":
+                    # Increment if role user (for title later)
+                    user_message_count = user_message_count + 1
+                    message_history_token_count += msg.meta.get("token_count", 0)
+                    message_history.append(
+                        {
+                            "role": "user",
+                            "content": msg.content,
+                        }
+                    )
+                if role == "assistant":
+                    message_history_token_count += msg.meta.get("token_count", 0)
+                    message_history.append(
+                        {
+                            "role": "assistant",
+                            "content": msg.content,
+                        }
+                    )
+            else:
+                break
+        message_history.append(system_message)
+        message_history.reverse()
+
+        ## ----- 5. Execute chat.
+        logger.info("** 6. Execute chat.")
+        logger.info("Message history: " + str(message_history))
+        completion_settings = {
+            "stream": True,
+            "model": completion_model,
+            "messages": message_history,
+            "api_key": settings.get("LLM Model API Key"),
+            "api_base": (
+                settings.get("URL Base", "").rstrip("/")
+                if settings.get("URL Base") is not None
+                else None
+            ),
+            "api_version": settings.get("API Version"),
+            "organization": settings.get("Organization ID"),
+            "stop": settings.get("Stop Sequence"),
+            "temperature": (
+                float(settings.get("Temperature"))
+                if settings.get("Temperature") is not None
+                else None
+            ),
+            "max_tokens": (
+                int(settings.get("Max Tokens to Generate"))
+                if settings.get("Max Tokens to Generate") is not None
+                else None
+            ),
+            "top_p": (
+                float(settings.get("Top P"))
+                if settings.get("Top P") is not None
+                else None
+            ),
+            "presence_penalty": (
+                float(settings.get("Presence Penalty"))
+                if settings.get("Presence Penalty") is not None
+                else None
+            ),
+            "frequency_penalty": (
+                float(settings.get("Frequency Penalty"))
+                if settings.get("Frequency Penalty") is not None
+                else None
+            ),
+        }
+        litellm.drop_params = True
+        completion_settings_trimmed = {
+            key: value
+            for key, value in completion_settings.items()
+            if value is not None
+        }
+        response = litellm.completion(**completion_settings_trimmed)
+        response_content = ""
+        if skipped_images:
+            yield "> Vision is not available with this model.\n\n"
+        for part in response:
+            try:
+                delta = part.choices[0].delta.content or ""
+                response_content += delta
+                yield delta
+            except Exception as e:
+                logger.info("Skipped chunk: " + str(e))
+                pass
+
+        ## ----- 6. Save warnings as needed.
+        logger.info("** 7. Save warnings as needed.")
+        if skipped_images:
+            warning_images = Message(
+                content="Vision is not available with this model.",
+                thread=thread,
+                panel=panel,
+                created_by=message.created_by,
+                meta={"sender": "warning"},
+            )
+            warning_images.save()
+
+        ## ----- 7. Cleanup message text, enrich with token count, and save.
+        logger.info("** 8. Cleanup message text, enrich with token count, and save.")
+        # Cleanup
+        last_period_pos = response_content.rfind(".")
+        last_question_mark_pos = response_content.rfind("?")
+        last_exclamation_mark_pos = response_content.rfind("!")
+        last_quote_period_pos = response_content.rfind('."')
+        last_quote_question_mark_pos = response_content.rfind('?"')
+        last_quote_exclamation_mark_pos = response_content.rfind('!"')
+        last_sentence_end_pos = max(
+            last_period_pos,
+            last_question_mark_pos,
+            last_exclamation_mark_pos,
+            last_quote_period_pos,
+            last_quote_question_mark_pos,
+            last_quote_exclamation_mark_pos,
+        )
+        if last_sentence_end_pos != -1:
+            response_content = response_content[: last_sentence_end_pos + 1]
+
+        # Save message
+        new_message = [{"role": "assistant", "content": response_content}]
+        token_count = litellm.token_counter(
+            model=completion_model, messages=new_message
+        )
+        response_message = Message(
+            content=response_content,
+            thread=thread,
+            panel=panel,
+            created_by=message.created_by,
+            meta={"sender": "assistant", "token_count": token_count},
+        )
+        response_message.save()
+
+        ## ----- 8. Enrich / append a title to the chat.
+        logger.info("** 9. Enrich / append a title to the chat")
+        if user_message_count == 1:
+            title_enrich = []
+            title_content = """
+You are an assistant who writes informative titles based on questions which are asked by the user. 
+Please only provide a summary, do not provide the answer to the question.
+Examples:
+```
+Solution to the fizz buzz problem.
+Who won the 1998 NBA Finals?
+New ideas for blog posts.
+Ordering food in Japanese.
+Instruction manual.
+Information from document source.
+```
+            """.strip()
+            title_enrich.append({"role": "system", "content": title_content})
+            title_enrich.append(
+                {
+                    "role": "user",
+                    "content": f"Please create a title for the following content: {message.content}",
+                }
+            )
+            title_settings = {
+                "stream": False,
+                "model": settings.get("Simple Model"),
+                "messages": title_enrich,
+                "api_key": settings.get("LLM Model API Key"),
+                "api_base": (
+                    settings.get("URL Base", "").rstrip("/")
+                    if settings.get("URL Base") is not None
+                    else None
+                ),
+                "api_version": settings.get("API Version"),
+                "organization": settings.get("Organization ID"),
+                "max_tokens": 34,
+            }
+            litellm.drop_params = True
+            title_settings_trimmed = {
+                key: value for key, value in title_settings.items() if value is not None
+            }
+            response = litellm.completion(**title_settings_trimmed)
+            thread.title = response.choices[0].message.content.strip(
+                '"\n'
+            )  # Clean extra quotes
+            thread.save()
+    except Exception as e:
+        logger.error(e, exc_info=True)
+        yield "Error: " + str(e)
+        # Save error as message
+        response_message = Message(
+            content="Error: " + str(e),
+            thread=thread,
+            panel=panel,
+            created_by=message.created_by,
+            meta={"sender": "error"},
+        )
+        response_message.save()
