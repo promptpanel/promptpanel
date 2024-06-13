@@ -202,7 +202,7 @@ def message_append(message, thread, panel):
                     messages=[
                         {
                             "role": "user",
-                            "content": "Document Context:\n" + file_content + "\n",
+                            "content": "Document Context:\n" + file_content,
                         }
                     ],
                 )
