@@ -143,7 +143,7 @@
             <table class="w-full text-left bg-white">
               <thead class="bg-stone-100 border-b-2 border-stone-200">
                 <tr>
-                  <th class="w-0 px-2 py-1 text-sm font-semibold text-stone-600 text-center">Enable</th>
+                  <th class="w-0 px-2 py-1 text-sm font-semibold text-stone-600 text-center">Copy</th>
                   <th class="px-2 py-1 text-sm font-semibold text-stone-600">File</th>
                   <th class="px-2 py-1 text-sm font-semibold text-stone-600"></th>
                   <th class="px-2 py-1 text-sm font-semibold text-stone-600"></th>
@@ -164,11 +164,6 @@
                       <template x-if="file.meta?.upload_status == 'failed'">
                         <svg class="w-4 h-4 mx-auto text-rose-600 not-allowed" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-1.72 6.97a.75.75 0 1 0-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 1 0 1.06 1.06L12 13.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L13.06 12l1.72-1.72a.75.75 0 1 0-1.06-1.06L12 10.94l-1.72-1.72Z" clip-rule="evenodd"></path></svg>
                       </template> 
-
-                      <!-- 
-                        <input type="checkbox" :checked="file.meta?.enabled" @change="updateFileEnableState(file, $event.target.checked)" class="text-sm w-4 h-4 accent-primary mt-[0.3rem] cursor-pointer" />
-                        <div class="w-4 h-4 rounded cursor-not-allowed bg-stone-200 mx-auto"></div>
-                      -->
                     </td>
                     <td class="px-2 py-1 whitespace-nowrap">
                       <a :href="file.filepath" x-text="file.filename" :class="{ 'text-stone-500 hover:text-stone-800': !file.meta?.enabled, 'text-primary hover:text-primary/80': file.meta?.enabled}" class="text-primary hover:text-primary/80"></a>
@@ -380,7 +375,7 @@
                       </div>
                     </template>
 
-                    <template x-if="!message.meta?.sentences && !message.meta.sentences.length > 0">
+                    <template x-if="!message.meta?.sentences || !message.meta.sentences.length > 0">
                       <div class="z-[0] relative rounded-t-md rounded-br-md w-11/12 py-2.5">
                         <div x-html="message.content" class="prose w-full masked text-lg">Message Content</div>
                       </div>  
