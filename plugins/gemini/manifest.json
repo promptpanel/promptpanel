@@ -2,6 +2,7 @@
   "name": "Google Gemini",
   "category": " Base Models",
   "capabilities": {
+    "vision": true,
     "actions": [
       {
         "command": "/append",
