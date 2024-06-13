@@ -514,11 +514,8 @@ Please only provide a summary, do not provide the answer to the question.
 Examples:
 ```
 Solution to the fizz buzz problem.
-Who won the 1998 NBA Finals?
-New ideas for blog posts.
+Winner of the 1998 NBA Finals.
 Ordering food in Japanese.
-Instruction manual.
-Information from document source.
 ```
             """.strip()
             title_enrich.append({"role": "system", "content": title_content})

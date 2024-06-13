@@ -315,12 +315,12 @@ You are an assistant who writes informative titles based on questions which are 
 Please only provide a summary, do not provide the answer to the question.
 Examples:
 ```
-Code: Solution to the fizz buzz problem
-History: Who won the 1998 NBA Finals?
-Brainstorm: New ideas for blog posts
-Translate: Ordering food in Japanese
-Summary: Instruction manual
-Lookup: Information from document source
+Solution to the fizz buzz problem.
+Who won the 1998 NBA Finals?
+New ideas for blog posts.
+Ordering food in Japanese.
+Instruction manual.
+Information from document source.
 ```
             """.strip()
             title_enrich.append({"role": "system", "content": title_content})
