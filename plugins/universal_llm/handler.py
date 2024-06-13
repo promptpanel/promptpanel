@@ -2,6 +2,7 @@ import os
 import json
 import logging
 import litellm
+import re
 from panel.models import File, Message, Panel, Thread
 from django.http import JsonResponse, StreamingHttpResponse
 from unstructured.partition.auto import partition
@@ -61,6 +62,20 @@ def file_stream(file, thread, panel):
             }
         )
         file.save()
+        ## ----- 3. Add file upload message / hinting for usage.
+        logger.info("** 3. Add file upload message / hinting for usage.")
+        file_message_content = f"File uploaded successfully.\n To append send `/append /file {file.filename} [message*]`"
+        file_message = Message(
+            content=file_message_content,
+            thread=thread,
+            panel=panel,
+            created_by=file.created_by,
+            meta={
+                "sender": "info",
+                "prompt": f"/append /file {file.filename} [message*]",
+            },
+        )
+        file_message.save()
         yield "Completed"
     except Exception as e:
         logger.info("** Upload failed:" + str(e))
@@ -75,16 +90,256 @@ def file_stream(file, thread, panel):
 # Message Entrypoint
 def message_handler(message, thread, panel):
     try:
-        response = StreamingHttpResponse(
-            streaming_content=chat_stream(message, thread, panel),
-            content_type="text/event-stream",
-        )
+        ## Function:
+        ## 1. Routing to messaging functions.
+        logger.info("** 1. Routing to messaging functions.")
+        if message.content.startswith("/append"):
+            response = StreamingHttpResponse(
+                streaming_content=message_append(message, thread, panel),
+                content_type="text/event-stream",
+            )
+        else:
+            response = StreamingHttpResponse(
+                streaming_content=chat_stream(message, thread, panel),
+                content_type="text/event-stream",
+            )
         response["Cache-Control"] = "no-cache"
         response["X-Accel-Buffering"] = "no"
         return response
     except Exception as e:
         logger.error(e, exc_info=True)
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
+
+def message_append(message, thread, panel):
+    ## Function:
+    ## 1. Get settings.
+    ## 2. Get max context and system message.
+    ## 3. Build message history.
+    ## 3.1 Get appended file(s).
+    ## 4. Execute chat.
+    ## 5. Cleanup message text, and save.
+    ## 6. Save warnings as needed.
+
+    try:
+        ## ----- 1. Get settings.
+        logger.info("** 1. Get files to append and settings.")
+        ## Save message as a command
+        message.meta["sender"] = "user_command"
+        message.save()
+        ## Parse incoming command
+        command_pattern = r"/lookup(?: /file {([^}]+)})+(.*)"
+        filenames_find = re.findall(r"/file {([^}]+)}", message.content)
+        command_message = re.split(r"/file {[^}]+}", message.content)[-1].strip()
+        command_filenames = [
+            filename.strip() for filename in filenames_find if filename.strip()
+        ]
+        settings = panel.meta
+        ## Remove blank-string keys
+        keys_to_remove = [k for k, v in settings.items() if v == ""]
+        for key in keys_to_remove:
+            del settings[key]
+        completion_model = settings.get("Model")
+
+        ## ----- 2. Get max context and system message.
+        logger.info("** 2. Get max context and system message.")
+        max_tokens = int(settings.get("Context Size"))
+        system_message = {
+            "role": "system",
+            "content": settings.get("System Message", ""),
+        }
+        system_message_token_count = litellm.token_counter(
+            model=completion_model, messages=[system_message]
+        )
+        if settings.get("Max Tokens to Generate") is not None:
+            remaining_tokens = (
+                max_tokens
+                - system_message_token_count
+                - int(settings.get("Max Tokens to Generate"))
+            )
+        else:
+            remaining_tokens = max_tokens - system_message_token_count
+
+        ## ----- 3. Build message history.
+        logger.info("** 3. Build message history.")
+        messages = Message.objects.filter(
+            created_by=message.created_by, thread_id=thread.id
+        ).order_by("-created_on")
+        message_history = []
+        message_history_token_count = 0
+        # Current message
+        msg_content_row = [{"role": role, "content": command_message}]
+        msg_token_count = litellm.token_counter(
+            model=completion_model, messages=msg_content_row
+        )
+        message_history_token_count += msg_token_count
+        message_history.append(msg_content_row)
+
+        ## ----- 3.1 Get files + append to history.
+        logger.info("** 3. Get files + append to history.")
+        file_appended_text = ""
+        file_context_size_warn = False
+        for filename in command_filenames:
+            file_obj = File.objects.get(filename=filename)
+            filepath = file_obj.meta.get("text_file_path", "")
+            if filepath:
+                with open(filepath, "r", encoding="utf-8") as f:
+                    file_content = f.read()
+                file_tokens_count = litellm.token_counter(
+                    model=completion_model,
+                    messages=[{"role": "user", "content": file_content + "\n"}],
+                )
+                if file_tokens_count + message_history_token_count < remaining_tokens:
+                    message_history_token_count += file_tokens_count
+                    file_appended_text += file_content + "\n"
+                else:
+                    file_context_size_warn = True
+                    pass
+            else:
+                logger.info("Text filepath not found in metadata. Skipping...")
+
+        # Previous messages
+        for msg in messages:
+            role = msg.meta.get("sender", "user")
+            if role == "user" or role == "assistant":
+                msg_content_row = [{"role": role, "content": msg.content}]
+                msg_token_count = litellm.token_counter(
+                    model=completion_model, messages=msg_content_row
+                )
+            if msg_token_count + message_history_token_count <= remaining_tokens:
+                # Container for message
+                if role == "user":
+                    message_history_token_count += msg_token_count
+                    message_history.append(
+                        {
+                            "role": "user",
+                            "content": msg.content,
+                        }
+                    )
+                if role == "assistant":
+                    message_history_token_count += msg_token_count
+                    message_history.append(
+                        {
+                            "role": "assistant",
+                            "content": msg.content,
+                        }
+                    )
+            else:
+                break
+        message_history.append(system_message)
+        message_history.reverse()
+
+        ## ----- 4. Execute chat.
+        logger.info("** 4. Execute chat.")
+        logger.info("Message history: " + str(message_history))
+        completion_settings = {
+            "stream": True,
+            "model": completion_model,
+            "messages": message_history,
+            "api_key": settings.get("API Key"),
+            "api_base": (
+                settings.get("URL Base", "").rstrip("/")
+                if settings.get("URL Base") is not None
+                else None
+            ),
+            "api_version": settings.get("API Version"),
+            "organization": settings.get("Organization ID"),
+            "stop": settings.get("Stop Sequence"),
+            "temperature": (
+                float(settings.get("Temperature"))
+                if settings.get("Temperature") is not None
+                else None
+            ),
+            "max_tokens": (
+                int(settings.get("Max Tokens to Generate"))
+                if settings.get("Max Tokens to Generate") is not None
+                else None
+            ),
+            "top_p": (
+                float(settings.get("Top P"))
+                if settings.get("Top P") is not None
+                else None
+            ),
+            "presence_penalty": (
+                float(settings.get("Presence Penalty"))
+                if settings.get("Presence Penalty") is not None
+                else None
+            ),
+            "frequency_penalty": (
+                float(settings.get("Frequency Penalty"))
+                if settings.get("Frequency Penalty") is not None
+                else None
+            ),
+        }
+        litellm.drop_params = True
+        completion_settings_trimmed = {
+            key: value
+            for key, value in completion_settings.items()
+            if value is not None
+        }
+        response = litellm.completion(**completion_settings_trimmed)
+        response_content = ""
+        for part in response:
+            try:
+                delta = part.choices[0].delta.content or ""
+                response_content += delta
+                yield delta
+            except Exception as e:
+                logger.info("Skipped chunk: " + str(e))
+                pass
+
+        ## ----- 5. Cleanup message text, and save.
+        logger.info("** 5. Cleanup message text, and save.")
+        # Cleanup
+        last_period_pos = response_content.rfind(".")
+        last_question_mark_pos = response_content.rfind("?")
+        last_exclamation_mark_pos = response_content.rfind("!")
+        last_quote_period_pos = response_content.rfind('."')
+        last_quote_question_mark_pos = response_content.rfind('?"')
+        last_quote_exclamation_mark_pos = response_content.rfind('!"')
+        last_sentence_end_pos = max(
+            last_period_pos,
+            last_question_mark_pos,
+            last_exclamation_mark_pos,
+            last_quote_period_pos,
+            last_quote_question_mark_pos,
+            last_quote_exclamation_mark_pos,
+        )
+        if last_sentence_end_pos != -1:
+            response_content = response_content[: last_sentence_end_pos + 1]
+        # Save message
+        response_message = Message(
+            content=response_content,
+            thread=thread,
+            panel=panel,
+            created_by=message.created_by,
+            meta={"sender": "assistant"},
+        )
+        response_message.save()
+
+        ## ----- 6. Save warnings as needed.
+        logger.info("** 6. Save warnings as needed.")
+        if file_context_size_warn:
+            warning_docs = Message(
+                content="Some of your documents exceeded the context window (text size). We recommend using a retrieval-augmented generation (RAG) based solution [such as the `Document Lookup` plugin] to surface only the relevant information when querying your AI.",
+                thread=thread,
+                panel=panel,
+                created_by=message.created_by,
+                meta={"sender": "warning"},
+            )
+            warning_docs.save()
+    except Exception as e:
+        logger.error(e, exc_info=True)
+        yield "Error: " + str(e)
+        # Save error as message
+        response_message = Message(
+            content="Error: " + str(e),
+            thread=thread,
+            panel=panel,
+            created_by=message.created_by,
+            meta={"sender": "error"},
+        )
+        response_message.save()
 
 
 def chat_stream(message, thread, panel):
@@ -132,7 +387,6 @@ def chat_stream(message, thread, panel):
         ).order_by("-created_on")
         message_history = []
         message_history_token_count = 0
-        user_message_count = 0
         for msg in messages:
             role = msg.meta.get("sender", "user")
             if role == "user" or role == "assistant":
@@ -143,7 +397,6 @@ def chat_stream(message, thread, panel):
             if msg_token_count + message_history_token_count <= remaining_tokens:
                 # Container for message
                 if role == "user":
-                    user_message_count += 1
                     message_history_token_count += msg_token_count
                     message_history.append(
                         {
@@ -254,7 +507,7 @@ def chat_stream(message, thread, panel):
 
         ## ----- 6. Enrich / append a title to the chat.
         logger.info("** 6. Enrich / append a title to the chat")
-        if user_message_count == 1:
+        if thread.title == "New Thread":
             title_enrich = []
             title_content = """
 You are an assistant who writes informative titles based on questions which are asked by the user. 
