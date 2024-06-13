@@ -30,6 +30,7 @@ def file_stream(file, thread, panel):
     ## 1. Get settings.
     ## 2. Parse file and save to .txt file.
     ## 3. Enrich file metadata with token_count.
+    ## 4. Add file upload message / hinting for usage.
 
     try:
         yield "Processing"
@@ -62,7 +63,7 @@ def file_stream(file, thread, panel):
             }
         )
         file.save()
-        ## ----- 3. Add file upload message / hinting for usage.
+        ## ----- 4. Add file upload message / hinting for usage.
         logger.info("** 3. Add file upload message / hinting for usage.")
         file_message_content = f"File uploaded successfully.\n To append send `/append /file {file.filename} [message*]`"
         file_message = Message(

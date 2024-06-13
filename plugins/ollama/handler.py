@@ -29,6 +29,7 @@ def file_stream(file, thread, panel):
     ## 1. Get settings.
     ## 2. Parse file and save to .txt file.
     ## 3. Enrich file metadata with token_count.
+    ## 4. Add file upload message / hinting for usage.
 
     try:
         yield "Processing"
@@ -76,6 +77,7 @@ def file_stream(file, thread, panel):
         )
         file.save()
         yield "Error"
+
 
 # Message Entrypoint
 def message_handler(message, thread, panel):

@@ -32,8 +32,8 @@ def file_handler(file, thread, panel):
 def file_stream(file, thread, panel):
     ## Function:
     ## 1. Get settings.
-    ## 2. Parse file and save to .txt file.
-    ## 3. Enrich file metadata with token_count.
+    ## 2. Parse file and save embeddings.
+    ## 3. Add file upload message / hinting for usage.
 
     try:
         yield "Processing"
