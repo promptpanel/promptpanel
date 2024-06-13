@@ -37,17 +37,14 @@ def file_stream(file, thread, panel):
         logger.info("** 1. Get settings.")
         settings = panel.meta
         model_selected = settings.get("Model", "GPT-3.5")
-        temp__token_model = None
         if model_selected == "GPT-4":
             completion_model = "gpt-4"
         elif model_selected == "GPT-4 Turbo":
             completion_model = "gpt-4-turbo"
         elif model_selected == "GPT-4o":
             completion_model = "gpt-4o"
-            temp__token_model = "gpt-4-turbo"
         else:
             completion_model = "gpt-3.5-turbo"
-        token_model = temp__token_model if temp__token_model else completion_model
         ## ----- 2. Parse file and save to .txt file.
         logger.info("** 2. Parse file and save to .txt file.")
         elements = partition(filename=file.filepath, strategy="fast")
@@ -61,7 +58,7 @@ def file_stream(file, thread, panel):
             output_text = input_file.read()
         output_text_formatted = f"{file.filename} Context:\n {output_text} \n\n"
         new_file = [{"role": "user", "content": output_text_formatted}]
-        token_count = litellm.token_counter(model=token_model, messages=new_file)
+        token_count = litellm.token_counter(model=completion_model, messages=new_file)
         file.meta.update(
             {
                 "enabled": True,
@@ -121,26 +118,16 @@ def chat_stream(message, thread, panel):
         ## ----- 2. Enrich incoming message with token_count.
         logger.info("** 2. Enrich incoming message with token_count.")
         model_selected = settings.get("Model", "GPT-3.5")
-        temp__token_model = None
         if model_selected == "GPT-4":
             completion_model = "gpt-4"
         elif model_selected == "GPT-4 Turbo":
             completion_model = "gpt-4-turbo"
         elif model_selected == "GPT-4o":
-            temp__token_model = "gpt-4-turbo"
-            completion_model = "gpt-4o"
-        if model_selected == "GPT-4":
-            completion_model = "gpt-4"
-        elif model_selected == "GPT-4 Turbo":
-            completion_model = "gpt-4-turbo"
-        elif model_selected == "GPT-4o":
-            temp__token_model = "gpt-4-turbo"
             completion_model = "gpt-4o"
         else:
             completion_model = "gpt-3.5-turbo"
-        token_model = temp__token_model if temp__token_model else completion_model
         token_count = litellm.token_counter(
-            model=token_model,
+            model=completion_model,
             messages=[{"role": "user", "content": message.content}],
         )
         message.meta.update({"token_count": token_count})
@@ -162,7 +149,7 @@ def chat_stream(message, thread, panel):
             "content": [{"type": "text", "text": settings.get("System Message", "")}],
         }
         system_message_token_count = litellm.token_counter(
-            model=token_model, messages=[system_message]
+            model=completion_model, messages=[system_message]
         )
         remaining_tokens = max_tokens - system_message_token_count
 
@@ -324,7 +311,9 @@ def chat_stream(message, thread, panel):
 
         # Save message
         new_message = [{"role": "assistant", "content": response_content}]
-        token_count = litellm.token_counter(model=token_model, messages=new_message)
+        token_count = litellm.token_counter(
+            model=completion_model, messages=new_message
+        )
         response_message = Message(
             content=response_content,
             thread=thread,
