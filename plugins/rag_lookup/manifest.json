@@ -5,7 +5,7 @@
     "actions": [
       {
         "command": "/lookup",
-        "parameters": "[filename*] [question*]",
+        "parameters": "(/file [filename]) [question*]",
         "description": "Lookup content from your file."
       }
     ]
@@ -194,12 +194,14 @@
       "name": "LLM Model API Key",
       "description": "API access key for connecting to your LLM model for inference.",
       "type": "text",
+      "private": true,
       "required": true
     },
     {
       "name": "Embedding API Key",
       "description": "API access key for connecting to your embedding model for embedding your context.",
       "type": "text",
+      "private": true,
       "required": true
     },
     {

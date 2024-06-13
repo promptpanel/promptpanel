@@ -2,7 +2,14 @@
   "name": "OpenAI",
   "category": " Base Models",
   "capabilities": {
-    "vision": true
+    "vision": true,
+    "actions": [
+      {
+        "command": "/append",
+        "parameters": "(/file [filename]) [message*]",
+        "description": "Append a file to your message."
+      }
+    ]
   },
   "settings": [
     {
