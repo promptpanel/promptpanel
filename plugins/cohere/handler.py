@@ -210,12 +210,7 @@ def message_append(message, thread, panel):
                     messages=[
                         {
                             "role": "user",
-                            "content": [
-                                {
-                                    "type": "text",
-                                    "text": "Document Context:\n" + file_content + "\n",
-                                }
-                            ],
+                            "content": "Document Context:\n" + file_content + "\n",
                         }
                     ],
                 )
@@ -231,12 +226,7 @@ def message_append(message, thread, panel):
         logger.info("Appended Content: " + file_appended_text)
         file_content_row = {
             "role": "user",
-            "content": [
-                {
-                    "type": "text",
-                    "text": "Document Context:\n" + file_appended_text,
-                }
-            ],
+            "content": "Document Context:\n" + file_content + "\n",
         }
         message_history.append(file_content_row)
 
