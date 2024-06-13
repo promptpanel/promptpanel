@@ -90,11 +90,14 @@ def message_handler(message, thread, panel):
 def chat_stream(message, thread, panel):
     ## Function:
     ## 1. Get settings.
-    ## 2. Get max context and system message.
-    ## 3. Build message history.
-    ## 4. Execute chat.
-    ## 5. Cleanup message text, and save.
-    ## 6. Enrich / append a title to the chat.
+    ## 2. Enrich incoming message with token_count.
+    ## 3. Get max context and system message.
+    ## 4. Build document context.
+    ## 5. Build message history.
+    ## 6. Execute chat.
+    ## 7. Save warnings as needed.
+    ## 8. Cleanup message text, enrich with token count, and save.
+    ## 9. Enrich / append a title to the chat.
 
     try:
         ## ----- 1. Get settings.
@@ -104,10 +107,18 @@ def chat_stream(message, thread, panel):
         keys_to_remove = [k for k, v in settings.items() if v == ""]
         for key in keys_to_remove:
             del settings[key]
-        completion_model = settings.get("Model")
 
-        ## ----- 2. Get max context and system message.
-        logger.info("** 2. Get max context and system message.")
+        ## ----- 2. Enrich incoming message with token_count.
+        logger.info("** 2. Enrich incoming message with token_count.")
+        completion_model = settings.get("Model")
+        token_count = litellm.token_counter(
+            model=completion_model,
+            messages=[{"role": "user", "content": message.content}],
+        )
+        message.meta.update({"token_count": token_count})
+        message.save()
+
+        ## ----- 3. Get max context and system message.
         max_tokens = int(settings.get("Context Size"))
         system_message = {
             "role": "system",
@@ -125,8 +136,39 @@ def chat_stream(message, thread, panel):
         else:
             remaining_tokens = max_tokens - system_message_token_count
 
-        ## ----- 3. Build message history.
-        logger.info("** 3. Build message history.")
+        ## ----- 4. Build document context.
+        logger.info("** 4. Build document context.")
+        # Allow 80% of context to be filled
+        doc_token_limit = remaining_tokens * 0.8
+        doc_current_tokens = 0
+        doc_context = ""
+        skipped_docs = False
+        thread_files = File.objects.filter(thread=thread, meta__enabled=True)
+        if thread_files.exists():
+            for file in thread_files:
+                doc_token_count = file.meta.get("token_count", 0)
+                if doc_current_tokens + doc_token_count <= doc_token_limit:
+                    doc_current_tokens += doc_token_count
+                    doc_file_path = file.meta.get("text_file_path", "")
+                    try:
+                        if os.path.exists(doc_file_path):
+                            with open(doc_file_path, "r") as f:
+                                doc_text = f.read()
+                            doc_context += f"{file.filename} Context:\n{doc_text}\n\n"
+                    except Exception as e:
+                        logger.error(e, exc_info=True)
+                else:
+                    skipped_docs = True
+                    break
+            document_context = {
+                "role": "user",
+                "content": [{"type": "text", "text": doc_context}],
+            }
+            # Set tokens after adding docs
+            remaining_tokens = remaining_tokens - doc_current_tokens
+
+        ## ----- 5. Build message history.
+        logger.info("** 5. Build message history.")
         messages = Message.objects.filter(
             created_by=message.created_by, thread_id=thread.id
         ).order_by("-created_on")
@@ -134,17 +176,17 @@ def chat_stream(message, thread, panel):
         message_history_token_count = 0
         user_message_count = 0
         for msg in messages:
-            role = msg.meta.get("sender", "user")
-            if role == "user" or role == "assistant":
-                msg_content_row = [{"role": role, "content": msg.content}]
-                msg_token_count = litellm.token_counter(
-                    model=completion_model, messages=msg_content_row
-                )
-            if msg_token_count + message_history_token_count <= remaining_tokens:
+            if (
+                msg.meta.get("token_count", 0) + message_history_token_count
+                <= remaining_tokens
+            ):
                 # Container for message
+                skipped_images = False
+                role = msg.meta.get("sender", "user")
                 if role == "user":
-                    user_message_count += 1
-                    message_history_token_count += msg_token_count
+                    # Increment if role user (for title later)
+                    user_message_count = user_message_count + 1
+                    message_history_token_count += msg.meta.get("token_count", 0)
                     message_history.append(
                         {
                             "role": "user",
@@ -152,7 +194,7 @@ def chat_stream(message, thread, panel):
                         }
                     )
                 if role == "assistant":
-                    message_history_token_count += msg_token_count
+                    message_history_token_count += msg.meta.get("token_count", 0)
                     message_history.append(
                         {
                             "role": "assistant",
@@ -161,11 +203,13 @@ def chat_stream(message, thread, panel):
                     )
             else:
                 break
+        if thread_files.exists():
+            message_history.append(document_context)
         message_history.append(system_message)
         message_history.reverse()
 
-        ## ----- 4. Execute chat.
-        logger.info("** 4. Execute chat.")
+        ## ----- 6. Execute chat.
+        logger.info("** 6. Execute chat.")
         logger.info("Message history: " + str(message_history))
         completion_settings = {
             "stream": True,
@@ -214,6 +258,10 @@ def chat_stream(message, thread, panel):
         }
         response = litellm.completion(**completion_settings_trimmed)
         response_content = ""
+        if skipped_images:
+            yield "> Vision is not available with this model.\n\n"
+        if skipped_docs:
+            yield "> Some of your documents exceeded the context window (text size) for your AI. We recommend using a retrieval-augmented generation (RAG) based solution to surface only the relevant information when querying your AI.\n\n"
         for part in response:
             try:
                 delta = part.choices[0].delta.content or ""
@@ -223,8 +271,29 @@ def chat_stream(message, thread, panel):
                 logger.info("Skipped chunk: " + str(e))
                 pass
 
-        ## ----- 5. Cleanup message text, and save.
-        logger.info("** 5. Cleanup message text, and save.")
+        ## ----- 7. Save warnings as needed.
+        logger.info("** 7. Save warnings as needed.")
+        if skipped_docs:
+            warning_docs = Message(
+                content="Some of your documents exceeded the context window (text size) for your AI. We recommend using a retrieval-augmented generation (RAG) based solution to surface only the relevant information when querying your AI.",
+                thread=thread,
+                panel=panel,
+                created_by=message.created_by,
+                meta={"sender": "warning"},
+            )
+            warning_docs.save()
+        if skipped_images:
+            warning_images = Message(
+                content="Vision is not available with this model.",
+                thread=thread,
+                panel=panel,
+                created_by=message.created_by,
+                meta={"sender": "warning"},
+            )
+            warning_images.save()
+
+        ## ----- 8. Cleanup message text, enrich with token count, and save.
+        logger.info("** 8. Cleanup message text, enrich with token count, and save.")
         # Cleanup
         last_period_pos = response_content.rfind(".")
         last_question_mark_pos = response_content.rfind("?")
@@ -242,18 +311,23 @@ def chat_stream(message, thread, panel):
         )
         if last_sentence_end_pos != -1:
             response_content = response_content[: last_sentence_end_pos + 1]
+
         # Save message
+        new_message = [{"role": "assistant", "content": response_content}]
+        token_count = litellm.token_counter(
+            model=completion_model, messages=new_message
+        )
         response_message = Message(
             content=response_content,
             thread=thread,
             panel=panel,
             created_by=message.created_by,
-            meta={"sender": "assistant"},
+            meta={"sender": "assistant", "token_count": token_count},
         )
         response_message.save()
 
-        ## ----- 6. Enrich / append a title to the chat.
-        logger.info("** 6. Enrich / append a title to the chat")
+        ## ----- 9. Enrich / append a title to the chat.
+        logger.info("** 9. Enrich / append a title to the chat")
         if user_message_count == 1:
             title_enrich = []
             title_content = """

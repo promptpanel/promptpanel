@@ -1,6 +1,15 @@
 {
   "name": "Document Lookup",
   "category": "Power Tools",
+  "capabilities": {
+    "actions": [
+      {
+        "command": "/lookup",
+        "parameters": "[filename*] [question*]",
+        "description": "Lookup content from your file."
+      }
+    ]
+  },
   "settings": [
     {
       "name": "Model",
