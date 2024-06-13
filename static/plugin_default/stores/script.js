@@ -996,9 +996,6 @@ var pluginState = () => {
       }
       let firstWord = this.messageFromEditor.split(' ')[0];
       let actionSet = Alpine.store("actionStore").actions
-      console.log(firstWord)
-      console.log(actionSet)
-      console.log(actionSet.filter((action) => action.command.startsWith(firstWord)))
       return actionSet.filter((action) => action.command.startsWith(firstWord));
     },
     isLastAssistantMessage(messageId) {
