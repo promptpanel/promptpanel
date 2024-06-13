@@ -236,8 +236,6 @@ def message_append(message, thread, panel):
                     message_history.append(msg_content_row)
                 else:
                     break
-            else:
-                pass
         message_history.append(system_message)
         message_history.reverse()
 

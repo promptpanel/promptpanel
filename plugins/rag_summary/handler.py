@@ -362,11 +362,11 @@ def chat_stream(message, thread, panel):
                 msg_token_count = litellm.token_counter(
                     model=completion_model, messages=[msg_content_row]
                 )
-            if msg_token_count + message_history_token_count <= remaining_tokens:
-                message_history_token_count += msg_token_count
-                message_history.append(msg_content_row)
-            else:
-                break
+                if msg_token_count + message_history_token_count <= remaining_tokens:
+                    message_history_token_count += msg_token_count
+                    message_history.append(msg_content_row)
+                else:
+                    break
         message_history.append(system_message)
         message_history.reverse()
 
