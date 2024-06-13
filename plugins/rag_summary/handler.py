@@ -358,28 +358,13 @@ def chat_stream(message, thread, panel):
         for msg in messages:
             role = msg.meta.get("sender", "user")
             if role == "user" or role == "assistant":
-                msg_content_row = [{"role": role, "content": msg.content}]
+                msg_content_row = {"role": role, "content": msg.content}
                 msg_token_count = litellm.token_counter(
-                    model=completion_model, messages=msg_content_row
+                    model=completion_model, messages=[msg_content_row]
                 )
             if msg_token_count + message_history_token_count <= remaining_tokens:
-                # Container for message
-                if role == "user":
-                    message_history_token_count += msg_token_count
-                    message_history.append(
-                        {
-                            "role": "user",
-                            "content": msg.content,
-                        }
-                    )
-                if role == "assistant":
-                    message_history_token_count += msg_token_count
-                    message_history.append(
-                        {
-                            "role": "assistant",
-                            "content": msg.content,
-                        }
-                    )
+                message_history_token_count += msg_token_count
+                message_history.append(msg_content_row)
             else:
                 break
         message_history.append(system_message)
