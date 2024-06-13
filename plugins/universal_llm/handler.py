@@ -129,12 +129,18 @@ def message_append(message, thread, panel):
         message.meta["sender"] = "user_command"
         message.save()
         ## Parse incoming command
-        command_pattern = r"/lookup(?: /file {([^}]+)})+(.*)"
-        filenames_find = re.findall(r"/file {([^}]+)}", message.content)
-        command_message = re.split(r"/file {[^}]+}", message.content)[-1].strip()
+        filename_pattern = r"/file\s+(\S+)"
+        command_pattern = r"^/append\s+(?:/file\s+\S+\s+)*(.*)"
+        filenames_find = re.findall(filename_pattern, message.content)
+        command_message_match = re.match(command_pattern, message.content)
+        command_message = (
+            command_message_match.group(1).strip() if command_message_match else ""
+        )
         command_filenames = [
             filename.strip() for filename in filenames_find if filename.strip()
         ]
+        logger.info("Command message: " + command_message)
+        logger.info("Command filenames: " + str(command_filenames))
         settings = panel.meta
         ## Remove blank-string keys
         keys_to_remove = [k for k, v in settings.items() if v == ""]
@@ -168,65 +174,70 @@ def message_append(message, thread, panel):
         ).order_by("-created_on")
         message_history = []
         message_history_token_count = 0
+
         # Current message
-        msg_content_row = [{"role": role, "content": command_message}]
-        msg_token_count = litellm.token_counter(
-            model=completion_model, messages=msg_content_row
+        logger.info("Command message: " + command_message)
+        current_content_row = {"role": "user", "content": command_message}
+        current_token_count = litellm.token_counter(
+            model=completion_model, messages=[current_content_row]
         )
-        message_history_token_count += msg_token_count
-        message_history.append(msg_content_row)
+        message_history_token_count += current_token_count
+        message_history.append(current_content_row)
 
         ## ----- 3.1 Get files + append to history.
         logger.info("** 3. Get files + append to history.")
         file_appended_text = ""
         file_context_size_warn = False
         for filename in command_filenames:
-            file_obj = File.objects.get(filename=filename)
+            file_obj = File.objects.filter(
+                filename=filename, thread_id=thread.id
+            ).first()
             filepath = file_obj.meta.get("text_file_path", "")
+            logger.info("Filepath: " + filepath)
             if filepath:
                 with open(filepath, "r", encoding="utf-8") as f:
                     file_content = f.read()
                 file_tokens_count = litellm.token_counter(
                     model=completion_model,
-                    messages=[{"role": "user", "content": file_content + "\n"}],
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": "Document Context:\n" + file_content + "\n",
+                        }
+                    ],
                 )
+                logger.info("File content: " + file_content)
                 if file_tokens_count + message_history_token_count < remaining_tokens:
                     message_history_token_count += file_tokens_count
                     file_appended_text += file_content + "\n"
                 else:
+                    logger.info("File context warning triggered. Skipping...")
                     file_context_size_warn = True
                     pass
             else:
                 logger.info("Text filepath not found in metadata. Skipping...")
+        logger.info("Appended text: " + file_appended_text)
+        file_content_row = {
+            "role": "user",
+            "content": "Document Context:\n" + file_appended_text,
+        }
+        message_history.append(file_content_row)
 
         # Previous messages
         for msg in messages:
             role = msg.meta.get("sender", "user")
             if role == "user" or role == "assistant":
-                msg_content_row = [{"role": role, "content": msg.content}]
+                msg_content_row = {"role": role, "content": msg.content}
                 msg_token_count = litellm.token_counter(
-                    model=completion_model, messages=msg_content_row
+                    model=completion_model, messages=[msg_content_row]
                 )
-            if msg_token_count + message_history_token_count <= remaining_tokens:
-                # Container for message
-                if role == "user":
+                if msg_token_count + message_history_token_count <= remaining_tokens:
                     message_history_token_count += msg_token_count
-                    message_history.append(
-                        {
-                            "role": "user",
-                            "content": msg.content,
-                        }
-                    )
-                if role == "assistant":
-                    message_history_token_count += msg_token_count
-                    message_history.append(
-                        {
-                            "role": "assistant",
-                            "content": msg.content,
-                        }
-                    )
+                    message_history.append(msg_content_row)
+                else:
+                    break
             else:
-                break
+                pass
         message_history.append(system_message)
         message_history.reverse()
 
@@ -391,28 +402,13 @@ def chat_stream(message, thread, panel):
         for msg in messages:
             role = msg.meta.get("sender", "user")
             if role == "user" or role == "assistant":
-                msg_content_row = [{"role": role, "content": msg.content}]
+                msg_content_row = {"role": role, "content": msg.content}
                 msg_token_count = litellm.token_counter(
-                    model=completion_model, messages=msg_content_row
+                    model=completion_model, messages=[msg_content_row]
                 )
             if msg_token_count + message_history_token_count <= remaining_tokens:
-                # Container for message
-                if role == "user":
-                    message_history_token_count += msg_token_count
-                    message_history.append(
-                        {
-                            "role": "user",
-                            "content": msg.content,
-                        }
-                    )
-                if role == "assistant":
-                    message_history_token_count += msg_token_count
-                    message_history.append(
-                        {
-                            "role": "assistant",
-                            "content": msg.content,
-                        }
-                    )
+                message_history_token_count += msg_token_count
+                message_history.append(msg_content_row)
             else:
                 break
         message_history.append(system_message)

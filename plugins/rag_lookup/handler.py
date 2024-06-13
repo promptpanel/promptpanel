@@ -132,21 +132,25 @@ def document_lookup(message, thread, panel):
         message.meta["sender"] = "user_command"
         message.save()
         ## Parse incoming command
-        command_pattern = r"/lookup(?: /file {([^}]+)})?(.*)"
-        match = re.match(command_pattern, message.content.strip())
-        command_filename, command_question = match.groups()
-        command_filename = command_filename.strip() if command_filename else None
-        command_question = command_question.strip()
+        filename_pattern = r"/file\s+(\S+)"
+        command_pattern = r"^/lookup\s+(?:/file\s+\S+\s+)*(.*)"
+        filenames_find = re.findall(filename_pattern, message.content)
+        command_message_match = re.match(command_pattern, message.content)
+        command_message = (
+            command_message_match.group(1).strip() if command_message_match else ""
+        )
+        command_filenames = [
+            filename.strip() for filename in filenames_find if filename.strip()
+        ]
+        logger.info("Command message: " + command_message)
+        logger.info("Command filenames: " + str(command_filenames))
+
         settings = panel.meta
         ## Remove blank-string keys
         keys_to_remove = [k for k, v in settings.items() if v == ""]
         for key in keys_to_remove:
             del settings[key]
         completion_model = settings.get("Model")
-        temp__token_model = None
-        if completion_model == "gpt-4o":
-            temp__token_model = "gpt-4-turbo"
-        token_model = temp__token_model if temp__token_model else completion_model
         embedding_model = settings["Embedding Model"]
 
         ## ----- 2. Get max context and system message.
@@ -163,7 +167,7 @@ It is important that the citations MUST match this format, do not format the obj
             "content": system_message_text + system_message_instruct,
         }
         system_message_token_count = litellm.token_counter(
-            model=token_model, messages=[system_message]
+            model=completion_model, messages=[system_message]
         )
         if settings.get("Max Tokens to Generate") is not None:
             remaining_tokens = (
@@ -176,12 +180,17 @@ It is important that the citations MUST match this format, do not format the obj
 
         ## ----- 3. Build document context.
         logger.info("** 3. Build document context.")
-        thread_files = File.objects.filter(thread=thread, meta__enabled=True)
+        if command_filenames:
+            thread_files = File.objects.filter(
+                filename__in=command_filenames, thread=thread, meta__enabled=True
+            )
+        else:
+            thread_files = File.objects.filter(thread=thread, meta__enabled=True)
         # Create embedding incoming question
         embedding_settings = {
             "model": embedding_model,
             "api_key": settings.get("Embedding API Key"),
-            "input": [command_question],
+            "input": [command_message],
         }
         embedding_settings_trimmed = {
             key: value for key, value in embedding_settings.items() if value is not None
@@ -239,7 +248,7 @@ It is important that the citations MUST match this format, do not format the obj
                 "content": sentence_to_add,
             }
             doc_msg_token_count = litellm.token_counter(
-                model=token_model, messages=[doc_msg]
+                model=completion_model, messages=[doc_msg]
             )
             if doc_msg_token_count + doc_current_tokens <= doc_token_limit:
                 doc_current_tokens = doc_current_tokens + doc_msg_token_count
@@ -260,7 +269,7 @@ It is important that the citations MUST match this format, do not format the obj
         message_history.append(
             {
                 "role": "user",
-                "content": command_question,
+                "content": command_message,
             }
         )
         message_history.append(system_message)
@@ -451,28 +460,13 @@ def chat_stream(message, thread, panel):
         for msg in messages:
             role = msg.meta.get("sender", "user")
             if role == "user" or role == "assistant":
-                msg_content_row = [{"role": role, "content": msg.content}]
+                msg_content_row = {"role": role, "content": msg.content}
                 msg_token_count = litellm.token_counter(
-                    model=completion_model, messages=msg_content_row
+                    model=completion_model, messages=[msg_content_row]
                 )
             if msg_token_count + message_history_token_count <= remaining_tokens:
-                # Container for message
-                if role == "user":
-                    message_history_token_count += msg_token_count
-                    message_history.append(
-                        {
-                            "role": "user",
-                            "content": msg.content,
-                        }
-                    )
-                if role == "assistant":
-                    message_history_token_count += msg_token_count
-                    message_history.append(
-                        {
-                            "role": "assistant",
-                            "content": msg.content,
-                        }
-                    )
+                message_history_token_count += msg_token_count
+                message_history.append(msg_content_row)
             else:
                 break
         message_history.append(system_message)
