@@ -34,13 +34,16 @@ Full tech stack [here](/techstack.md)
 <div align="center">
 
 # Tech Stack File
+
 ![](https://img.stackshare.io/repo.svg "repo") [promptpanel/promptpanel](https://github.com/promptpanel/promptpanel)![](https://img.stackshare.io/public_badge.svg "public")
 <br/><br/>
 |18<br/>Tools used|06/06/24 <br/>Report generated|
 |------|------|
+
 </div>
 
 ## <img src='https://img.stackshare.io/languages.svg'/> Languages (3)
+
 <table><tr>
   <td align='center'>
   <img width='36' height='36' src='https://img.stackshare.io/service/6727/css.png' alt='CSS 3'>
@@ -70,6 +73,7 @@ Full tech stack [here](/techstack.md)
 </table>
 
 ## <img src='https://img.stackshare.io/frameworks.svg'/> Frameworks (1)
+
 <table><tr>
   <td align='center'>
   <img width='36' height='36' src='https://img.stackshare.io/service/1011/n1JRsFeB_400x400.png' alt='Node.js'>
@@ -83,6 +87,7 @@ Full tech stack [here](/techstack.md)
 </table>
 
 ## <img src='https://img.stackshare.io/devops.svg'/> DevOps (3)
+
 <table><tr>
   <td align='center'>
   <img width='36' height='36' src='https://img.stackshare.io/service/586/n4u37v9t_400x400.png' alt='Docker'>
@@ -112,6 +117,7 @@ Full tech stack [here](/techstack.md)
 </table>
 
 ## Other (3)
+
 <table><tr>
   <td align='center'>
   <img width='36' height='36' src='https://img.stackshare.io/service/109220/default_e499cccf9d15d22b9084679d5d7ebcb5f3e96c47.jpg' alt='Ollama'>
@@ -140,21 +146,20 @@ Full tech stack [here](/techstack.md)
 </tr>
 </table>
 
-
 ## <img src='https://img.stackshare.io/group.svg' /> Open source packages (8)</h2>
 
 ## <img width='24' height='24' src='https://img.stackshare.io/service/12572/-RIWgodF_400x400.jpg'/> PyPI (8)
 
-|NAME|VERSION|LAST UPDATED|LAST UPDATED BY|LICENSE|VULNERABILITIES|
-|:------|:------|:------|:------|:------|:------|
-|[Authlib](https://pypi.org/project/Authlib)|v1.3.0|04/24/24|PromptPanel |BSD-3-Clause|N/A|
-|[Django](https://pypi.org/project/Django)|v5.0.4|04/13/24|PromptPanel |BSD-3-Clause|N/A|
-|[Markdown](https://pypi.org/project/Markdown)|v3.6|04/13/24|PromptPanel |BSD-3-Clause|N/A|
-|[PyJWT](https://pypi.org/project/PyJWT)|v2.8.0|03/21/24|PromptPanel |MIT|N/A|
-|[gunicorn](https://pypi.org/project/gunicorn)|v22.0.0|04/24/24|PromptPanel |MIT|N/A|
-|[openai](https://pypi.org/project/openai)|v1.30.5|06/01/24|PromptPanel |N/A|N/A|
-|[requests](https://pypi.org/project/requests)|v2.32.2|06/05/24|dependabot[bot] |Apache-2.0|N/A|
-|[whitenoise](https://pypi.org/project/whitenoise)|v6.6.0|03/21/24|PromptPanel |MIT|N/A|
+| NAME                                              | VERSION | LAST UPDATED | LAST UPDATED BY | LICENSE      | VULNERABILITIES |
+| :------------------------------------------------ | :------ | :----------- | :-------------- | :----------- | :-------------- |
+| [Authlib](https://pypi.org/project/Authlib)       | v1.3.0  | 04/24/24     | PromptPanel     | BSD-3-Clause | N/A             |
+| [Django](https://pypi.org/project/Django)         | v5.0.4  | 04/13/24     | PromptPanel     | BSD-3-Clause | N/A             |
+| [Markdown](https://pypi.org/project/Markdown)     | v3.6    | 04/13/24     | PromptPanel     | BSD-3-Clause | N/A             |
+| [PyJWT](https://pypi.org/project/PyJWT)           | v2.8.0  | 03/21/24     | PromptPanel     | MIT          | N/A             |
+| [gunicorn](https://pypi.org/project/gunicorn)     | v22.0.0 | 04/24/24     | PromptPanel     | MIT          | N/A             |
+| [openai](https://pypi.org/project/openai)         | v1.30.5 | 06/01/24     | PromptPanel     | N/A          | N/A             |
+| [requests](https://pypi.org/project/requests)     | v2.32.2 | 06/05/24     | dependabot[bot] | Apache-2.0   | N/A             |
+| [whitenoise](https://pypi.org/project/whitenoise) | v6.6.0  | 03/21/24     | PromptPanel     | MIT          | N/A             |
 
 <br/>
 <div align='center'>

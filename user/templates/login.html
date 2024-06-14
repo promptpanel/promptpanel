@@ -108,30 +108,20 @@
         <label for="password" class="block text-stone-500 mb-1">Password</label>
         <input x-model="$store.loginStore.password" type="password" required id="password" name="password" placeholder="Password..." class="cursor-text w-full px-2.5 h-9 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
       </div>
-      <button type="submit" class="flex items-center justify-center w-full font-semibold bg-primary px-2.5 h-10 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none focus:opacity-80">
-        Sign in
-      </button>
+      <button type="submit" class="flex items-center justify-center w-full font-semibold bg-primary px-2.5 h-10 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none focus:opacity-80">Sign in</button>
     </form>
 
     {% if env_oidc_display or env_user_signup or env_password_reset %}
-      <hr class="my-3 border-stone-300" />
+    <hr class="my-3 border-stone-300" />
     {% endif %}
 
     <div class="space-y-3">
       {% if env_oidc_display %}
-      <a href="/oauth/login" class="flex items-center justify-center font-semibold text-stone-500 px-2.5 h-10 rounded-md transition duration-500 border border-stone-300 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300">
-        Continue with {{ env_oidc_display }}
-      </a>
-      {% endif %}
-      {% if env_user_signup %}
-        <a href="/signup/" class="mt-3 mb-3 flex items-center justify-center font-semibold text-stone-500 px-2.5 h-10 rounded-md transition duration-500 border border-stone-300 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300">
-          Sign up with Email
-        </a>
-      {% endif %}
-      {% if env_password_reset %}
-        <a href="/reset_password_request/" class="mb-1 ml-auto w-max flex items-center justify-center font-semibold text-primary px-2.5 h-10 rounded-md transition duration-500 hover:bg-primary/10">
-          Reset Password
-        </a>
+      <a href="/oauth/login" class="flex items-center justify-center font-semibold text-stone-500 px-2.5 h-10 rounded-md transition duration-500 border border-stone-300 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300"> Continue with {{ env_oidc_display }} </a>
+      {% endif %} {% if env_user_signup %}
+      <a href="/signup/" class="mt-3 mb-3 flex items-center justify-center font-semibold text-stone-500 px-2.5 h-10 rounded-md transition duration-500 border border-stone-300 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300"> Sign up with Email </a>
+      {% endif %} {% if env_password_reset %}
+      <a href="/reset_password_request/" class="mb-1 ml-auto w-max flex items-center justify-center font-semibold text-primary px-2.5 h-10 rounded-md transition duration-500 hover:bg-primary/10"> Reset Password </a>
       {% endif %}
     </div>
 
@@ -139,38 +129,35 @@
   </div>
 </div>
 
-
 {% if env_user_signup_activate %}
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get("account_created") === "true") {
-        successToast = {
-          type: "success",
-          header: "Account Created Successfully",
-          message: "Check your email for further instructions on how to activate your account and get started.",
-        };
-        Alpine.store("toastStore").addToast(successToast);
-      }
-    });
-  </script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("account_created") === "true") {
+      successToast = {
+        type: "success",
+        header: "Account Created Successfully",
+        message: "Check your email for further instructions on how to activate your account and get started.",
+      };
+      Alpine.store("toastStore").addToast(successToast);
+    }
+  });
+</script>
+{% endif %} {% if not env_user_signup_activate %}
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("account_created") === "true") {
+      successToast = {
+        type: "success",
+        header: "Account Created Successfully",
+        message: "Account activation currently disabled. Please contact your administrator to activate your account.",
+      };
+      Alpine.store("toastStore").addToast(successToast);
+    }
+  });
+</script>
 {% endif %}
-{% if not env_user_signup_activate %}
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get("account_created") === "true") {
-        successToast = {
-          type: "success",
-          header: "Account Created Successfully",
-          message: "Account activation currently disabled. Please contact your administrator to activate your account.",
-        };
-        Alpine.store("toastStore").addToast(successToast);
-      }
-    });
-  </script>
-{% endif %}
-
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
@@ -216,20 +203,20 @@
       Alpine.store("toastStore").addToast(failToast);
     }
     if (urlParams.get("reset_password_request") === "true") {
-        successToast = {
-          type: "success",
-          header: "Account Created Successfully",
-          message: "Check your email for further instructions on how to activate your account and get started.",
-        };
-        Alpine.store("toastStore").addToast(successToast);
+      successToast = {
+        type: "success",
+        header: "Account Created Successfully",
+        message: "Check your email for further instructions on how to activate your account and get started.",
+      };
+      Alpine.store("toastStore").addToast(successToast);
     }
     if (urlParams.get("password_reset") === "true") {
-        successToast = {
-          type: "success",
-          header: "Password Reset Successfully",
-          message: "Your password has been reset successfully. Please sign in to continue",
-        };
-        Alpine.store("toastStore").addToast(successToast);
+      successToast = {
+        type: "success",
+        header: "Password Reset Successfully",
+        message: "Your password has been reset successfully. Please sign in to continue",
+      };
+      Alpine.store("toastStore").addToast(successToast);
     }
   });
 </script>

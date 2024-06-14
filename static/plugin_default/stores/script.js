@@ -466,11 +466,11 @@ var pluginState = () => {
       field.style.height = height + "px";
     },
     // Messages
-    addPrompt(prompt){
-      if (!this.messageFromEditor.startsWith(prompt)){
+    addPrompt(prompt) {
+      if (!this.messageFromEditor.startsWith(prompt)) {
         if (!confirm("Are you sure you want to add this prompt, your current message will be replaced?")) {
           return;
-        }  
+        }
         this.messageFromEditor = prompt;
       }
     },
@@ -991,11 +991,11 @@ var pluginState = () => {
       if (this.messageFromEditor === "") {
         return [];
       }
-      if (!this.messageFromEditor.startsWith('/')) {
+      if (!this.messageFromEditor.startsWith("/")) {
         return [];
       }
-      let firstWord = this.messageFromEditor.split(' ')[0];
-      let actionSet = Alpine.store("actionStore").actions
+      let firstWord = this.messageFromEditor.split(" ")[0];
+      let actionSet = Alpine.store("actionStore").actions;
       return actionSet.filter((action) => action.command.startsWith(firstWord));
     },
     isLastAssistantMessage(messageId) {
@@ -1038,7 +1038,7 @@ var pluginState = () => {
         navigator.clipboard.writeText(text).then(() => {
           Alpine.store("toastStore").addToast({
             type: "success",
-            header: `Successfully copied your ${type} to clipboard.`
+            header: `Successfully copied your ${type} to clipboard.`,
           });
         });
       } catch (error) {
@@ -1051,7 +1051,7 @@ var pluginState = () => {
         document.body.removeChild(textArea);
         Alpine.store("toastStore").addToast({
           type: "success",
-          header: `Successfully copied your ${type} to clipboard.`
+          header: `Successfully copied your ${type} to clipboard.`,
         });
       }
     },
