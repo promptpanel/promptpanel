@@ -24,7 +24,7 @@ def global_context(request):
             == "ENABLED",
             "env_password_reset": os.getenv("PROMPT_USER_RESET_PASSWORD") == "ENABLED",
             "env_oidc_display": os.getenv("PROMPT_OIDC_DISPLAY_NAME"),
-            "env_ollama": os.getenv("PROMPT_OLLAMA_HOST") != "",
+            "env_ollama": os.getenv("PROMPT_OLLAMA_HOST"),
             "user_id": user.id,
             "user_username": user.username,
             "user_email": user.email,
