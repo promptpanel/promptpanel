@@ -5,7 +5,7 @@
     "actions": [
       {
         "command": "/summarize",
-        "parameters": "[filename*] [question:optional]",
+        "parameters": "(/file [filename*]) [question]",
         "description": "Summarize your file."
       }
     ]

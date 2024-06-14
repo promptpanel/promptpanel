@@ -1,6 +1,7 @@
 import logging
 import litellm
 import pickle
+import re
 from panel.models import File, Message, Panel, Thread
 from django.http import JsonResponse, StreamingHttpResponse
 from unstructured.partition.auto import partition
@@ -49,7 +50,7 @@ def file_stream(file, thread, panel):
         file.save()
         ## ----- 2. Add file upload message / hinting for usage.
         logger.info("** 2. Add file upload message / hinting for usage.")
-        file_message_content = f"File uploaded successfully.\n To summarize, message `/summarize {file.filename} [question:optional]`"
+        file_message_content = f"File uploaded successfully.\n To summarize, message `/summarize /file {file.filename} [question]`"
         file_message = Message(
             content=file_message_content,
             thread=thread,
@@ -57,7 +58,7 @@ def file_stream(file, thread, panel):
             created_by=file.created_by,
             meta={
                 "sender": "info",
-                "prompt": f"/summarize {file.filename}",
+                "prompt": f"/summarize /file {file.filename} [question]",
             },
         )
         file_message.save()
@@ -104,18 +105,25 @@ def summarize_stream(message, thread, panel):
         message.meta["sender"] = "user_command"
         message.save()
         settings = panel.meta
-        parts = message.content.split(" ", 2)
-        if len(parts) < 2:
-            yield "Error: Invalid summarize command format. Use `/summarize [filename] [question *optional]`"
-            return
-        command = parts[0]
-        filename = parts[1]
-        question = parts[2] if len(parts) > 2 else ""
+        filename_pattern = r"/file\s+(\S+)"
+        command_pattern = r"^/lookup\s+(?:/file\s+\S+\s+)*(.*)"
+        filenames_find = re.findall(filename_pattern, message.content)
+        command_message_match = re.match(command_pattern, message.content)
+        command_message = (
+            command_message_match.group(1).strip() if command_message_match else ""
+        )
+        command_filenames = [
+            filename.strip() for filename in filenames_find if filename.strip()
+        ]
+        logger.info("Command message: " + command_message)
+        logger.info("Command filenames: " + str(command_filenames))
+        command_filename = command_filenames[0] if command_filenames else None
+
         selected_file = File.objects.filter(
-            thread=thread, meta__enabled=True, filename__iexact=filename
+            thread=thread, meta__enabled=True, filename__iexact=command_filename
         ).first()
         if not selected_file:
-            yield f"Error: File '{filename}' not found in the current thread."
+            yield f"Error: File '{command_filename}' not found in the current thread."
             return
         pickle_path = selected_file.meta.get("pickle_file_path")
         with open(pickle_path, "rb") as f:
@@ -129,8 +137,8 @@ def summarize_stream(message, thread, panel):
         ## ----- 2. Batch up summarization by document context size.
         logger.info("** 2. Batch up summarization by document context size.")
         summarize_prompt = "Summarize the following text provided in the next message. Only provide a summary no additional commentary. No yapping please."
-        if question:
-            summarize_prompt += f" Also, {question}."
+        if command_message:
+            summarize_prompt += f" Also, {command_message}."
         summarize_prompt_tokens = litellm.token_counter(
             model=token_model,
             messages=[{"role": "system", "content": summarize_prompt}],
@@ -138,6 +146,10 @@ def summarize_stream(message, thread, panel):
         current_tokens = 0
         batched_sentences = []
         batched_page_numbers = []
+
+        all_summaries = []
+        all_citations = []
+
         for sentence, page_number in zip(sentences, page_numbers):
             current_length = litellm.token_counter(
                 model=token_model, messages=[{"role": "user", "content": sentence}]
@@ -150,7 +162,10 @@ def summarize_stream(message, thread, panel):
                 batched_page_numbers.append(page_number)
                 current_tokens += current_length
             else:
-                yield from summarize_batch(
+                batch_summary = ""
+                batch_citations = []
+
+                for part in summarize_batch(
                     batched_sentences,
                     batched_page_numbers,
                     selected_file,
@@ -160,13 +175,24 @@ def summarize_stream(message, thread, panel):
                     summarize_prompt,
                     completion_model,
                     settings,
-                )
+                ):
+                    if isinstance(part, str):
+                        batch_summary += part
+                    else:
+                        batch_citations.append(part)
+                all_summaries.append(batch_summary)
+                all_citations.extend(batch_citations)
+
                 # Reset after run
                 batched_sentences = []
                 batched_page_numbers = []
                 current_tokens = 0
+
         if batched_sentences:
-            yield from summarize_batch(
+            batch_summary = ""
+            batch_citations = []
+
+            for part in summarize_batch(
                 batched_sentences,
                 batched_page_numbers,
                 selected_file,
@@ -176,7 +202,28 @@ def summarize_stream(message, thread, panel):
                 summarize_prompt,
                 completion_model,
                 settings,
-            )
+            ):
+                if isinstance(part, str):
+                    batch_summary += part
+                else:
+                    batch_citations.append(part)
+            all_summaries.append(batch_summary)
+            all_citations.extend(batch_citations)
+
+        # Combine all summaries and citations into a single response
+        combined_summary = " ".join(all_summaries)
+        response_message = Message(
+            content=combined_summary,
+            thread=thread,
+            panel=panel,
+            created_by=message.created_by,
+            meta={
+                "sender": "assistant",
+                "sentences": all_citations,
+            },
+        )
+        response_message.save()
+
     except Exception as e:
         logger.error(e, exc_info=True)
         yield "Error: " + str(e)
@@ -257,7 +304,7 @@ def summarize_batch(
             try:
                 delta = part.choices[0].delta.content or ""
                 summary += delta
-                yield delta
+                yield delta  # Yielding part of the summary
             except Exception as e:
                 logger.info("Skipped chunk: " + str(e))
                 pass
@@ -286,17 +333,10 @@ def summarize_batch(
                 ),  # Format as "2-4" or just "2"
             }
         )
-        response_message = Message(
-            content=summary,
-            thread=thread,
-            panel=panel,
-            created_by=message.created_by,
-            meta={
-                "sender": "assistant",
-                "sentences": sentences_with_citations,
-            },
-        )
-        response_message.save()
+
+        for citation in sentences_with_citations:
+            yield citation  # Yielding the citation
+
     except Exception as e:
         logger.error(e, exc_info=True)
         response_message = Message(
