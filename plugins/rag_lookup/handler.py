@@ -32,8 +32,8 @@ def file_handler(file, thread, panel):
 def file_stream(file, thread, panel):
     ## Function:
     ## 1. Get settings.
-    ## 2. Parse file and save to .txt file.
-    ## 3. Enrich file metadata with token_count.
+    ## 2. Parse file and save embeddings.
+    ## 3. Add file upload message / hinting for usage.
 
     try:
         yield "Processing"
@@ -69,6 +69,20 @@ def file_stream(file, thread, panel):
             pickle.dump(pickle_data, f)
         file.meta.update({"enabled": True, "pickle_file_path": pickle_path})
         file.save()
+        ## ----- 3. Add file upload message / hinting for usage.
+        logger.info("** 3. Add file upload message / hinting for usage.")
+        file_message_content = f"File uploaded successfully.\n To summarize, message `/lookup /file {file.filename} [question*]`"
+        file_message = Message(
+            content=file_message_content,
+            thread=thread,
+            panel=panel,
+            created_by=file.created_by,
+            meta={
+                "sender": "info",
+                "prompt": f"/lookup /file {file.filename} [question*]",
+            },
+        )
+        file_message.save()
         yield "Completed"
     except Exception as e:
         logger.info("** Upload failed")
@@ -81,10 +95,19 @@ def file_stream(file, thread, panel):
 # Message Entrypoint
 def message_handler(message, thread, panel):
     try:
-        response = StreamingHttpResponse(
-            streaming_content=chat_stream(message, thread, panel),
-            content_type="text/event-stream",
-        )
+        ## Function:
+        ## 1. Routing to messaging functions.
+        logger.info("** 1. Routing to messaging functions.")
+        if message.content.startswith("/lookup"):
+            response = StreamingHttpResponse(
+                streaming_content=document_lookup(message, thread, panel),
+                content_type="text/event-stream",
+            )
+        else:
+            response = StreamingHttpResponse(
+                streaming_content=chat_stream(message, thread, panel),
+                content_type="text/event-stream",
+            )
         response["Cache-Control"] = "no-cache"
         response["X-Accel-Buffering"] = "no"
         return response
@@ -93,29 +116,42 @@ def message_handler(message, thread, panel):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-def chat_stream(message, thread, panel):
+def document_lookup(message, thread, panel):
     ## Function:
-    ## 1. Get settings.
+    ## 1. Parse command and get settings.
     ## 2. Get max context and system message.
     ## 3. Build document context.
     ## 4. Build message history.
     ## 5. Execute chat.
     ## 6. Enrich with citations and save.
-    ## 7. Enrich / append a title to the chat.
 
     try:
-        ## ----- 1. Get settings.
-        logger.info("** 1. Get settings.")
+        ## ----- 1. Parse command and get settings.
+        logger.info("** 1. Parse command and get settings.")
+        ## Save message as a command
+        message.meta["sender"] = "user_command"
+        message.save()
+
+        ## Parse incoming command
+        filename_pattern = r"/file\s+(\S+)"
+        command_pattern = r"^/lookup\s+(?:/file\s+\S+\s+)*(.*)"
+        filenames_find = re.findall(filename_pattern, message.content)
+        command_message_match = re.match(command_pattern, message.content)
+        command_message = (
+            command_message_match.group(1).strip() if command_message_match else ""
+        )
+        command_filenames = [
+            filename.strip() for filename in filenames_find if filename.strip()
+        ]
+        logger.info("Command message: " + command_message)
+        logger.info("Command filenames: " + str(command_filenames))
+
         settings = panel.meta
         ## Remove blank-string keys
         keys_to_remove = [k for k, v in settings.items() if v == ""]
         for key in keys_to_remove:
             del settings[key]
         completion_model = settings.get("Model")
-        temp__token_model = None
-        if completion_model == "gpt-4o":
-            temp__token_model = "gpt-4-turbo"
-        token_model = temp__token_model if temp__token_model else completion_model
         embedding_model = settings["Embedding Model"]
 
         ## ----- 2. Get max context and system message.
@@ -123,16 +159,16 @@ def chat_stream(message, thread, panel):
         context_size = int(settings.get("Context Size"))
         system_message_text = settings.get("System Message", "")
         system_message_instruct = """
-        \n\nPlease use the following format for citing document context if it is used in your answer:\n
-        This is my example answer {file: 1, index: 1, page: 1}. This is another part of my answer {file: 1, index: 4, page: 10}. This is a final part of my answer {file: 2, index: 12, page: 4}.\n
-        It is important that the citations MUST match this format, do not format the objects any other way.
+\n\nPlease use the following format for citing document context if it is used in your answer:\n
+This is my example answer {file: 1, index: 1, page: 1}. This is another part of my answer {file: 1, index: 4, page: 10}. This is a final part of my answer {file: 2, index: 12, page: 4}.\n
+It is important that the citations MUST match this format, do not format the objects any other way.
         """.strip()
         system_message = {
             "role": "system",
             "content": system_message_text + system_message_instruct,
         }
         system_message_token_count = litellm.token_counter(
-            model=token_model, messages=[system_message]
+            model=completion_model, messages=[system_message]
         )
         if settings.get("Max Tokens to Generate") is not None:
             remaining_tokens = (
@@ -145,133 +181,98 @@ def chat_stream(message, thread, panel):
 
         ## ----- 3. Build document context.
         logger.info("** 3. Build document context.")
-        thread_files = File.objects.filter(thread=thread, meta__enabled=True)
-        # Check if any files are active first
-        if thread_files.exists():
-            # Create embedding incoming message
-            embedding_settings = {
-                "model": embedding_model,
-                "api_key": settings.get("Embedding API Key"),
-                "input": [message.content],
-            }
-            embedding_settings_trimmed = {
-                key: value
-                for key, value in embedding_settings.items()
-                if value is not None
-            }
-            embedded_response = litellm.embedding(**embedding_settings_trimmed)
-            embedded_message = [
-                sentence["embedding"] for sentence in embedded_response.data
-            ][0]
-
-            # Get file embeddings
-            sentences = []
-            page_numbers = []
-            embedded_sentences = []
-            associated_files = []
-            for file in thread_files:
-                pickle_path = file.meta.get("pickle_file_path")
-                with open(pickle_path, "rb") as f:
-                    (
-                        sentences_data,
-                        page_numbers_data,
-                        embedded_sentences_data,
-                    ) = pickle.load(f)
-                sentences.extend(sentences_data)
-                page_numbers.extend(page_numbers_data)
-                embedded_sentences.extend(embedded_sentences_data)
-                associated_files.extend([file.id] * len(sentences_data))
-
-            # Calculate scoring of sentence vs. message + sort
-            similarities = [
-                1 - cosine(embedded_message, embedded_sentence)
-                for embedded_sentence in embedded_sentences
-            ]
-            combined_results = list(
-                itertools.zip_longest(
-                    sentences,
-                    page_numbers,
-                    associated_files,
-                    similarities,
-                    fillvalue="Missing",
-                )
+        if command_filenames:
+            thread_files = File.objects.filter(
+                filename__in=command_filenames, thread=thread, meta__enabled=True
             )
-            sorted_similarity = sorted(
-                combined_results, key=lambda x: x[3], reverse=True
-            )
-
-            # Build up document context
-            doc_token_limit = int(settings.get("Document Context Size"))
-            doc_current_tokens = 0
-            doc_context = ""
-            for index, (sentence, page_number, file, similarity) in enumerate(
-                sorted_similarity[:20]
-            ):
-                # Using the top 20 > can be extended
-                sentence_to_add = ""
-                if doc_context == "":
-                    sentence_to_add += "Please use the following document context to help inform your answer: \n\n"
-                sentence_to_add += f"From File ID: {file}, Index ID: {index}, On Page Number: {page_number}, Context: {sentence} \n\n"
-                doc_msg = {
-                    "role": "user",
-                    "content": sentence_to_add,
-                }
-                doc_msg_token_count = litellm.token_counter(
-                    model=token_model, messages=[doc_msg]
-                )
-                if doc_msg_token_count + doc_current_tokens <= doc_token_limit:
-                    doc_current_tokens = doc_current_tokens + doc_msg_token_count
-                    doc_context += sentence_to_add
-                else:
-                    break
-                remaining_tokens = remaining_tokens - doc_msg_token_count
         else:
-            logger.info("No documents uploaded or selected.")
-            doc_context = False
+            thread_files = File.objects.filter(thread=thread, meta__enabled=True)
+        # Create embedding incoming question
+        embedding_settings = {
+            "model": embedding_model,
+            "api_key": settings.get("Embedding API Key"),
+            "input": [command_message],
+        }
+        embedding_settings_trimmed = {
+            key: value for key, value in embedding_settings.items() if value is not None
+        }
+        embedded_response = litellm.embedding(**embedding_settings_trimmed)
+        embedded_message = [
+            sentence["embedding"] for sentence in embedded_response.data
+        ][0]
+        # Get file embeddings
+        sentences = []
+        page_numbers = []
+        embedded_sentences = []
+        associated_files = []
+        for file in thread_files:
+            pickle_path = file.meta.get("pickle_file_path")
+            with open(pickle_path, "rb") as f:
+                (
+                    sentences_data,
+                    page_numbers_data,
+                    embedded_sentences_data,
+                ) = pickle.load(f)
+            sentences.extend(sentences_data)
+            page_numbers.extend(page_numbers_data)
+            embedded_sentences.extend(embedded_sentences_data)
+            associated_files.extend([file.id] * len(sentences_data))
+        # Calculate scoring of sentence vs. message + sort
+        similarities = [
+            1 - cosine(embedded_message, embedded_sentence)
+            for embedded_sentence in embedded_sentences
+        ]
+        combined_results = list(
+            itertools.zip_longest(
+                sentences,
+                page_numbers,
+                associated_files,
+                similarities,
+                fillvalue="Missing",
+            )
+        )
+        sorted_similarity = sorted(combined_results, key=lambda x: x[3], reverse=True)
+        # Build up document context
+        doc_token_limit = int(settings.get("Document Context Size"))
+        doc_current_tokens = 0
+        doc_context = ""
+        for index, (sentence, page_number, file, similarity) in enumerate(
+            sorted_similarity[:30]
+        ):
+            # Using the top 30 > can be extended
+            sentence_to_add = ""
+            if doc_context == "":
+                sentence_to_add += "Please use the following document context to help inform your answer: \n\n"
+            sentence_to_add += f"From File ID: {file}, Index ID: {index}, On Page Number: {page_number}, Context: {sentence} \n\n"
+            doc_msg = {
+                "role": "user",
+                "content": sentence_to_add,
+            }
+            doc_msg_token_count = litellm.token_counter(
+                model=completion_model, messages=[doc_msg]
+            )
+            if doc_msg_token_count + doc_current_tokens <= doc_token_limit:
+                doc_current_tokens = doc_current_tokens + doc_msg_token_count
+                doc_context += sentence_to_add
+            else:
+                break
+            remaining_tokens = remaining_tokens - doc_msg_token_count
 
         ## ----- 4. Build message history.
         logger.info("** 4. Build message history.")
-        messages = Message.objects.filter(
-            created_by=message.created_by, thread_id=thread.id
-        ).order_by("-created_on")
         message_history = []
-        message_history_token_count = 0
-        user_message_count = 0  # Counter for titling
-        for msg in messages:
-            role = msg.meta.get("sender", "user")
-            if role == "user" or role == "assistant":
-                msg_content_row = [{"role": role, "content": msg.content}]
-                msg_token_count = litellm.token_counter(
-                    model=token_model, messages=msg_content_row
-                )
-            if msg_token_count + message_history_token_count <= remaining_tokens:
-                # Container for message
-                if role == "user":
-                    user_message_count += 1
-                    message_history_token_count += msg_token_count
-                    message_history.append(
-                        {
-                            "role": "user",
-                            "content": msg.content,
-                        }
-                    )
-                if role == "assistant":
-                    message_history_token_count += msg_token_count
-                    message_history.append(
-                        {
-                            "role": "assistant",
-                            "content": msg.content,
-                        }
-                    )
-            else:
-                break
-        if doc_context:
-            message_history.append(
-                {
-                    "role": "user",
-                    "content": doc_context,
-                }
-            )
+        message_history.append(
+            {
+                "role": "assistant",
+                "content": doc_context,
+            }
+        )
+        message_history.append(
+            {
+                "role": "user",
+                "content": command_message,
+            }
+        )
         message_history.append(system_message)
         message_history.reverse()
 
@@ -324,7 +325,6 @@ def chat_stream(message, thread, panel):
             if value is not None
         }
         response = litellm.completion(**completion_settings_trimmed)
-        logger.info("Raw Response: " + str(response))
         response_content = ""
         for part in response:
             try:
@@ -337,6 +337,7 @@ def chat_stream(message, thread, panel):
 
         ## ----- 6. Enrich with citations and save.
         logger.info("** 6. Enrich with citations and save")
+        logger.info("Response content: " + str(response_content))
         citation_pattern = r"\{file: (\d+), index: (\d+), page: (\d+)\}"
         response_sentences = sent_tokenize(response_content)
         file_with_filepath = (
@@ -353,7 +354,6 @@ def chat_stream(message, thread, panel):
         sorted_sentences = [x[0] for x in sorted_similarity]
         sentences = []
         previous_sentence_obj = None
-
         # Breakdown citations and nest them under sentences
         for sentence in response_sentences:
             matches = list(re.finditer(citation_pattern, sentence))
@@ -363,7 +363,6 @@ def chat_stream(message, thread, panel):
                 if stripped_sentence
                 else None
             )
-
             # Handle citations that belong to the previous sentence
             if matches and previous_sentence_obj is not None:
                 for match in matches:
@@ -387,7 +386,6 @@ def chat_stream(message, thread, panel):
             elif sentence_obj is not None:
                 sentences.append(sentence_obj)
             previous_sentence_obj = sentence_obj
-
         # Check for dangling citations
         if previous_sentence_obj is not None and previous_sentence_obj["citations"]:
             sentences.append(previous_sentence_obj)
@@ -401,22 +399,180 @@ def chat_stream(message, thread, panel):
             meta={"sender": "assistant", "sentences": sentences},
         )
         response_message.save()
+    except Exception as e:
+        logger.error(e, exc_info=True)
+        yield "Error: " + str(e)
+        # Save error as message
+        response_message = Message(
+            content="Error: " + str(e),
+            thread=thread,
+            panel=panel,
+            created_by=message.created_by,
+            meta={"sender": "error"},
+        )
+        response_message.save()
 
-        ## ----- 7. Enrich / append a title to the chat.
-        logger.info("** 7. Enrich / append a title to the chat.")
-        if user_message_count == 1:
+
+def chat_stream(message, thread, panel):
+    ## Function:
+    ## 1. Get settings.
+    ## 2. Get max context and system message.
+    ## 3. Build message history.
+    ## 4. Execute chat.
+    ## 5. Cleanup message text, and save.
+    ## 6. Enrich / append a title to the chat.
+
+    try:
+        ## ----- 1. Get settings.
+        logger.info("** 1. Get settings.")
+        settings = panel.meta
+        ## Remove blank-string keys
+        keys_to_remove = [k for k, v in settings.items() if v == ""]
+        for key in keys_to_remove:
+            del settings[key]
+        completion_model = settings.get("Model")
+
+        ## ----- 2. Get max context and system message.
+        logger.info("** 2. Get max context and system message.")
+        max_tokens = int(settings.get("Context Size"))
+        system_message = {
+            "role": "system",
+            "content": settings.get("System Message", ""),
+        }
+        system_message_token_count = litellm.token_counter(
+            model=completion_model, messages=[system_message]
+        )
+        if settings.get("Max Tokens to Generate") is not None:
+            remaining_tokens = (
+                max_tokens
+                - system_message_token_count
+                - int(settings.get("Max Tokens to Generate"))
+            )
+        else:
+            remaining_tokens = max_tokens - system_message_token_count
+
+        ## ----- 3. Build message history.
+        logger.info("** 3. Build message history.")
+        messages = Message.objects.filter(
+            created_by=message.created_by, thread_id=thread.id
+        ).order_by("-created_on")
+        message_history = []
+        message_history_token_count = 0
+        for msg in messages:
+            role = msg.meta.get("sender", "user")
+            if role == "user" or role == "assistant":
+                msg_content_row = {"role": role, "content": msg.content}
+                msg_token_count = litellm.token_counter(
+                    model=completion_model, messages=[msg_content_row]
+                )
+            if msg_token_count + message_history_token_count <= remaining_tokens:
+                message_history_token_count += msg_token_count
+                message_history.append(msg_content_row)
+            else:
+                break
+        message_history.append(system_message)
+        message_history.reverse()
+
+        ## ----- 4. Execute chat.
+        logger.info("** 4. Execute chat.")
+        logger.info("Message history: " + str(message_history))
+        completion_settings = {
+            "stream": True,
+            "model": completion_model,
+            "messages": message_history,
+            "api_key": settings.get("LLM Model API Key"),
+            "api_base": (
+                settings.get("URL Base", "").rstrip("/")
+                if settings.get("URL Base") is not None
+                else None
+            ),
+            "api_version": settings.get("API Version"),
+            "organization": settings.get("Organization ID"),
+            "stop": settings.get("Stop Sequence"),
+            "temperature": (
+                float(settings.get("Temperature"))
+                if settings.get("Temperature") is not None
+                else None
+            ),
+            "max_tokens": (
+                int(settings.get("Max Tokens to Generate"))
+                if settings.get("Max Tokens to Generate") is not None
+                else None
+            ),
+            "top_p": (
+                float(settings.get("Top P"))
+                if settings.get("Top P") is not None
+                else None
+            ),
+            "presence_penalty": (
+                float(settings.get("Presence Penalty"))
+                if settings.get("Presence Penalty") is not None
+                else None
+            ),
+            "frequency_penalty": (
+                float(settings.get("Frequency Penalty"))
+                if settings.get("Frequency Penalty") is not None
+                else None
+            ),
+        }
+        litellm.drop_params = True
+        completion_settings_trimmed = {
+            key: value
+            for key, value in completion_settings.items()
+            if value is not None
+        }
+        response = litellm.completion(**completion_settings_trimmed)
+        response_content = ""
+        for part in response:
+            try:
+                delta = part.choices[0].delta.content or ""
+                response_content += delta
+                yield delta
+            except Exception as e:
+                logger.info("Skipped chunk: " + str(e))
+                pass
+
+        ## ----- 5. Cleanup message text, and save.
+        logger.info("** 5. Cleanup message text, and save.")
+        # Cleanup
+        last_period_pos = response_content.rfind(".")
+        last_question_mark_pos = response_content.rfind("?")
+        last_exclamation_mark_pos = response_content.rfind("!")
+        last_quote_period_pos = response_content.rfind('."')
+        last_quote_question_mark_pos = response_content.rfind('?"')
+        last_quote_exclamation_mark_pos = response_content.rfind('!"')
+        last_sentence_end_pos = max(
+            last_period_pos,
+            last_question_mark_pos,
+            last_exclamation_mark_pos,
+            last_quote_period_pos,
+            last_quote_question_mark_pos,
+            last_quote_exclamation_mark_pos,
+        )
+        if last_sentence_end_pos != -1:
+            response_content = response_content[: last_sentence_end_pos + 1]
+        # Save message
+        response_message = Message(
+            content=response_content,
+            thread=thread,
+            panel=panel,
+            created_by=message.created_by,
+            meta={"sender": "assistant"},
+        )
+        response_message.save()
+
+        ## ----- 6. Enrich / append a title to the chat.
+        logger.info("** 6. Enrich / append a title to the chat")
+        if thread.title == "New Thread":
             title_enrich = []
             title_content = """
 You are an assistant who writes informative titles based on questions which are asked by the user. 
 Please only provide a summary, do not provide the answer to the question.
 Examples:
 ```
-Code: Solution to the fizz buzz problem
-History: Who won the 1998 NBA Finals?
-Brainstorm: New ideas for blog posts
-Translate: Ordering food in Japanese
-Summary: Instruction manual
-Lookup: Information from document source
+Solution to the fizz buzz problem.
+Winner of the 1998 NBA Finals.
+Ordering food in Japanese.
 ```
             """.strip()
             title_enrich.append({"role": "system", "content": title_content})

@@ -1,6 +1,15 @@
 {
   "name": "Cohere",
   "category": " Base Models",
+  "capabilities": {
+    "actions": [
+      {
+        "command": "/append",
+        "parameters": "(/file [filename]) [message*]",
+        "description": "Append a file to your message."
+      }
+    ]
+  },
   "settings": [
     {
       "name": "Model",

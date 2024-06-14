@@ -1,6 +1,15 @@
 {
   "name": "LLM Completion",
   "category": " Base Models",
+  "capabilities": {
+    "actions": [
+      {
+        "command": "/append",
+        "parameters": "(/file [filename]) [message*]",
+        "description": "Append a file to your message."
+      }
+    ]
+  },
   "settings": [
     {
       "name": "Model",
@@ -50,7 +59,7 @@
     {
       "name": "Prompt Template",
       "description": "Jinja template used to compose the prompt.",
-      "default": "## SYSTEM: {{ system_message }}\n\n## MESSAGE HISTORY:\n{% for message in message_history %}\n{% if message.role == \"user\" %}\nUSER: {{ message.content }}\n{% elif message.role == \"assistant\" %}\nASSISTANT: {{ message.content }}\n{% endif %}\n{% endfor %}\n\n## RESPONSE:",
+      "default": "## SYSTEM: {{ system_message }}\n{% if document_context != \"\" %}\n## DOCUMENT CONTENT: {{ document_content }}\n{% endif %}\n## MESSAGE HISTORY:\n{% for message in message_history %}\n{% if message.role == \"user\" %}\nUSER: {{ message.content }}\n{% elif message.role == \"assistant\" %}\nASSISTANT: {{ message.content }}\n{% endif %}\n{% endfor %}\n## RESPONSE:",
       "type": "textarea"
     },
     {

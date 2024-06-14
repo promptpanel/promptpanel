@@ -2,6 +2,7 @@ import os
 import json
 import logging
 import litellm
+import re
 from panel.models import File, Message, Panel, Thread
 from django.http import JsonResponse, StreamingHttpResponse
 from unstructured.partition.auto import partition
@@ -29,13 +30,13 @@ def file_stream(file, thread, panel):
     ## 1. Get settings.
     ## 2. Parse file and save to .txt file.
     ## 3. Enrich file metadata with token_count.
+    ## 4. Add file upload message / hinting for usage.
 
     try:
         yield "Processing"
         ## ----- 1. Get settings.
         logger.info("** 1. Get settings.")
         settings = panel.meta
-        ## Thread settings
         thread_settings = thread.meta
         if thread_settings.get("ollamaModel") is not None:
             ollama_model_name = thread_settings.get("ollamaModel")
@@ -67,6 +68,20 @@ def file_stream(file, thread, panel):
             }
         )
         file.save()
+        ## ----- 4. Add file upload message / hinting for usage.
+        logger.info("** 3. Add file upload message / hinting for usage.")
+        file_message_content = f"File uploaded successfully.\n To append the file to your message send `/append /file {file.filename} [message*]`"
+        file_message = Message(
+            content=file_message_content,
+            thread=thread,
+            panel=panel,
+            created_by=file.created_by,
+            meta={
+                "sender": "info",
+                "prompt": f"/append /file {file.filename} [message*]",
+            },
+        )
+        file_message.save()
         yield "Completed"
     except Exception as e:
         logger.info("** Upload failed:" + str(e))
@@ -77,13 +92,23 @@ def file_stream(file, thread, panel):
         file.save()
         yield "Error"
 
+
 # Message Entrypoint
 def message_handler(message, thread, panel):
     try:
-        response = StreamingHttpResponse(
-            streaming_content=chat_stream(message, thread, panel),
-            content_type="text/event-stream",
-        )
+        ## Function:
+        ## 1. Routing to messaging functions.
+        logger.info("** 1. Routing to messaging functions.")
+        if message.content.startswith("/append"):
+            response = StreamingHttpResponse(
+                streaming_content=message_append(message, thread, panel),
+                content_type="text/event-stream",
+            )
+        else:
+            response = StreamingHttpResponse(
+                streaming_content=chat_stream(message, thread, panel),
+                content_type="text/event-stream",
+            )
         response["Cache-Control"] = "no-cache"
         response["X-Accel-Buffering"] = "no"
         return response
@@ -92,45 +117,50 @@ def message_handler(message, thread, panel):
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
-def chat_stream(message, thread, panel):
+def message_append(message, thread, panel):
     ## Function:
     ## 1. Get settings.
-    ## 2. Enrich incoming message with token_count.
-    ## 3. Get max context and system message.
-    ## 4. Build document context.
-    ## 5. Build message history.
-    ## 6. Execute chat.
-    ## 7. Save warnings as needed.
-    ## 8. Cleanup message text, enrich with token count, and save.
-    ## 9. Enrich / append a title to the chat.
+    ## 2. Get max context and system message.
+    ## 3. Build message history.
+    ## 3.1 Get appended file(s).
+    ## 4. Execute chat.
+    ## 5. Cleanup message text, and save.
+    ## 6. Save warnings as needed.
 
     try:
         ## ----- 1. Get settings.
-        logger.info("** 1. Get settings.")
+        logger.info("** 1. Get files to append and settings.")
+        ## Save message as a command
+        message.meta["sender"] = "user_command"
+        message.save()
+        ## Parse incoming command
+        filename_pattern = r"/file\s+(\S+)"
+        command_pattern = r"^/append\s+(?:/file\s+\S+\s+)*(.*)"
+        filenames_find = re.findall(filename_pattern, message.content)
+        command_message_match = re.match(command_pattern, message.content)
+        command_message = (
+            command_message_match.group(1).strip() if command_message_match else ""
+        )
+        command_filenames = [
+            filename.strip() for filename in filenames_find if filename.strip()
+        ]
+        logger.info("Command message: " + command_message)
+        logger.info("Command filenames: " + str(command_filenames))
         settings = panel.meta
         ## Remove blank-string keys
         keys_to_remove = [k for k, v in settings.items() if v == ""]
         for key in keys_to_remove:
             del settings[key]
-        ## Thread settings
         thread_settings = thread.meta
         if thread_settings.get("ollamaModel") is not None:
             ollama_model_name = thread_settings.get("ollamaModel")
         else:
             raise ValueError("No Ollama model is set for this thread.")
-
-        ## ----- 2. Enrich incoming message with token_count.
-        logger.info("** 2. Enrich incoming message with token_count.")
         completion_model = f"ollama/{ollama_model_name}"
-        token_count = litellm.token_counter(
-            model=completion_model,
-            messages=[{"role": "user", "content": message.content}],
-        )
-        message.meta.update({"token_count": token_count})
-        message.save()
-
-        ## ----- 3. Get max context and system message.
         max_tokens = int(settings.get("Context Size"))
+
+        ## ----- 2. Get max context and system message.
+        logger.info("** 2. Get max context and system message.")
         system_message = {
             "role": "system",
             "content": settings.get("System Message", ""),
@@ -147,107 +177,114 @@ def chat_stream(message, thread, panel):
         else:
             remaining_tokens = max_tokens - system_message_token_count
 
-        ## ----- 4. Build document context.
-        logger.info("** 4. Build document context.")
-        # Allow 80% of context to be filled
-        doc_token_limit = remaining_tokens * 0.8
-        doc_current_tokens = 0
-        doc_context = ""
-        skipped_docs = False
-        thread_files = File.objects.filter(thread=thread, meta__enabled=True)
-        if thread_files.exists():
-            for file in thread_files:
-                doc_token_count = file.meta.get("token_count", 0)
-                if doc_current_tokens + doc_token_count <= doc_token_limit:
-                    doc_current_tokens += doc_token_count
-                    doc_file_path = file.meta.get("text_file_path", "")
-                    try:
-                        if os.path.exists(doc_file_path):
-                            with open(doc_file_path, "r") as f:
-                                doc_text = f.read()
-                            doc_context += f"{file.filename} Context:\n{doc_text}\n\n"
-                    except Exception as e:
-                        logger.error(e, exc_info=True)
-                else:
-                    skipped_docs = True
-                    break
-            document_context = {
-                "role": "user",
-                "content": doc_context,
-            }
-            # Set tokens after adding docs
-            remaining_tokens = remaining_tokens - doc_current_tokens
-
-        ## ----- 5. Build message history.
-        logger.info("** 5. Build message history.")
+        ## ----- 3. Build message history.
+        logger.info("** 3. Build message history.")
         messages = Message.objects.filter(
             created_by=message.created_by, thread_id=thread.id
         ).order_by("-created_on")
         message_history = []
         message_history_token_count = 0
-        user_message_count = 0
-        for msg in messages:
-            if (
-                msg.meta.get("token_count", 0) + message_history_token_count
-                <= remaining_tokens
-            ):
-                # Container for message
-                skipped_images = False
-                role = msg.meta.get("sender", "user")
-                if role == "user":
-                    # Increment if role user (for title later)
-                    user_message_count = user_message_count + 1
-                    message_history_token_count += msg.meta.get("token_count", 0)
-                    message_history.append(
+
+        # > Current message
+        current_content_items = []
+        current_content_items.append({"type": "text", "text": command_message})
+        skipped_images = False
+        # Check images
+        images = message.meta.get("images", [])
+        for img_base64 in images:
+            current_content_items.append(
+                {"type": "image_url", "image_url": {"url": img_base64}}
+            )
+        current_content_row = {"role": "user", "content": current_content_items}
+        current_token_count = litellm.token_counter(
+            model=completion_model, messages=[current_content_row]
+        )
+        message_history_token_count += current_token_count
+        message_history.append(current_content_row)
+
+        ## ----- 3.1 Get files + append to history.
+        logger.info("** 3. Get files + append to history.")
+        file_appended_text = ""
+        file_context_size_warn = False
+        for filename in command_filenames:
+            file_obj = File.objects.filter(
+                filename=filename, thread_id=thread.id
+            ).first()
+            filepath = file_obj.meta.get("text_file_path", "")
+            logger.info("Filepath: " + filepath)
+            if filepath:
+                with open(filepath, "r", encoding="utf-8") as f:
+                    file_content = f.read()
+                file_tokens_count = litellm.token_counter(
+                    model=completion_model,
+                    messages=[
                         {
                             "role": "user",
-                            "content": msg.content,
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "Document Context:\n" + file_content + "\n",
+                                }
+                            ],
                         }
-                    )
-                if role == "assistant":
-                    message_history_token_count += msg.meta.get("token_count", 0)
-                    message_history.append(
-                        {
-                            "role": "assistant",
-                            "content": msg.content,
-                        }
-                    )
+                    ],
+                )
+                if file_tokens_count + message_history_token_count < remaining_tokens:
+                    message_history_token_count += file_tokens_count
+                    file_appended_text += file_content + "\n"
+                else:
+                    logger.info("File context warning triggered. Skipping...")
+                    file_context_size_warn = True
+                    pass
             else:
-                break
-        if thread_files.exists():
-            message_history.append(document_context)
+                logger.info("Text filepath not found in metadata. Skipping...")
+        logger.info("Appended Content: " + file_appended_text)
+        file_content_row = {
+            "role": "user",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Document Context:\n" + file_appended_text,
+                }
+            ],
+        }
+        message_history.append(file_content_row)
+
+        # Append previous messages
+        for msg in messages:
+            role = msg.meta.get("sender", "user")
+            if role == "user" or role == "assistant":
+                # Container for message
+                content_items = []
+                content_items.append({"type": "text", "text": msg.content})
+                skipped_images = False
+                # Check images
+                images = msg.meta.get("images", [])
+                for img_base64 in images:
+                    content_items.append(
+                        {"type": "image_url", "image_url": {"url": img_base64}}
+                    )
+                msg_content_row = {"role": role, "content": content_items}
+                msg_token_count = litellm.token_counter(
+                    model=completion_model, messages=[msg_content_row]
+                )
+                if msg_token_count + message_history_token_count <= remaining_tokens:
+                    message_history_token_count += msg_token_count
+                    message_history.append(msg_content_row)
+                else:
+                    break
         message_history.append(system_message)
         message_history.reverse()
 
-        ## ----- 6. Execute chat.
-        logger.info("** 6. Execute chat.")
+        ## ----- 4. Execute chat.
+        logger.info("** 4. Execute chat.")
         logger.info("Message history: " + str(message_history))
         completion_settings = {
             "stream": True,
-            "api_base": os.getenv("PROMPT_OLLAMA_HOST", ""),
-            "model": f"ollama/{ollama_model_name}",
+            "model": completion_model,
             "messages": message_history,
-            "stop": settings.get("Stop Sequence"),
-            "temperature": (
-                float(settings.get("Temperature"))
-                if settings.get("Temperature") is not None
-                else None
-            ),
-            "max_tokens": (
-                int(settings.get("Max Tokens to Generate"))
-                if settings.get("Max Tokens to Generate") is not None
-                else None
-            ),
-            "top_p": (
-                float(settings.get("Top P"))
-                if settings.get("Top P") is not None
-                else None
-            ),
-            "frequency_penalty": (
-                float(settings.get("Frequency Penalty"))
-                if settings.get("Frequency Penalty") is not None
-                else None
-            ),
+            "api_key": settings.get("API Key"),
+            "api_base": os.getenv("PROMPT_OLLAMA_HOST", ""),
         }
         litellm.drop_params = True
         completion_settings_trimmed = {
@@ -257,10 +294,6 @@ def chat_stream(message, thread, panel):
         }
         response = litellm.completion(**completion_settings_trimmed)
         response_content = ""
-        if skipped_images:
-            yield "> Vision is not available with this model.\n\n"
-        if skipped_docs:
-            yield "> Some of your documents exceeded the context window (text size) for your AI. We recommend using a retrieval-augmented generation (RAG) based solution to surface only the relevant information when querying your AI.\n\n"
         for part in response:
             try:
                 delta = part.choices[0].delta.content or ""
@@ -270,29 +303,8 @@ def chat_stream(message, thread, panel):
                 logger.info("Skipped chunk: " + str(e))
                 pass
 
-        ## ----- 7. Save warnings as needed.
-        logger.info("** 7. Save warnings as needed.")
-        if skipped_docs:
-            warning_docs = Message(
-                content="Some of your documents exceeded the context window (text size) for your AI. We recommend using a retrieval-augmented generation (RAG) based solution to surface only the relevant information when querying your AI.",
-                thread=thread,
-                panel=panel,
-                created_by=message.created_by,
-                meta={"sender": "warning"},
-            )
-            warning_docs.save()
-        if skipped_images:
-            warning_images = Message(
-                content="Vision is not available with this model.",
-                thread=thread,
-                panel=panel,
-                created_by=message.created_by,
-                meta={"sender": "warning"},
-            )
-            warning_images.save()
-
-        ## ----- 8. Cleanup message text, enrich with token count, and save.
-        logger.info("** 8. Cleanup message text, enrich with token count, and save.")
+        ## ----- 5. Cleanup message text, and save.
+        logger.info("** 5. Cleanup message text, and save.")
         # Cleanup
         last_period_pos = response_content.rfind(".")
         last_question_mark_pos = response_content.rfind("?")
@@ -310,25 +322,209 @@ def chat_stream(message, thread, panel):
         )
         if last_sentence_end_pos != -1:
             response_content = response_content[: last_sentence_end_pos + 1]
-
         # Save message
-        new_message = [{"role": "assistant", "content": response_content}]
-        token_count = litellm.token_counter(
-            model=completion_model, messages=new_message
-        )
         response_message = Message(
             content=response_content,
             thread=thread,
             panel=panel,
             created_by=message.created_by,
-            meta={"sender": "assistant", "token_count": token_count},
+            meta={"sender": "assistant"},
         )
         response_message.save()
 
-        ## ----- 9. Enrich / append a title to the chat.
-        logger.info("** 9. Enrich / append a title to the chat")
-        if user_message_count == 1:
+        ## ----- 6. Save warnings as needed.
+        logger.info("** 6. Save warnings as needed.")
+        if file_context_size_warn:
+            warning_docs = Message(
+                content="Some of your documents exceeded the context window (text size). We recommend using a retrieval-augmented generation (RAG) based solution [such as the `Document Lookup` plugin] to surface only the relevant information when querying your AI.",
+                thread=thread,
+                panel=panel,
+                created_by=message.created_by,
+                meta={"sender": "warning"},
+            )
+            warning_docs.save()
+        if skipped_images:
+            warning_images = Message(
+                content="Vision is not available with GPT-3.5. Try using GPT-4 and above to enable vision support.",
+                thread=thread,
+                panel=panel,
+                created_by=message.created_by,
+                meta={"sender": "warning"},
+            )
+            warning_images.save()
+
+    except Exception as e:
+        logger.error(e, exc_info=True)
+        yield "Error: " + str(e)
+        # Save error as message
+        response_message = Message(
+            content="Error: " + str(e),
+            thread=thread,
+            panel=panel,
+            created_by=message.created_by,
+            meta={"sender": "error"},
+        )
+        response_message.save()
+
+
+def chat_stream(message, thread, panel):
+    ## Function:
+    ## 1. Get settings.
+    ## 2. Get max context and system message.
+    ## 3. Build message history.
+    ## 4. Execute chat.
+    ## 5. Cleanup message text, and save.
+    ## 6. Save warnings as needed
+    ## 7. Enrich / append a title to the chat.
+
+    try:
+        ## ----- 1. Get settings.
+        logger.info("** 1. Get settings.")
+        settings = panel.meta
+        ## Remove blank-string keys
+        keys_to_remove = [k for k, v in settings.items() if v == ""]
+        for key in keys_to_remove:
+            del settings[key]
+        thread_settings = thread.meta
+        if thread_settings.get("ollamaModel") is not None:
+            ollama_model_name = thread_settings.get("ollamaModel")
+        else:
+            raise ValueError("No Ollama model is set for this thread.")
+        completion_model = f"ollama/{ollama_model_name}"
+        max_tokens = int(settings.get("Context Size"))
+
+        ## ----- 2. Get max context and system message.
+        logger.info("** 2. Get max context and system message.")
+        system_message = {
+            "role": "system",
+            "content": settings.get("System Message", ""),
+        }
+        system_message_token_count = litellm.token_counter(
+            model=completion_model, messages=[system_message]
+        )
+        if settings.get("Max Tokens to Generate") is not None:
+            remaining_tokens = (
+                max_tokens
+                - system_message_token_count
+                - int(settings.get("Max Tokens to Generate"))
+            )
+        else:
+            remaining_tokens = max_tokens - system_message_token_count
+
+        ## ----- 3. Build message history.
+        logger.info("** 3. Build message history.")
+        messages = Message.objects.filter(
+            created_by=message.created_by, thread_id=thread.id
+        ).order_by("-created_on")
+        message_history = []
+        message_history_token_count = 0
+        for msg in messages:
+            role = msg.meta.get("sender", "user")
+            if role == "user" or role == "assistant":
+                # Container for message
+                content_items = []
+                content_items.append({"type": "text", "text": msg.content})
+                skipped_images = False
+                # Check images
+                images = msg.meta.get("images", [])
+                for img_base64 in images:
+                    content_items.append(
+                        {"type": "image_url", "image_url": {"url": img_base64}}
+                    )
+                msg_content_row = {"role": role, "content": content_items}
+                msg_token_count = litellm.token_counter(
+                    model=completion_model, messages=[msg_content_row]
+                )
+                if msg_token_count + message_history_token_count <= remaining_tokens:
+                    message_history_token_count += msg_token_count
+                    message_history.append(msg_content_row)
+                else:
+                    break
+        message_history.append(system_message)
+        message_history.reverse()
+
+        ## ----- 4. Execute chat.
+        logger.info("** 4. Execute chat.")
+        logger.info("Message history: " + str(message_history))
+        completion_settings = {
+            "stream": True,
+            "model": completion_model,
+            "messages": message_history,
+            "api_key": settings.get("API Key"),
+            "api_base": os.getenv("PROMPT_OLLAMA_HOST", ""),
+        }
+        litellm.drop_params = True
+        completion_settings_trimmed = {
+            key: value
+            for key, value in completion_settings.items()
+            if value is not None
+        }
+        response = litellm.completion(**completion_settings_trimmed)
+        response_content = ""
+        for part in response:
+            try:
+                delta = part.choices[0].delta.content or ""
+                response_content += delta
+                yield delta
+            except Exception as e:
+                logger.info("Skipped chunk: " + str(e))
+                pass
+
+        ## ----- 5. Cleanup message text, and save.
+        logger.info("** 5. Cleanup message text, and save.")
+        # Cleanup
+        last_period_pos = response_content.rfind(".")
+        last_question_mark_pos = response_content.rfind("?")
+        last_exclamation_mark_pos = response_content.rfind("!")
+        last_quote_period_pos = response_content.rfind('."')
+        last_quote_question_mark_pos = response_content.rfind('?"')
+        last_quote_exclamation_mark_pos = response_content.rfind('!"')
+        last_sentence_end_pos = max(
+            last_period_pos,
+            last_question_mark_pos,
+            last_exclamation_mark_pos,
+            last_quote_period_pos,
+            last_quote_question_mark_pos,
+            last_quote_exclamation_mark_pos,
+        )
+        if last_sentence_end_pos != -1:
+            response_content = response_content[: last_sentence_end_pos + 1]
+        # Save message
+        response_message = Message(
+            content=response_content,
+            thread=thread,
+            panel=panel,
+            created_by=message.created_by,
+            meta={"sender": "assistant"},
+        )
+        response_message.save()
+
+        ## ----- 6. Save warnings as needed.
+        logger.info("** 6. Save warnings as needed.")
+        if skipped_images:
+            warning_images = Message(
+                content="Vision is not available with GPT-3.5. Try using GPT-4 and above to enable vision support.",
+                thread=thread,
+                panel=panel,
+                created_by=message.created_by,
+                meta={"sender": "warning"},
+            )
+            warning_images.save()
+
+        ## ----- 7. Enrich / append a title to the chat.
+        logger.info("** 7. Enrich / append a title to the chat")
+        if thread.title == "New Thread":
             title_enrich = []
+            title_content = """
+You are an assistant who writes informative titles based on questions which are asked by the user. 
+Please only provide a summary, do not provide the answer to the question.
+Examples:
+```
+Solution to the fizz buzz problem.
+Winner of the 1998 NBA Finals.
+Ordering food in Japanese.
+```
+            """.strip()
             title_enrich.append({"role": "system", "content": title_content})
             title_enrich.append(
                 {
@@ -338,9 +534,12 @@ def chat_stream(message, thread, panel):
             )
             title_settings = {
                 "stream": False,
-                "api_base": os.getenv("PROMPT_OLLAMA_HOST", ""),
-                "model": f"ollama/{ollama_model_name}",
+                "model": completion_model,
                 "messages": title_enrich,
+                "api_key": settings.get("API Key"),
+                "api_base": os.getenv("PROMPT_OLLAMA_HOST", ""),
+                "api_version": settings.get("API Version"),
+                "organization": settings.get("Organization ID"),
                 "max_tokens": 34,
             }
             litellm.drop_params = True

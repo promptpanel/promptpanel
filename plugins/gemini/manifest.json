@@ -1,6 +1,16 @@
 {
   "name": "Google Gemini",
   "category": " Base Models",
+  "capabilities": {
+    "vision": true,
+    "actions": [
+      {
+        "command": "/append",
+        "parameters": "(/file [filename]) [message*]",
+        "description": "Append a file to your message."
+      }
+    ]
+  },
   "settings": [
     {
       "name": "Model",

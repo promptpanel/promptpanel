@@ -3,16 +3,16 @@
 
 from django.db import migrations
 
+
 def delete_all_tokenlog_records(apps, schema_editor):
-    TokenLog = apps.get_model('user', 'TokenLog')
+    TokenLog = apps.get_model("user", "TokenLog")
     TokenLog.objects.all().delete()
+
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('user', '0001_initial'), 
+        ("user", "0001_initial"),
     ]
 
-    operations = [
-        migrations.RunPython(delete_all_tokenlog_records)
-    ]
+    operations = [migrations.RunPython(delete_all_tokenlog_records)]
