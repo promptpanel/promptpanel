@@ -226,7 +226,7 @@
                     }        
                       }"
                   >
-                    <input type="search" autocomplete="off" x-model="createSetting[setting.name]" @focus="isOpen = true" @input="isOpen = true" :name="setting.name" :required="setting.required && !setting.private" class="w-full h-9 px-2.5 py-1 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
+                    <input type="search" autocomplete="off" x-model="createSetting[setting.name]" @focus="isOpen = true" @input="isOpen = true" :name="setting.name" :placeholder="setting.private ? 'Private field (write-only)...' : ''" :required="setting.required && !setting.private" class="w-full h-9 px-2.5 py-1 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
                     <!-- Only show dropdown if isOpen is true and there are filtered options to show -->
                     <div x-show="isOpen && filteredOptions().length > 0" class="absolute w-full bg-white mt-1 p-1 border border-stone-300 max-h-[50vh] rounded-md shadow-lg overflow-auto z-10">
                       <div x-show="!showAll" class="flex items-center font-semibold text-xs uppercase tracking-wider mx-2 mt-1.5 mb-1">
@@ -339,7 +339,7 @@
                                 }
                                 }"
                             >
-                              <input type="text" x-model="createSetting[setting.name]" @focus="isOpen = true" @input="isOpen = true" :name="setting.name" :required="setting.required && !setting.private" class="w-full h-9 px-2.5 py-1 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
+                              <input type="text" x-model="createSetting[setting.name]" @focus="isOpen = true" @input="isOpen = true" :name="setting.name" :placeholder="setting.private ? 'Private field (write-only)...' : ''" :required="setting.required && !setting.private" class="w-full h-9 px-2.5 py-1 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
                               <!-- Only show dropdown if isOpen is true and there are filtered options to show -->
                               <div x-show="isOpen && filteredOptions().length > 0" class="absolute w-full bg-white mt-1 p-1 border border-stone-300 max-h-[50vh] rounded-md shadow-lg overflow-auto z-10">
                                 <template x-for="(groupedOption, index) in filteredOptions()" :key="index">
