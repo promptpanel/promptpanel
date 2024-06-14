@@ -14,6 +14,8 @@ services:
       - ./plugins/ollama:/app/plugins/ollama
       - ./plugins/completion_chat:/app/plugins/completion
       - ./plugins/llm_universal:/app/plugins/llm_universal
+      - ./plugins/rag_summary:/app/plugins/rag_summary
+      - ./plugins/rag_lookup:/app/plugins/rag_lookup
       ## Your new plugins
       - ./plugins/hello_agent:/app/plugins/hello_agent
     ## Agent plugins

@@ -1,12 +1,11 @@
-version: "3.9"
 services:
   promptpanel:
     image: promptpanel/promptpanel:latest
     container_name: promptpanel
     restart: always
     volumes:
-      - ./database:/app/database
-      - ./media:/app/media
+      - PROMPT_DB:/app/database
+      - PROMPT_MEDIA:/app/media
     ports:
       - 4000:4000
     environment:
@@ -15,3 +14,6 @@ services:
     image: ollama/ollama:latest
     container_name: ollama
     restart: always
+volumes:
+  PROMPT_DB:
+  PROMPT_MEDIA:

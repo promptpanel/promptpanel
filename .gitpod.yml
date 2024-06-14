@@ -1,8 +1,8 @@
 tasks:
   - init: |
-      DEV_PORT=4001 docker compose -f docker-compose-agent-dev.yml up
+      DEV_PORT=4000 docker compose -f docker-compose-agent-dev.yml up
 ports:
-  - port: 4001
+  - port: 4000
     onOpen: open-preview
 vscode:
   extensions:
