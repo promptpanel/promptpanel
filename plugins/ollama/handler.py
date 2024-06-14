@@ -186,7 +186,16 @@ def message_append(message, thread, panel):
         message_history_token_count = 0
 
         # > Current message
-        current_content_row = {"role": "user", "content": command_message}
+        current_content_items = []
+        current_content_items.append({"type": "text", "text": command_message})
+        skipped_images = False
+        # Check images
+        images = message.meta.get("images", [])
+        for img_base64 in images:
+            current_content_items.append(
+                {"type": "image_url", "image_url": {"url": img_base64}}
+            )
+        current_content_row = {"role": "user", "content": current_content_items}
         current_token_count = litellm.token_counter(
             model=completion_model, messages=[current_content_row]
         )
@@ -211,7 +220,12 @@ def message_append(message, thread, panel):
                     messages=[
                         {
                             "role": "user",
-                            "content": "Document Context:\n" + file_content,
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "Document Context:\n" + file_content + "\n",
+                                }
+                            ],
                         }
                     ],
                 )
@@ -227,7 +241,12 @@ def message_append(message, thread, panel):
         logger.info("Appended Content: " + file_appended_text)
         file_content_row = {
             "role": "user",
-            "content": "Document Context:\n" + file_content,
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Document Context:\n" + file_appended_text,
+                }
+            ],
         }
         message_history.append(file_content_row)
 
@@ -235,7 +254,17 @@ def message_append(message, thread, panel):
         for msg in messages:
             role = msg.meta.get("sender", "user")
             if role == "user" or role == "assistant":
-                msg_content_row = {"role": role, "content": msg.content}
+                # Container for message
+                content_items = []
+                content_items.append({"type": "text", "text": msg.content})
+                skipped_images = False
+                # Check images
+                images = msg.meta.get("images", [])
+                for img_base64 in images:
+                    content_items.append(
+                        {"type": "image_url", "image_url": {"url": img_base64}}
+                    )
+                msg_content_row = {"role": role, "content": content_items}
                 msg_token_count = litellm.token_counter(
                     model=completion_model, messages=[msg_content_row]
                 )
@@ -314,6 +343,15 @@ def message_append(message, thread, panel):
                 meta={"sender": "warning"},
             )
             warning_docs.save()
+        if skipped_images:
+            warning_images = Message(
+                content="Vision is not available with GPT-3.5. Try using GPT-4 and above to enable vision support.",
+                thread=thread,
+                panel=panel,
+                created_by=message.created_by,
+                meta={"sender": "warning"},
+            )
+            warning_images.save()
 
     except Exception as e:
         logger.error(e, exc_info=True)
@@ -383,7 +421,17 @@ def chat_stream(message, thread, panel):
         for msg in messages:
             role = msg.meta.get("sender", "user")
             if role == "user" or role == "assistant":
-                msg_content_row = {"role": role, "content": msg.content}
+                # Container for message
+                content_items = []
+                content_items.append({"type": "text", "text": msg.content})
+                skipped_images = False
+                # Check images
+                images = msg.meta.get("images", [])
+                for img_base64 in images:
+                    content_items.append(
+                        {"type": "image_url", "image_url": {"url": img_base64}}
+                    )
+                msg_content_row = {"role": role, "content": content_items}
                 msg_token_count = litellm.token_counter(
                     model=completion_model, messages=[msg_content_row]
                 )
@@ -453,6 +501,15 @@ def chat_stream(message, thread, panel):
 
         ## ----- 6. Save warnings as needed.
         logger.info("** 6. Save warnings as needed.")
+        if skipped_images:
+            warning_images = Message(
+                content="Vision is not available with GPT-3.5. Try using GPT-4 and above to enable vision support.",
+                thread=thread,
+                panel=panel,
+                created_by=message.created_by,
+                meta={"sender": "warning"},
+            )
+            warning_images.save()
 
         ## ----- 7. Enrich / append a title to the chat.
         logger.info("** 7. Enrich / append a title to the chat")

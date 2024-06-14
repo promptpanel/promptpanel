@@ -2,6 +2,7 @@
   "name": "Ollama",
   "category": " Base Models",
   "capabilities": {
+    "vision": true,
     "actions": [
       {
         "command": "/append",
