@@ -131,6 +131,7 @@ def document_lookup(message, thread, panel):
         ## Save message as a command
         message.meta["sender"] = "user_command"
         message.save()
+
         ## Parse incoming command
         filename_pattern = r"/file\s+(\S+)"
         command_pattern = r"^/lookup\s+(?:/file\s+\S+\s+)*(.*)"
