@@ -382,7 +382,6 @@ var pluginState = () => {
                     }
                     const string = new TextDecoder().decode(value);
                     streaming += string;
-                    // Format for display / light sanitize for HTML tags and such
                     this.responseStream = mdConverter.makeHtml(streaming);
                     controller.enqueue(value);
                     push();
@@ -544,18 +543,7 @@ var pluginState = () => {
                     }
                     const string = new TextDecoder().decode(value);
                     streaming += string;
-                    // Format for display / light sanitize for HTML tags and such
                     this.responseStream = mdConverter.makeHtml(streaming);
-                    document.querySelectorAll("pre code").forEach((block) => {
-                      if (!block.classList.contains("hljs")) {
-                        hljs.highlightElement(block);
-                      }
-                      if (!block.classList.contains("hljs")) {
-                        block.classList.add("language-bash");
-                        block.classList.add("bash");
-                        hljs.highlightElement(block);
-                      }
-                    });
                     controller.enqueue(value);
                     push();
                   })
@@ -611,13 +599,13 @@ var pluginState = () => {
           this.newMessage = "";
           this.newRawMessage = "";
           setTimeout(() => {
-            // Convert any markdown fields
+            // Convert any markdown fields (which aren't converted by default)
             document.querySelectorAll(".markdown-convert").forEach((element) => {
               var markdownText = element.textContent;
               var html = mdConverter.makeHtml(markdownText);
-              element.innerHTML = html; // Replace content with HTML
+              element.innerHTML = html;
             });
-            // Check for any un-highlighted blocks
+            // Check for any un-highlighted blocks (default to bash)
             document.querySelectorAll("pre code").forEach((block) => {
               if (!block.classList.contains("hljs")) {
                 hljs.highlightElement(block);
@@ -628,6 +616,53 @@ var pluginState = () => {
                 hljs.highlightElement(block);
               }
             });
+            // Add Copy Code Control
+            document.querySelectorAll("pre").forEach((codeBlock) => {
+              // Remove existing copy buttons
+              let existingCopyButtonAbove = codeBlock.previousElementSibling;
+              if (existingCopyButtonAbove && existingCopyButtonAbove.classList.contains('copyCodeBtn')) {
+                existingCopyButtonAbove.remove();
+              }
+              let existingCopyButtonBelow = codeBlock.nextElementSibling;
+              if (existingCopyButtonBelow && existingCopyButtonBelow.classList.contains('copyCodeBtn')) {
+                existingCopyButtonBelow.remove();
+              }
+              // Create button above
+              let wrapperDivAbove = document.createElement('div');
+              wrapperDivAbove.classList.add('flex', 'w-full', '-mb-[1.7142857em]', 'bg-slate-900', 'rounded-t-md');            
+              let copyButtonAbove = document.createElement('button');
+              copyButtonAbove.textContent = '📋 Copy';
+              copyButtonAbove.classList.add('copyCodeBtn', 'bg-transparent', 'text-stone-400', 'px-3', 'py-2', 'ml-auto', 'text-base', 'inline-block', 'hover:text-stone-50');
+              copyButtonAbove.addEventListener('click', () => {
+                let text = codeBlock.textContent;
+                navigator.clipboard.writeText(text).then(() => {
+                  copyButtonAbove.textContent = '✅ Copied!';
+                  setTimeout(() => {
+                    copyButtonAbove.textContent = '📋 Copy';
+                  }, 2000);
+                });
+              });            
+              wrapperDivAbove.appendChild(copyButtonAbove);            
+              codeBlock.parentNode.insertBefore(wrapperDivAbove, codeBlock);
+              // Create button below
+              let wrapperDivBelow = document.createElement('div');
+              wrapperDivBelow.classList.add('flex', 'w-full', '-mt-[1.7142857em]', 'bg-slate-900', 'rounded-b-md');
+              let copyButtonBelow = document.createElement('button');
+              copyButtonBelow.textContent = '📋 Copy';
+              copyButtonBelow.classList.add('copyCodeBtn', 'bg-transparent', 'text-stone-400', 'px-3', 'py-2', 'ml-auto', 'text-base', 'inline-block', 'hover:text-stone-50');
+              copyButtonBelow.addEventListener('click', () => {
+                let text = codeBlock.textContent;
+                navigator.clipboard.writeText(text).then(() => {
+                  copyButtonBelow.textContent = '✅ Copied!';
+                  setTimeout(() => {
+                    copyButtonBelow.textContent = '📋 Copy';
+                  }, 2000);
+                });
+              });
+              wrapperDivBelow.appendChild(copyButtonBelow);
+              codeBlock.parentNode.insertBefore(wrapperDivBelow, codeBlock.nextSibling);
+            });
+            // Scroll to top (as long as not using pagination)
             if (!incrementLimit) {
               document.querySelector("#content-area").scrollTop = document.querySelector("#content-area").scrollHeight;
             }
