@@ -67,10 +67,7 @@
         },
         {
           "group": "Deepseek",
-          "values": [
-            "deepseek-chat",
-            "deepseek-coder"
-          ]
+          "values": ["deepseek-chat", "deepseek-coder"]
         },
         {
           "group": "Groq",

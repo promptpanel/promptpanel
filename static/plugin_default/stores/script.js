@@ -620,42 +620,42 @@ var pluginState = () => {
             document.querySelectorAll("pre").forEach((codeBlock) => {
               // Remove existing copy buttons
               let existingCopyButtonAbove = codeBlock.previousElementSibling;
-              if (existingCopyButtonAbove && existingCopyButtonAbove.classList.contains('copyCodeBtn')) {
+              if (existingCopyButtonAbove && existingCopyButtonAbove.classList.contains("copyCodeBtn")) {
                 existingCopyButtonAbove.remove();
               }
               let existingCopyButtonBelow = codeBlock.nextElementSibling;
-              if (existingCopyButtonBelow && existingCopyButtonBelow.classList.contains('copyCodeBtn')) {
+              if (existingCopyButtonBelow && existingCopyButtonBelow.classList.contains("copyCodeBtn")) {
                 existingCopyButtonBelow.remove();
               }
               // Create button above
-              let wrapperDivAbove = document.createElement('div');
-              wrapperDivAbove.classList.add('flex', 'w-full', '-mb-[1.7142857em]', 'bg-slate-900', 'rounded-t-md');            
-              let copyButtonAbove = document.createElement('button');
-              copyButtonAbove.textContent = '📋 Copy';
-              copyButtonAbove.classList.add('copyCodeBtn', 'bg-transparent', 'text-stone-400', 'px-3', 'py-2', 'ml-auto', 'text-base', 'inline-block', 'hover:text-stone-50');
-              copyButtonAbove.addEventListener('click', () => {
+              let wrapperDivAbove = document.createElement("div");
+              wrapperDivAbove.classList.add("flex", "w-full", "-mb-[1.7142857em]", "bg-slate-900", "rounded-t-md");
+              let copyButtonAbove = document.createElement("button");
+              copyButtonAbove.textContent = "📋 Copy";
+              copyButtonAbove.classList.add("copyCodeBtn", "bg-transparent", "text-stone-400", "px-3", "py-2", "ml-auto", "text-base", "inline-block", "hover:text-stone-50");
+              copyButtonAbove.addEventListener("click", () => {
                 let text = codeBlock.textContent;
                 navigator.clipboard.writeText(text).then(() => {
-                  copyButtonAbove.textContent = '✅ Copied!';
+                  copyButtonAbove.textContent = "✅ Copied!";
                   setTimeout(() => {
-                    copyButtonAbove.textContent = '📋 Copy';
+                    copyButtonAbove.textContent = "📋 Copy";
                   }, 2000);
                 });
-              });            
-              wrapperDivAbove.appendChild(copyButtonAbove);            
+              });
+              wrapperDivAbove.appendChild(copyButtonAbove);
               codeBlock.parentNode.insertBefore(wrapperDivAbove, codeBlock);
               // Create button below
-              let wrapperDivBelow = document.createElement('div');
-              wrapperDivBelow.classList.add('flex', 'w-full', '-mt-[1.7142857em]', 'bg-slate-900', 'rounded-b-md');
-              let copyButtonBelow = document.createElement('button');
-              copyButtonBelow.textContent = '📋 Copy';
-              copyButtonBelow.classList.add('copyCodeBtn', 'bg-transparent', 'text-stone-400', 'px-3', 'py-2', 'ml-auto', 'text-base', 'inline-block', 'hover:text-stone-50');
-              copyButtonBelow.addEventListener('click', () => {
+              let wrapperDivBelow = document.createElement("div");
+              wrapperDivBelow.classList.add("flex", "w-full", "-mt-[1.7142857em]", "bg-slate-900", "rounded-b-md");
+              let copyButtonBelow = document.createElement("button");
+              copyButtonBelow.textContent = "📋 Copy";
+              copyButtonBelow.classList.add("copyCodeBtn", "bg-transparent", "text-stone-400", "px-3", "py-2", "ml-auto", "text-base", "inline-block", "hover:text-stone-50");
+              copyButtonBelow.addEventListener("click", () => {
                 let text = codeBlock.textContent;
                 navigator.clipboard.writeText(text).then(() => {
-                  copyButtonBelow.textContent = '✅ Copied!';
+                  copyButtonBelow.textContent = "✅ Copied!";
                   setTimeout(() => {
-                    copyButtonBelow.textContent = '📋 Copy';
+                    copyButtonBelow.textContent = "📋 Copy";
                   }, 2000);
                 });
               });
