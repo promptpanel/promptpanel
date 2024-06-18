@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="/static/plugin_default/css/snow.css" />
     <link rel="stylesheet" href="/static/plugin_default/css/night-owl.css" />
     <link rel="stylesheet" href="/static/plugin_default/css/custom.css" />
-    
+
     <script>
       // prettier-ignore
       document.addEventListener("alpine:init", () => {
@@ -19,7 +19,6 @@
         });
       });
     </script>
-
   </head>
   <body class="antialiased text-stone-800">
     <div x-cloak x-data="pluginState()" x-init="getOS(), getThreads(), getMessages(), getFiles()" class="relative h-[100vh] w-[100vw]">
@@ -159,11 +158,14 @@
                   <tr class="border-b border-stone-200 last:border-transparent">
                     <td class="px-2 py-1 text-center">
                       <template x-if="file.meta?.upload_status !== 'failed'">
-                        <svg class="w-4 h-4 mx-auto text-stone-500 hover:text-stone-800 cursor-pointer" @click="copyToClipboard(file.filename, 'filename')" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M7.5 3.375c0-1.036.84-1.875 1.875-1.875h.375a3.75 3.75 0 0 1 3.75 3.75v1.875C13.5 8.161 14.34 9 15.375 9h1.875A3.75 3.75 0 0 1 21 12.75v3.375C21 17.16 20.16 18 19.125 18h-9.75A1.875 1.875 0 0 1 7.5 16.125V3.375Z"></path><path d="M15 5.25a5.23 5.23 0 0 0-1.279-3.434 9.768 9.768 0 0 1 6.963 6.963A5.23 5.23 0 0 0 17.25 7.5h-1.875A.375.375 0 0 1 15 7.125V5.25ZM4.875 6H6v10.125A3.375 3.375 0 0 0 9.375 19.5H16.5v1.125c0 1.035-.84 1.875-1.875 1.875h-9.75A1.875 1.875 0 0 1 3 20.625V7.875C3 6.839 3.84 6 4.875 6Z"></path></svg>
+                        <svg class="w-4 h-4 mx-auto text-stone-500 hover:text-stone-800 cursor-pointer" @click="copyToClipboard(file.filename, 'filename')" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M7.5 3.375c0-1.036.84-1.875 1.875-1.875h.375a3.75 3.75 0 0 1 3.75 3.75v1.875C13.5 8.161 14.34 9 15.375 9h1.875A3.75 3.75 0 0 1 21 12.75v3.375C21 17.16 20.16 18 19.125 18h-9.75A1.875 1.875 0 0 1 7.5 16.125V3.375Z"></path>
+                          <path d="M15 5.25a5.23 5.23 0 0 0-1.279-3.434 9.768 9.768 0 0 1 6.963 6.963A5.23 5.23 0 0 0 17.25 7.5h-1.875A.375.375 0 0 1 15 7.125V5.25ZM4.875 6H6v10.125A3.375 3.375 0 0 0 9.375 19.5H16.5v1.125c0 1.035-.84 1.875-1.875 1.875h-9.75A1.875 1.875 0 0 1 3 20.625V7.875C3 6.839 3.84 6 4.875 6Z"></path>
+                        </svg>
                       </template>
                       <template x-if="file.meta?.upload_status == 'failed'">
                         <svg class="w-4 h-4 mx-auto text-rose-600 not-allowed" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-1.72 6.97a.75.75 0 1 0-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 1 0 1.06 1.06L12 13.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L13.06 12l1.72-1.72a.75.75 0 1 0-1.06-1.06L12 10.94l-1.72-1.72Z" clip-rule="evenodd"></path></svg>
-                      </template> 
+                      </template>
                     </td>
                     <td class="px-2 py-1 whitespace-nowrap">
                       <a :href="file.filepath" x-text="file.filename" :class="{ 'text-stone-500 hover:text-stone-800': !file.meta?.enabled, 'text-primary hover:text-primary/80': file.meta?.enabled}" class="text-primary hover:text-primary/80"></a>
@@ -320,7 +322,6 @@
               <div>
                 <template x-if="message.meta?.sender == 'assistant'">
                   <div class="mb-10">
-
                     <template x-if="message.meta?.sentences && message.meta.sentences.length > 0">
                       <div x-data="{modalOpen: false, filename: '', filepath: '',  page_num: '', excerpt: ''}" class="relative space-y-3 rounded-t-md rounded-br-md w-11/12 -mt-2.5 py-2.5">
                         <div :class="{'-right-[100vw]': !modalOpen, 'right-0': modalOpen}" class="transition-all top-0 fixed mx-auto z-[101] max-w-xl w-full h-full bg-white border-x border-stone-200 -lg:border-none -lg:max-w-[100vw] -lg:shadow-none shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.05)]">
@@ -365,9 +366,8 @@
                               </div>
                               <div class="flex items-center justify-end space-x-1.5 space-y-1.5">
                                 <template x-for="(citation, index) in sentence.citations">
-                                  <div x-text="index + 1" @mouseover="tooltipOpen = true, filename = citation.filename, page_num = citation.page_num, excerpt = citation.citation_excerpt" @click="tooltipOpen = false, modalOpen = true, filepath = citation.filepath, filename = citation.filename, page_num = citation.page_num, excerpt = citation.citation_excerpt" 
-                                  class="cursor-pointer text-xs w-5 h-5 my-2 rounded-full flex items-center justify-center bg-stone-200 hover:bg-stone-300">1</div>
-                                </template>  
+                                  <div x-text="index + 1" @mouseover="tooltipOpen = true, filename = citation.filename, page_num = citation.page_num, excerpt = citation.citation_excerpt" @click="tooltipOpen = false, modalOpen = true, filepath = citation.filepath, filename = citation.filename, page_num = citation.page_num, excerpt = citation.citation_excerpt" class="cursor-pointer text-xs w-5 h-5 my-2 rounded-full flex items-center justify-center bg-stone-200 hover:bg-stone-300">1</div>
+                                </template>
                               </div>
                             </div>
                           </template>
@@ -378,9 +378,9 @@
                     <template x-if="!message.meta?.sentences || !message.meta.sentences.length > 0">
                       <div class="z-[0] relative rounded-t-md rounded-br-md w-11/12 py-2.5">
                         <div x-html="message.content" class="prose w-full masked text-lg">Message Content</div>
-                      </div>  
+                      </div>
                     </template>
-                    
+
                     <div class="flex items-center text-sm text-stone-500 w-full mt-0.5">
                       <p>Assistant</p>
                       <p class="mx-1">•</p>
@@ -462,7 +462,7 @@
                       <p class="">System Info</p>
                       <p class="mx-1">•</p>
                       <p x-text="formatDate(message.created_on)"></p>
-                      <div class="flex items-center ">
+                      <div class="flex items-center">
                         <p class="mx-1">•</p>
                         <p @click="deleteMessage(message.id)" class="flex items-center font-semibold cursor-pointer transition text-stone-500 opacity-50 hover:opacity-100 hover:text-rose-600">
                           <svg class="w-3.5 h-3.5 mr-0.5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z" clip-rule="evenodd"></path></svg>
@@ -474,7 +474,7 @@
                             <p @click="addPrompt(message.meta.prompt)" class="flex items-center font-semibold cursor-pointer transition text-stone-500 opacity-50 hover:opacity-100 hover:text-primary">
                               <svg class="w-3.5 h-3.5 mr-0.5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.848 2.771A49.144 49.144 0 0 1 12 2.25c2.43 0 4.817.178 7.152.52 1.978.292 3.348 2.024 3.348 3.97v6.02c0 1.946-1.37 3.678-3.348 3.97-1.94.284-3.916.455-5.922.505a.39.39 0 0 0-.266.112L8.78 21.53A.75.75 0 0 1 7.5 21v-3.955a48.842 48.842 0 0 1-2.652-.316c-1.978-.29-3.348-2.024-3.348-3.97V6.741c0-1.946 1.37-3.68 3.348-3.97Z" clip-rule="evenodd"></path></svg>
                               Add Message
-                            </p>  
+                            </p>
                           </div>
                         </template>
                       </div>
@@ -611,13 +611,15 @@
               <!-- Actions -->
               <div x-show="matchedActions.length > 0" class="p-1 bg-white rounded-md border shadow border-stone-200 mb-1.5">
                 <template x-for="action in matchedActions" :key="action.command">
-                    <div @click="addPrompt(action.command)" class="cursor-pointer flex items-center py-1 px-3 rounded-md hover:bg-stone-100 focus:bg-stone-200">
-                        <p><span class="font-mono" x-text="action.command">Command</span> <span class="font-mono" x-text="action.parameters">Command</span><p>
-                        <p class="ml-auto ml-1.5 text-stone-500 text-right text-sm" x-text="action.description"><p>
-                    </div>
+                  <div @click="addPrompt(action.command)" class="cursor-pointer flex items-center py-1 px-3 rounded-md hover:bg-stone-100 focus:bg-stone-200">
+                    <p><span class="font-mono" x-text="action.command">Command</span> <span class="font-mono" x-text="action.parameters">Command</span></p>
+                    <p></p>
+                    <p class="ml-auto ml-1.5 text-stone-500 text-right text-sm" x-text="action.description"></p>
+                    <p></p>
+                  </div>
                 </template>
               </div>
-              
+
               <!-- Send Button - Blank -->
               <button x-show="messageFromEditor == '' && !indicateProcessing" disabled :class="{'right-[1.75rem]': osPlatform != 'mac', 'right-[0.75rem]': osPlatform == 'mac'}" class="z-10 flex items-center justify-center absolute bottom-[0.5rem] h-7 w-7 rounded-md text-stone-400">
                 <svg class="w-[1rem] h-[1rem] min-w-[1rem] min-h-[1rem]" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M476.59 227.05l-.16-.07L49.35 49.84A23.56 23.56 0 0027.14 52 24.65 24.65 0 0016 72.59v113.29a24 24 0 0019.52 23.57l232.93 43.07a4 4 0 010 7.86L35.53 303.45A24 24 0 0016 327v113.31A23.57 23.57 0 0026.59 460a23.94 23.94 0 0013.22 4 24.55 24.55 0 009.52-1.93L476.4 285.94l.19-.09a32 32 0 000-58.8z"></path></svg>
@@ -659,19 +661,17 @@
               </button>
             </div>
             <div class="flex items-center pb-5">
-              <p class="">
-                <div class="flex items-center text-stone-500 text-xs" x-show="osPlatform == 'windows' || osPlatform == 'other'">
-                  <span class="font-semibold px-1.5 py-0.5 border border-stone-300 rounded-md shadow-sm">CTRL</span> 
-                  <span class="mx-0.5 text-stone-500 text-xs">+</span>
-                  <span class="font-semibold px-1.5 py-0.5 border border-stone-300 rounded-md shadow-sm">Enter</span>
-                </div>
-                <div class="flex items-center text-stone-500 text-xs" x-show="osPlatform == 'mac'">
-                  <span class="font-semibold px-1.5 py-0.5 border border-stone-300 rounded-md shadow-sm">CMD</span> 
-                  <span class="mx-1 text-stone-500 text-xs">+</span>
-                  <span class="font-semibold px-1.5 py-0.5 border border-stone-300 rounded-md shadow-sm">Enter</span>
-                </div> 
-                <span class="ml-1 text-stone-500 text-xs">to Send</span>
-              </p>
+              <div class="flex items-center text-stone-500 text-xs" x-show="osPlatform == 'windows' || osPlatform == 'other'">
+                <span class="font-semibold px-1.5 py-0.5 border border-stone-300 rounded-md shadow-sm">CTRL</span>
+                <span class="mx-0.5 text-stone-500 text-xs">+</span>
+                <span class="font-semibold px-1.5 py-0.5 border border-stone-300 rounded-md shadow-sm">Enter</span>
+              </div>
+              <div class="flex items-center text-stone-500 text-xs" x-show="osPlatform == 'mac'">
+                <span class="font-semibold px-1.5 py-0.5 border border-stone-300 rounded-md shadow-sm">CMD</span>
+                <span class="mx-1 text-stone-500 text-xs">+</span>
+                <span class="font-semibold px-1.5 py-0.5 border border-stone-300 rounded-md shadow-sm">Enter</span>
+              </div>
+              <span class="ml-1 text-stone-500 text-xs">to Send</span>
               <div class="flex items-center ml-6">
                 <span class="font-semibold text-stone-500 text-xs px-1.5 py-0.5 border border-stone-300 rounded-md shadow-sm">/</span>
                 <span class="ml-1 text-stone-500 text-xs">for available Actions</span>

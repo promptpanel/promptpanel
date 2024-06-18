@@ -38,18 +38,20 @@ def file_stream(file, thread, panel):
         logger.info("** 1. Get settings.")
         settings = panel.meta
         model_selected = settings.get("Model", "GPT-3.5")
+        completion_model = model_selected
+        max_tokens = 8192
+        if model_selected == "GPT-3.5":
+            completion_model = "gpt-3.5-turbo"
+            max_tokens = 16385
         if model_selected == "GPT-4":
             completion_model = "gpt-4"
             max_tokens = 8192
-        elif model_selected == "GPT-4 Turbo":
+        if model_selected == "GPT-4 Turbo":
             completion_model = "gpt-4-turbo"
             max_tokens = 128000
-        elif model_selected == "GPT-4o":
+        if model_selected == "GPT-4o":
             completion_model = "gpt-4o"
             max_tokens = 128000
-        else:
-            completion_model = "gpt-3.5-turbo"
-            max_tokens = 16385
 
         ## ----- 2. Parse file and save to .txt file.
         logger.info("** 2. Parse file and save to .txt file.")
@@ -159,18 +161,20 @@ def message_append(message, thread, panel):
         for key in keys_to_remove:
             del settings[key]
         model_selected = settings.get("Model", "GPT-3.5")
+        completion_model = model_selected
+        max_tokens = 8192
+        if model_selected == "GPT-3.5":
+            completion_model = "gpt-3.5-turbo"
+            max_tokens = 16385
         if model_selected == "GPT-4":
             completion_model = "gpt-4"
             max_tokens = 8192
-        elif model_selected == "GPT-4 Turbo":
+        if model_selected == "GPT-4 Turbo":
             completion_model = "gpt-4-turbo"
             max_tokens = 128000
-        elif model_selected == "GPT-4o":
+        if model_selected == "GPT-4o":
             completion_model = "gpt-4o"
             max_tokens = 128000
-        else:
-            completion_model = "gpt-3.5-turbo"
-            max_tokens = 16385
 
         ## ----- 2. Get max context and system message.
         logger.info("** 2. Get max context and system message.")
@@ -406,18 +410,20 @@ def chat_stream(message, thread, panel):
         for key in keys_to_remove:
             del settings[key]
         model_selected = settings.get("Model", "GPT-3.5")
+        completion_model = model_selected
+        max_tokens = 8192
+        if model_selected == "GPT-3.5":
+            completion_model = "gpt-3.5-turbo"
+            max_tokens = 16385
         if model_selected == "GPT-4":
             completion_model = "gpt-4"
             max_tokens = 8192
-        elif model_selected == "GPT-4 Turbo":
+        if model_selected == "GPT-4 Turbo":
             completion_model = "gpt-4-turbo"
             max_tokens = 128000
-        elif model_selected == "GPT-4o":
+        if model_selected == "GPT-4o":
             completion_model = "gpt-4o"
             max_tokens = 128000
-        else:
-            completion_model = "gpt-3.5-turbo"
-            max_tokens = 16385
 
         ## ----- 2. Get max context and system message.
         logger.info("** 2. Get max context and system message.")

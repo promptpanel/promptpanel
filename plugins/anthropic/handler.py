@@ -38,13 +38,17 @@ def file_stream(file, thread, panel):
         logger.info("** 1. Get settings.")
         settings = panel.meta
         model_selected = settings.get("Model", "Haiku")
-        max_tokens = 200000
+        completion_model = model_selected
+        max_tokens = 8192
         if model_selected == "Opus":
             completion_model = "claude-3-opus-20240229"
-        elif model_selected == "Sonnet":
+            max_tokens = 200000
+        if model_selected == "Sonnet":
             completion_model = "claude-3-sonnet-20240229"
-        else:
+            max_tokens = 200000
+        if model_selected == "Haiku":
             completion_model = "claude-3-haiku-20240307"
+            max_tokens = 200000
 
         ## ----- 2. Parse file and save to .txt file.
         logger.info("** 2. Parse file and save to .txt file.")
@@ -154,13 +158,17 @@ def message_append(message, thread, panel):
         for key in keys_to_remove:
             del settings[key]
         model_selected = settings.get("Model", "Haiku")
-        max_tokens = 200000
+        completion_model = model_selected
+        max_tokens = 8192
         if model_selected == "Opus":
             completion_model = "claude-3-opus-20240229"
-        elif model_selected == "Sonnet":
+            max_tokens = 200000
+        if model_selected == "Sonnet":
             completion_model = "claude-3-sonnet-20240229"
-        else:
+            max_tokens = 200000
+        if model_selected == "Haiku":
             completion_model = "claude-3-haiku-20240307"
+            max_tokens = 200000
 
         ## ----- 2. Get max context and system message.
         logger.info("** 2. Get max context and system message.")
@@ -350,13 +358,17 @@ def chat_stream(message, thread, panel):
         for key in keys_to_remove:
             del settings[key]
         model_selected = settings.get("Model", "Haiku")
-        max_tokens = 200000
+        completion_model = model_selected
+        max_tokens = 8192
         if model_selected == "Opus":
             completion_model = "claude-3-opus-20240229"
-        elif model_selected == "Sonnet":
+            max_tokens = 200000
+        if model_selected == "Sonnet":
             completion_model = "claude-3-sonnet-20240229"
-        else:
+            max_tokens = 200000
+        if model_selected == "Haiku":
             completion_model = "claude-3-haiku-20240307"
+            max_tokens = 200000
 
         ## ----- 2. Get max context and system message.
         logger.info("** 2. Get max context and system message.")

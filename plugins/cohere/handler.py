@@ -38,11 +38,14 @@ def file_stream(file, thread, panel):
         logger.info("** 1. Get settings.")
         settings = panel.meta
         model_selected = settings.get("Model", "command-r")
-        max_tokens = 128000
+        completion_model = model_selected
+        max_tokens = 8192
         if model_selected == "Command R+":
             completion_model = "command-r-plus"
-        else:
+            max_tokens = 128000
+        if model_selected == "Command R":
             completion_model = "command-r"
+            max_tokens = 128000
 
         ## ----- 2. Parse file and save to .txt file.
         logger.info("** 2. Parse file and save to .txt file.")
@@ -152,11 +155,14 @@ def message_append(message, thread, panel):
         for key in keys_to_remove:
             del settings[key]
         model_selected = settings.get("Model", "command-r")
-        max_tokens = 128000
+        completion_model = model_selected
+        max_tokens = 8192
         if model_selected == "Command R+":
             completion_model = "command-r-plus"
-        else:
+            max_tokens = 128000
+        if model_selected == "Command R":
             completion_model = "command-r"
+            max_tokens = 128000
 
         ## ----- 2. Get max context and system message.
         logger.info("** 2. Get max context and system message.")
@@ -346,11 +352,14 @@ def chat_stream(message, thread, panel):
         for key in keys_to_remove:
             del settings[key]
         model_selected = settings.get("Model", "command-r")
-        max_tokens = 128000
+        completion_model = model_selected
+        max_tokens = 8192
         if model_selected == "Command R+":
             completion_model = "command-r-plus"
-        else:
+            max_tokens = 128000
+        if model_selected == "Command R":
             completion_model = "command-r"
+            max_tokens = 128000
 
         ## ----- 2. Get max context and system message.
         logger.info("** 2. Get max context and system message.")
