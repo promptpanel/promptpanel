@@ -99,6 +99,11 @@ def summarize_stream(message, thread, panel):
     ## Function:
     ## 1. Get settings / check incoming command + file.
     ## 2. Batch up summarization by document context size.
+    ## 3. Run batched content for summary.
+    ## 4. Create response message with citations.
+    ## ----- Leftover parts
+    ## 5. Run batched content for summary.
+    ## 6. Create response message with citations.
     try:
         ## ----- 1. Get settings / check incoming command + file.
         logger.info("** 1. Get settings / check incoming command + file.")
@@ -165,21 +170,96 @@ def summarize_stream(message, thread, panel):
                 batch_summary = ""
                 batch_citations = []
 
-                for part in summarize_batch(
-                    batched_sentences,
-                    batched_page_numbers,
-                    selected_file,
-                    panel,
-                    thread,
-                    message,
-                    summarize_prompt,
-                    completion_model,
-                    settings,
+                ## ----- 3. Run batched content for summary.
+                logger.info("** 3. Run batched content for summary.")
+                batched_content = "\n".join(batched_sentences)
+                messages = [
+                    {"role": "system", "content": summarize_prompt},
+                    {"role": "user", "content": batched_content},
+                ]
+                completion_settings = {
+                    "stream": True,
+                    "model": completion_model,
+                    "messages": messages,
+                    "api_key": settings.get("LLM Model API Key"),
+                    "api_base": (
+                        settings.get("URL Base", "").rstrip("/")
+                        if settings.get("URL Base") is not None
+                        else None
+                    ),
+                    "api_version": settings.get("API Version"),
+                    "organization": settings.get("Organization ID"),
+                    "stop": settings.get("Stop Sequence"),
+                    "temperature": (
+                        float(settings.get("Temperature"))
+                        if settings.get("Temperature") is not None
+                        else None
+                    ),
+                    "top_p": (
+                        float(settings.get("Top P"))
+                        if settings.get("Top P") is not None
+                        else None
+                    ),
+                    "presence_penalty": (
+                        float(settings.get("Presence Penalty"))
+                        if settings.get("Presence Penalty") is not None
+                        else None
+                    ),
+                    "frequency_penalty": (
+                        float(settings.get("Frequency Penalty"))
+                        if settings.get("Frequency Penalty") is not None
+                        else None
+                    ),
+                }
+                litellm.drop_params = True
+                completion_settings_trimmed = {
+                    key: value
+                    for key, value in completion_settings.items()
+                    if value is not None
+                }
+                response = litellm.completion(**completion_settings_trimmed)
+                for part in response:
+                    try:
+                        delta = part.choices[0].delta.content or ""
+                        batch_summary += delta
+                        yield delta
+                    except Exception as e:
+                        logger.info("Skipped chunk: " + str(e))
+                        pass
+
+                ## ----- 4. Create response message with citations.
+                logger.info("** 4. Create response message with citations.")
+                sentences_with_citations = [
+                    {"sentence": batch_summary.strip(), "citations": []}
+                ]
+                # Tracking
+                min_page = float("inf")
+                max_page = float("-inf")
+                combined_sentence = ""
+                for sentence, page_number in zip(
+                    batched_sentences, batched_page_numbers
                 ):
-                    if isinstance(part, str):
-                        batch_summary += part
-                    else:
-                        batch_citations.append(part)
+                    min_page = min(min_page, page_number)
+                    max_page = max(max_page, page_number)
+                    combined_sentence += (
+                        sentence + " "
+                    )  # Add sentence to combined excerpt
+                sentences_with_citations[0]["citations"].append(
+                    {
+                        "filepath": selected_file.filepath,
+                        "filename": selected_file.filename,
+                        "citation_excerpt": combined_sentence.strip(),
+                        "page_num": (
+                            f"{int(min_page)} - {int(max_page)}"
+                            if min_page != max_page
+                            else f"{int(min_page)}"
+                        ),  # Format as "2-4" or just "2"
+                    }
+                )
+
+                for citation in sentences_with_citations:
+                    batch_citations.append(citation)
+
                 all_summaries.append(batch_summary)
                 all_citations.extend(batch_citations)
 
@@ -192,24 +272,94 @@ def summarize_stream(message, thread, panel):
             batch_summary = ""
             batch_citations = []
 
-            for part in summarize_batch(
-                batched_sentences,
-                batched_page_numbers,
-                selected_file,
-                panel,
-                thread,
-                message,
-                summarize_prompt,
-                completion_model,
-                settings,
-            ):
-                if isinstance(part, str):
-                    batch_summary += part
-                else:
-                    batch_citations.append(part)
+            ## ----- 5. Run batched content for summary.
+            logger.info("** 1. Run batched content for summary.")
+            batched_content = "\n".join(batched_sentences)
+            messages = [
+                {"role": "system", "content": summarize_prompt},
+                {"role": "user", "content": batched_content},
+            ]
+            completion_settings = {
+                "stream": True,
+                "model": completion_model,
+                "messages": messages,
+                "api_key": settings.get("LLM Model API Key"),
+                "api_base": (
+                    settings.get("URL Base", "").rstrip("/")
+                    if settings.get("URL Base") is not None
+                    else None
+                ),
+                "api_version": settings.get("API Version"),
+                "organization": settings.get("Organization ID"),
+                "stop": settings.get("Stop Sequence"),
+                "temperature": (
+                    float(settings.get("Temperature"))
+                    if settings.get("Temperature") is not None
+                    else None
+                ),
+                "top_p": (
+                    float(settings.get("Top P"))
+                    if settings.get("Top P") is not None
+                    else None
+                ),
+                "presence_penalty": (
+                    float(settings.get("Presence Penalty"))
+                    if settings.get("Presence Penalty") is not None
+                    else None
+                ),
+                "frequency_penalty": (
+                    float(settings.get("Frequency Penalty"))
+                    if settings.get("Frequency Penalty") is not None
+                    else None
+                ),
+            }
+            litellm.drop_params = True
+            completion_settings_trimmed = {
+                key: value
+                for key, value in completion_settings.items()
+                if value is not None
+            }
+            response = litellm.completion(**completion_settings_trimmed)
+            for part in response:
+                try:
+                    delta = part.choices[0].delta.content or ""
+                    batch_summary += delta
+                    yield delta
+                except Exception as e:
+                    logger.info("Skipped chunk: " + str(e))
+                    pass
+
+            ## ----- 6. Create response message with citations.
+            logger.info("** 6. Create response message with citations.")
+            sentences_with_citations = [
+                {"sentence": batch_summary.strip(), "citations": []}
+            ]
+            # Tracking
+            min_page = float("inf")
+            max_page = float("-inf")
+            combined_sentence = ""
+            for sentence, page_number in zip(batched_sentences, batched_page_numbers):
+                min_page = min(min_page, page_number)
+                max_page = max(max_page, page_number)
+                combined_sentence += sentence + " "
+            # Add single citation
+            sentences_with_citations[0]["citations"].append(
+                {
+                    "filepath": selected_file.filepath,
+                    "filename": selected_file.filename,
+                    "citation_excerpt": combined_sentence.strip(),
+                    "page_num": (
+                        f"{int(min_page)} - {int(max_page)}"
+                        if min_page != max_page
+                        else f"{int(min_page)}"
+                    ),  # Format as "2-4" or just "2"
+                }
+            )
+
+            for citation in sentences_with_citations:
+                batch_citations.append(citation)
             all_summaries.append(batch_summary)
             all_citations.extend(batch_citations)
-
         # Combine all summaries and citations into a single response
         combined_summary = " ".join(all_summaries)
         response_message = Message(
@@ -235,119 +385,6 @@ def summarize_stream(message, thread, panel):
             meta={"sender": "error"},
         )
         response_message.save()
-
-
-def summarize_batch(
-    sentences,
-    page_numbers,
-    file,
-    panel,
-    thread,
-    message,
-    summarize_prompt,
-    completion_model,
-    settings,
-):
-    ## Function:
-    ## 1. Run batched content for summary.
-    try:
-        ## ----- 1. Run batched content for summary.
-        logger.info("** 1. Run batched content for summary.")
-        batched_content = "\n".join(sentences)
-        messages = [
-            {"role": "system", "content": summarize_prompt},
-            {"role": "user", "content": batched_content},
-        ]
-        completion_settings = {
-            "stream": True,
-            "model": completion_model,
-            "messages": messages,
-            "api_key": settings.get("LLM Model API Key"),
-            "api_base": (
-                settings.get("URL Base", "").rstrip("/")
-                if settings.get("URL Base") is not None
-                else None
-            ),
-            "api_version": settings.get("API Version"),
-            "organization": settings.get("Organization ID"),
-            "stop": settings.get("Stop Sequence"),
-            "temperature": (
-                float(settings.get("Temperature"))
-                if settings.get("Temperature") is not None
-                else None
-            ),
-            "top_p": (
-                float(settings.get("Top P"))
-                if settings.get("Top P") is not None
-                else None
-            ),
-            "presence_penalty": (
-                float(settings.get("Presence Penalty"))
-                if settings.get("Presence Penalty") is not None
-                else None
-            ),
-            "frequency_penalty": (
-                float(settings.get("Frequency Penalty"))
-                if settings.get("Frequency Penalty") is not None
-                else None
-            ),
-        }
-        litellm.drop_params = True
-        completion_settings_trimmed = {
-            key: value
-            for key, value in completion_settings.items()
-            if value is not None
-        }
-        response = litellm.completion(**completion_settings_trimmed)
-        summary = ""
-        for part in response:
-            try:
-                delta = part.choices[0].delta.content or ""
-                summary += delta
-                yield delta  # Yielding part of the summary
-            except Exception as e:
-                logger.info("Skipped chunk: " + str(e))
-                pass
-
-        ## ----- 2. Create response message with citations.
-        logger.info("** 2. Create response message with citations.")
-        sentences_with_citations = [{"sentence": summary.strip(), "citations": []}]
-        # Tracking
-        min_page = float("inf")
-        max_page = float("-inf")
-        combined_sentence = ""
-        for sentence, page_number in zip(sentences, page_numbers):
-            min_page = min(min_page, page_number)
-            max_page = max(max_page, page_number)
-            combined_sentence += sentence + " "  # Add sentence to combined excerpt
-        # Add single citation
-        sentences_with_citations[0]["citations"].append(
-            {
-                "filepath": file.filepath,
-                "filename": file.filename,
-                "citation_excerpt": combined_sentence.strip(),
-                "page_num": (
-                    f"{int(min_page)} - {int(max_page)}"
-                    if min_page != max_page
-                    else f"{int(min_page)}"
-                ),  # Format as "2-4" or just "2"
-            }
-        )
-
-        for citation in sentences_with_citations:
-            yield citation  # Yielding the citation
-
-    except Exception as e:
-        logger.error(e, exc_info=True)
-        response_message = Message(
-            content="Error Summarizing: " + str(e),
-            thread=thread,
-            panel=panel,
-            created_by=message.created_by,
-            meta={"sender": "error"},
-        )
-        response_message.save()
-        pass
 
 
 def chat_stream(message, thread, panel):
