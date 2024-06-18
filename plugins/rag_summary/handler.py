@@ -134,9 +134,6 @@ def summarize_stream(message, thread, panel):
         with open(pickle_path, "rb") as f:
             sentences, page_numbers = pickle.load(f)
         completion_model = settings.get("Model")
-        token_model = (
-            completion_model if completion_model != "gpt-4o" else "gpt-4-turbo"
-        )
         context_size = int(settings.get("Document Context Size"))
 
         ## ----- 2. Batch up summarization by document context size.
@@ -145,7 +142,7 @@ def summarize_stream(message, thread, panel):
         if command_message:
             summarize_prompt += f" Also, {command_message}."
         summarize_prompt_tokens = litellm.token_counter(
-            model=token_model,
+            model=completion_model,
             messages=[{"role": "system", "content": summarize_prompt}],
         )
         current_tokens = 0
@@ -157,7 +154,7 @@ def summarize_stream(message, thread, panel):
 
         for sentence, page_number in zip(sentences, page_numbers):
             current_length = litellm.token_counter(
-                model=token_model, messages=[{"role": "user", "content": sentence}]
+                model=completion_model, messages=[{"role": "user", "content": sentence}]
             )
             if (
                 summarize_prompt_tokens + current_tokens + current_length
