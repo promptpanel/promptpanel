@@ -38,13 +38,15 @@ def file_stream(file, thread, panel):
         logger.info("** 1. Get settings.")
         settings = panel.meta
         model_selected = settings.get("Model", "Gemini Flash 1.5")
+        completion_model = model_selected
+        max_tokens = 8192
         if model_selected == "Gemini Pro 1.0":
             completion_model = "gemini/gemini-pro"
             max_tokens = 32000
-        elif model_selected == "Gemini Flash 1.5":
+        if model_selected == "Gemini Flash 1.5":
             completion_model = "gemini/gemini-1.5-flash-latest"
             max_tokens = 1000000
-        else:
+        if model_selected == "Gemini Pro 1.5":
             completion_model = "gemini/gemini-1.5-pro-latest"
             max_tokens = 1000000
 
@@ -156,13 +158,15 @@ def message_append(message, thread, panel):
         for key in keys_to_remove:
             del settings[key]
         model_selected = settings.get("Model", "Gemini Flash 1.5")
+        completion_model = model_selected
+        max_tokens = 8192
         if model_selected == "Gemini Pro 1.0":
             completion_model = "gemini/gemini-pro"
             max_tokens = 32000
-        elif model_selected == "Gemini Flash 1.5":
+        if model_selected == "Gemini Flash 1.5":
             completion_model = "gemini/gemini-1.5-flash-latest"
             max_tokens = 1000000
-        else:
+        if model_selected == "Gemini Pro 1.5":
             completion_model = "gemini/gemini-1.5-pro-latest"
             max_tokens = 1000000
 
@@ -401,13 +405,15 @@ def chat_stream(message, thread, panel):
         for key in keys_to_remove:
             del settings[key]
         model_selected = settings.get("Model", "Gemini Flash 1.5")
+        completion_model = model_selected
+        max_tokens = 8192
         if model_selected == "Gemini Pro 1.0":
             completion_model = "gemini/gemini-pro"
             max_tokens = 32000
-        elif model_selected == "Gemini Flash 1.5":
+        if model_selected == "Gemini Flash 1.5":
             completion_model = "gemini/gemini-1.5-flash-latest"
             max_tokens = 1000000
-        else:
+        if model_selected == "Gemini Pro 1.5":
             completion_model = "gemini/gemini-1.5-pro-latest"
             max_tokens = 1000000
 
