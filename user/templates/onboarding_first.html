@@ -41,7 +41,7 @@
         </div>
 
         <div x-show="$store.onboardStore.modelSelected == 'anthropic'">
-          <p class="mb-3">Anthropic specializes in having models at every power tier, as well as having compatibility for extra-long context. Enter your API key to get started with <span class="font-semibold">Claude Opus</span>.</p>
+          <p class="mb-3">Anthropic specializes in having models at every power tier, as well as having compatibility for extra-long context. Enter your API key to get started with <span class="font-semibold">Claude Sonnet 3.5</span>.</p>
           <p class="mb-3">You can find your API key information at: <a href="https://console.anthropic.com/settings/keys" class="text-primary underline hover:text-primary/80" target="_new">https://console.anthropic.com/settings/keys</a></p>
 
           <div class="mb-3">
@@ -140,7 +140,7 @@
                 name: "My First AI Panel",
                 plugin: "anthropic",
                 meta: {
-                  Model: "Opus",
+                  Model: "Sonnet 3.5",
                   "System Message": "You are a helpful AI assistant.",
                   "API Key": this.apiKey,
                 },
