@@ -40,6 +40,9 @@ def file_stream(file, thread, panel):
         model_selected = settings.get("Model", "Haiku")
         completion_model = model_selected
         max_tokens = 8192
+        if model_selected == "Sonnet 3.5":
+            completion_model = "claude-3-5-sonnet-20240620"
+            max_tokens = 200000
         if model_selected == "Opus":
             completion_model = "claude-3-opus-20240229"
             max_tokens = 200000
@@ -160,6 +163,9 @@ def message_append(message, thread, panel):
         model_selected = settings.get("Model", "Haiku")
         completion_model = model_selected
         max_tokens = 8192
+        if model_selected == "Sonnet 3.5":
+            completion_model = "claude-3-5-sonnet-20240620"
+            max_tokens = 200000
         if model_selected == "Opus":
             completion_model = "claude-3-opus-20240229"
             max_tokens = 200000
@@ -360,6 +366,9 @@ def chat_stream(message, thread, panel):
         model_selected = settings.get("Model", "Haiku")
         completion_model = model_selected
         max_tokens = 8192
+        if model_selected == "Sonnet 3.5":
+            completion_model = "claude-3-5-sonnet-20240620"
+            max_tokens = 200000
         if model_selected == "Opus":
             completion_model = "claude-3-opus-20240229"
             max_tokens = 200000
