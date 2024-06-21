@@ -127,6 +127,10 @@
           ]
         },
         {
+          "group": "Deepseek",
+          "values": ["deepseek-chat", "deepseek-coder"]
+        },
+        {
           "group": "Groq",
           "values": [
             "groq/llama3-8b-8192",
