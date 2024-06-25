@@ -74,6 +74,7 @@ def panel_expanded(request, panel_id):
             "thread_id": "",
             "message_id": "",
             "capabilities": capabilities,
+            "user_token": request.COOKIES.get("authToken"),
         }
         global_context = RequestContext(request)
         global_context.update(local_context)
