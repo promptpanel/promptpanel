@@ -429,6 +429,35 @@ def password_reset(request):
         )
 
 
+@require_http_methods(["POST"])
+def user_info(request):
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+        user_id = data.get("user_id")
+        token = data.get("token")
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+        token_user_id = payload.get("user_id")
+        if token_user_id != user_id:
+            return JsonResponse(
+                {"status": "error", "message": "User ID mismatch"}, status=403
+            )
+        user = get_user_model().objects.get(id=user_id)
+        if not user.is_active:
+            return JsonResponse(
+                {"status": "error", "message": "Account is not active"}, status=403
+            )
+        user_info = {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "is_active": user.is_active,
+        }
+        return JsonResponse({"status": "success", "data": user_info}, status=200)
+    except Exception as e:
+        logger.error(str(e), exc_info=True)
+        return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
+
 @user_authenticated
 @user_is_staff
 @require_http_methods(["POST"])
