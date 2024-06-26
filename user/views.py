@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
+from django.utils import timezone
 from user.decorators import user_authenticated
 from user.models import AccountActivationToken, TokenBlacklist
 from promptpanel.utils import generate_jwt_login
