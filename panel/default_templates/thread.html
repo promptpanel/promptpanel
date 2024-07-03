@@ -611,11 +611,12 @@
               <!-- Actions -->
               <div x-show="matchedActions.length > 0" class="p-1 bg-white rounded-md border shadow border-stone-200 mb-1.5">
                 <template x-for="action in matchedActions" :key="action.command">
-                  <div @click="addPrompt(action.command)" class="cursor-pointer flex items-center py-1 px-3 rounded-md hover:bg-stone-100 focus:bg-stone-200">
-                    <p><span class="font-mono" x-text="action.command">Command</span> <span class="font-mono" x-text="action.parameters">Command</span></p>
-                    <p></p>
-                    <p class="ml-auto ml-1.5 text-stone-500 text-right text-sm" x-text="action.description"></p>
-                    <p></p>
+                  <div @click="addPrompt(action.command)" class="cursor-pointer py-1 px-3 rounded-md hover:bg-stone-100 focus:bg-stone-200">
+                    <p>
+                      <span class="font-mono" x-text="action.command">Command</span> 
+                      <span class="font-mono" x-text="action.parameters">Command</span>
+                    </p>
+                    <p class="text-stone-500 text-sm" x-text="action.description"></p>
                   </div>
                 </template>
               </div>
