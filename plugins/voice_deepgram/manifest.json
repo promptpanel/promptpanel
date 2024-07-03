@@ -1,12 +1,17 @@
 {
-  "name": "Document Lookup",
-  "category": "Power Tools",
+  "name": "Deepgram Voice",
+  "category": " Base Models",
   "capabilities": {
     "actions": [
       {
-        "command": "/lookup",
-        "parameters": "/file [filename*] [question*]",
-        "description": "Lookup content from your file."
+        "command": "/transcribe",
+        "parameters": "/file [filename*] /diarize",
+        "description": "Transcribe your file to text using voice-to-text. Optionally add speaker diarazation."
+      },
+      {
+        "command": "/speak",
+        "parameters": "[message*]",
+        "description": "Say something out loud using text-to-speech."
       }
     ]
   },
@@ -19,7 +24,12 @@
       "selections": [
         {
           "group": "OpenAI",
-          "values": ["gpt-4o", "gpt-4-turbo", "gpt-3.5-turbo", "gpt-4"]
+          "values": [
+            "gpt-4o",
+            "gpt-4-turbo",
+            "gpt-3.5-turbo",
+            "gpt-4"
+          ]
         },
         {
           "group": "Google Gemini",
@@ -68,7 +78,10 @@
         },
         {
           "group": "Deepseek",
-          "values": ["deepseek-chat", "deepseek-coder"]
+          "values": [
+            "deepseek-chat",
+            "deepseek-coder"
+          ]
         },
         {
           "group": "Groq",
@@ -89,11 +102,19 @@
       "selections": [
         {
           "group": "OpenAI",
-          "values": ["gpt-4o", "gpt-4-turbo", "gpt-3.5-turbo", "gpt-4"]
+          "values": [
+            "gpt-4o",
+            "gpt-4-turbo",
+            "gpt-3.5-turbo",
+            "gpt-4"
+          ]
         },
         {
           "group": "Google Gemini",
-          "values": ["gemini/gemini-pro", "gemini/gemini-1.5-pro-latest"]
+          "values": [
+            "gemini/gemini-pro",
+            "gemini/gemini-1.5-pro-latest"
+          ]
         },
         {
           "group": "Anthropic",
@@ -130,7 +151,10 @@
         },
         {
           "group": "Deepseek",
-          "values": ["deepseek-chat", "deepseek-coder"]
+          "values": [
+            "deepseek-chat",
+            "deepseek-coder"
+          ]
         },
         {
           "group": "Groq",
@@ -144,52 +168,58 @@
       "required": true
     },
     {
-      "name": "Embedding Model",
-      "description": "The hosted embedding model you want to use. Any LiteLLM embedding provider is available: https://docs.litellm.ai/docs/embedding/supported_embedding",
-      "default": "",
+      "name": "Deepgram Speech-to-Text Model",
+      "description": "The speech-to-text model you want to use. Any Deepgram model is available: https://developers.deepgram.com/docs/models-languages-overview",
+      "default": "nova-2",
+      "type": "text",
+      "selections": [
+        "nova-2",
+        "nova",
+        "enhanced",
+        "base",
+        "whisper-tiny",
+        "whisper-base",
+        "whisper-small",
+        "whisper-medium",
+        "whisper-large"
+      ],
+      "required": true
+    },
+    {
+      "name": "Deepgram Text-To-Speech Voice",
+      "description": "The text-to-speech voice you want to use. Any Deepgram voice is available: https://developers.deepgram.com/docs/tts-models",
+      "default": "nova",
       "type": "text",
       "selections": [
         {
-          "group": "OpenAI",
+          "group": "Female",
           "values": [
-            "text-embedding-ada-002",
-            "text-embedding-3-large",
-            "text-embedding-3-small"
+            "aura-asteria-en",
+            "aura-luna-en",
+            "aura-stella-en",
+            "aura-athena-en",
+            "aura-hera-en"
           ]
         },
         {
-          "group": "Cohere",
+          "group": "Male",
           "values": [
-            "embed-english-v3.0",
-            "embed-english-light-v3.0",
-            "embed-multilingual-v3.0",
-            "embed-multilingual-light-v3.0",
-            "embed-english-v2.0",
-            "embed-english-light-v2.0",
-            "embed-multilingual-v2.0"
+            "aura-orion-en",
+            "aura-arcas-en",
+            "aura-perseus-en",
+            "aura-angus-en",
+            "aura-orpheus-en",
+            "aura-helios-en",
+            "aura-zeus-en"
           ]
-        },
-        {
-          "group": "Mistral",
-          "values": ["mistral/mistral-embed"]
-        },
-        {
-          "group": "Voyage",
-          "values": ["voyage-01", "voyage-lite-01", "voyage-lite-01-instruct"]
         }
-      ]
+      ],
+      "required": true
     },
     {
       "name": "Context Size",
       "description": "The max context size your model supports. Extend this for most newer models (for example: 8192, 16385, or 128000)",
-      "default": "8192",
-      "type": "number",
-      "required": true
-    },
-    {
-      "name": "Document Context Size",
-      "description": "How much of your total context (above) should be filled with context from your documents?",
-      "default": "4000",
+      "default": "4096",
       "type": "number",
       "required": true
     },
@@ -202,14 +232,14 @@
     },
     {
       "name": "LLM Model API Key",
-      "description": "API access key for connecting to your LLM model for inference.",
+      "description": "API access key for connecting to API.",
       "type": "text",
       "private": true,
       "required": true
     },
     {
-      "name": "Embedding API Key",
-      "description": "API access key for connecting to your embedding model for embedding your context.",
+      "name": "Deepgram API Key",
+      "description": "API access key for connecting to Deepgram for voice services.",
       "type": "text",
       "private": true,
       "required": true
