@@ -15,7 +15,7 @@
     {
       "name": "Context Size",
       "description": "The max context size your model supports.",
-      "default": "4096",
+      "default": "8192",
       "type": "number",
       "required": true
     },
