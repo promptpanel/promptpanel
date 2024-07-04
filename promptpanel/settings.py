@@ -51,16 +51,12 @@ def get_or_create_secret_key():
         secret_key_env = os.environ.get("PROMPT_SECRET_KEY")
         with open("/app/system.json", "r") as file:
             system = json.load(file)
-        # Is it disabled in env vars?
-        if secret_key_env != "DISABLED":
+        if secret_key_env and secret_key_env != "DISABLED":
+            # Use environment variable if set and not disabled
             system["secret_key"] = secret_key_env
-        # Falback to one from file
-        if system["secret_key"] != "":
-            pass
-        # Create a new one
-        else:
-            unique_id = secrets.token_urlsafe(32)
-            system["secret_key"] = unique_id
+        elif not system.get("secret_key"):
+            # Create a new key if not in file
+            system["secret_key"] = secrets.token_urlsafe(32)
             with open("/app/system.json", "w") as file:
                 json.dump(system, file)
         return system["secret_key"]
