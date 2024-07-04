@@ -1094,7 +1094,7 @@ def file_create(request):
         os.makedirs(save_path, exist_ok=True)
         fs = FileSystemStorage(location=save_path)
         saved_filename = fs.save(original_filename, uploaded_file)
-        file_full_path = os.path.join(save_path, saved_filename)        
+        file_full_path = os.path.join(save_path, saved_filename)
         if saved_filename != original_filename:
             filename = saved_filename
         else:
@@ -1113,6 +1113,7 @@ def file_create(request):
     except Exception as e:
         logger.error(e, exc_info=True)
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
 
 @user_authenticated
 @require_http_methods(["PUT"])
@@ -1189,7 +1190,7 @@ def file_delete(request, file_id):
 def ollama_proxy(request, route):
     prompt_ollama_host = os.getenv("PROMPT_OLLAMA_HOST")
     ## Check Ollama host setup
-    if not prompt_ollama_host:
+    if prompt_ollama_host != "DISABLED":
         return JsonResponse(
             {
                 "status": "error",

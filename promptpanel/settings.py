@@ -51,10 +51,13 @@ def get_or_create_secret_key():
         secret_key_env = os.environ.get("PROMPT_SECRET_KEY")
         with open("/app/system.json", "r") as file:
             system = json.load(file)
-        if secret_key_env:
+        # Is it disabled in env vars?
+        if secret_key_env != "DISABLED":
             system["secret_key"] = secret_key_env
+        # Falback to one from file
         if system["secret_key"] != "":
             pass
+        # Create a new one
         else:
             unique_id = secrets.token_urlsafe(32)
             system["secret_key"] = unique_id
@@ -150,12 +153,22 @@ WSGI_APPLICATION = "promptpanel.wsgi.application"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 if all(
-    [
-        os.environ.get("PROMPT_PG_HOST", "").strip(),
-        os.environ.get("PROMPT_PG_PORT", "").strip(),
-        os.environ.get("PROMPT_PG_DBNAME", "").strip(),
-        os.environ.get("PROMPT_PG_USER", "").strip(),
-        os.environ.get("PROMPT_PG_PASS", "").strip(),
+    os.environ.get(var, "").strip().upper() != "DISABLED"
+    for var in [
+        "PROMPT_PG_HOST",
+        "PROMPT_PG_PORT",
+        "PROMPT_PG_DBNAME",
+        "PROMPT_PG_USER",
+        "PROMPT_PG_PASS",
+    ]
+) and all(
+    os.environ.get(var, "").strip()
+    for var in [
+        "PROMPT_PG_HOST",
+        "PROMPT_PG_PORT",
+        "PROMPT_PG_DBNAME",
+        "PROMPT_PG_USER",
+        "PROMPT_PG_PASS",
     ]
 ):
     DATABASES = {

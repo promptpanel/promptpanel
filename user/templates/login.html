@@ -111,16 +111,14 @@
       <button type="submit" class="flex items-center justify-center w-full font-semibold bg-primary px-2.5 h-10 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none focus:opacity-80">Sign in</button>
     </form>
 
-    {% if env_oidc_display or env_user_signup or env_password_reset %}
-    <hr class="my-3 border-stone-300" />
-    {% endif %}
-
     <div class="space-y-3">
-      {% if env_oidc_display %}
+      {% if env_oidc_display != "DISABLED" %}
       <a href="/oauth/login" class="flex items-center justify-center font-semibold text-stone-500 px-2.5 h-10 rounded-md transition duration-500 border border-stone-300 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300"> Continue with {{ env_oidc_display }} </a>
-      {% endif %} {% if env_user_signup %}
+      {% endif %} 
+      {% if env_user_signup %}
       <a href="/signup/" class="mt-3 mb-3 flex items-center justify-center font-semibold text-stone-500 px-2.5 h-10 rounded-md transition duration-500 border border-stone-300 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300"> Sign up with Email </a>
-      {% endif %} {% if env_password_reset %}
+      {% endif %} 
+      {% if env_password_reset %}
       <a href="/reset_password_request/" class="mb-1 ml-auto w-max flex items-center justify-center font-semibold text-primary px-2.5 h-10 rounded-md transition duration-500 hover:bg-primary/10"> Reset Password </a>
       {% endif %}
     </div>

@@ -16,27 +16,31 @@ from promptpanel.utils import generate_jwt_login
 
 logger = logging.getLogger("app")
 
-client_id = os.getenv("PROMPT_OIDC_CLIENT_ID", "")
-client_secret = os.getenv("PROMPT_OIDC_CLIENT_SECRET", "")
-authorize_url = os.getenv("PROMPT_OIDC_AUTHORIZE_URL", "")
-access_token_url = os.getenv("PROMPT_OIDC_ACCESS_TOKEN_URL", "")
-userinfo_url = os.getenv("PROMPT_OIDC_USERINFO_URL", "")
-client_kwargs = os.getenv("PROMPT_OIDC_KWARGS", "{}")
-# Convert JSON string back to dictionary
-if client_kwargs:
-    client_kwargs = json.loads(client_kwargs)
-else:
-    client_kwargs = {}
-
+# OAuth setup
 oauth = OAuth()
-oauth.register(
-    name="oauth_provider",
-    client_id=client_id,
-    client_secret=client_secret,
-    authorize_url=authorize_url,
-    access_token_url=access_token_url,
-    client_kwargs=client_kwargs,
-)
+# General oauth env vars
+client_id = os.getenv("PROMPT_OIDC_CLIENT_ID", "DISABLED")
+client_secret = os.getenv("PROMPT_OIDC_CLIENT_SECRET", "DISABLED")
+authorize_url = os.getenv("PROMPT_OIDC_AUTHORIZE_URL", "DISABLED")
+access_token_url = os.getenv("PROMPT_OIDC_ACCESS_TOKEN_URL", "DISABLED")
+userinfo_url = os.getenv("PROMPT_OIDC_USERINFO_URL", "DISABLED")
+client_kwargs = os.getenv("PROMPT_OIDC_KWARGS", "DISABLED")
+# Register general oauth
+if (
+    all(
+        value != "DISABLED"
+        for value in [client_id, client_secret, authorize_url, access_token_url]
+    )
+    and client_kwargs != "DISABLED"
+):
+    oauth.register(
+        name="oauth_provider",
+        client_id=client_id,
+        client_secret=client_secret,
+        authorize_url=authorize_url,
+        access_token_url=access_token_url,
+        client_kwargs=json.loads(client_kwargs) if client_kwargs != "DISABLED" else {},
+    )
 
 
 def login(request):
@@ -161,18 +165,28 @@ def logout(request):
 
 def oauth_login(request):
     try:
-        if not all(
-            [
-                client_id.strip(),
-                client_secret.strip(),
-                authorize_url.strip(),
-                access_token_url.strip(),
-                client_kwargs,
-                userinfo_url.strip(),
-            ]
+        if (
+            any(
+                value == "DISABLED"
+                for value in [
+                    client_id,
+                    client_secret,
+                    authorize_url,
+                    access_token_url,
+                    userinfo_url,
+                ]
+            )
+            or client_kwargs == "DISABLED"
         ):
-            logger.error("One or more configuration variables for OAuth are empty.")
+            logger.error("One or more configuration variables for OAuth are disabled.")
             return HttpResponseRedirect(f"/login/?oauth_failed_login=true")
+
+        # Parse client_kwargs only if it's not disabled
+        if client_kwargs != "DISABLED":
+            client_kwargs = json.loads(client_kwargs)
+        else:
+            client_kwargs = {}
+
         redirect_uri = request.build_absolute_uri(reverse("oauth_callback"))
         return oauth.oauth_provider.authorize_redirect(request, redirect_uri)
     except Exception as e:
@@ -184,8 +198,6 @@ def oauth_callback(request):
     try:
         token = oauth.oauth_provider.authorize_access_token(request)
         userinfo = oauth.oauth_provider.get(userinfo_url, token=token).json()
-        logger.info(userinfo)
-        logger.info(userinfo_url)
         # Parse different styles of userinfo
         if isinstance(userinfo, list):
             for item in userinfo:
