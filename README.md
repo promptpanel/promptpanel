@@ -1,8 +1,8 @@
-<img src="https://promptpanel.com/images/logo.svg" alt="logo" style="width:64px;">
+<img src="https://promptpanel.com/content/images/logo-64.png" alt="logo" style="width:64px;">
 
 **PromptPanel**\
 Accelerating your AI agent adoption\
-<a href="https://promptpanel.com/getting-started/quickstart/">Documentation</a> | <a href="https://hub.docker.com/r/promptpanel/promptpanel">DockerHub</a> | <a href="https://github.com/promptpanel/promptpanel">GitHub</a>
+<a href="https://promptpanel.com/documentation/quickstart/">Documentation</a> | <a href="https://hub.docker.com/r/promptpanel/promptpanel">DockerHub</a> | <a href="https://github.com/promptpanel/promptpanel">GitHub</a>
 
 ## Installation
 
@@ -17,14 +17,14 @@ docker run --name promptpanel -p 4000:4000 -v PROMPT_DB:/app/database -v PROMPT_
 After running, your environment will be available at:
 `http://localhost:4000`
 
-Read more on <a href="https://promptpanel.com/getting-started/quickstart/" target="_new">running PromptPanel</a>.
+Read more on <a href="https://promptpanel.com/documentation/quickstart/" target="_new">running PromptPanel</a>.
 
 ### Via Docker Compose + Local / Offline Inference
 
 To run Ollama for local / offline inference with the following Docker Compose file:
 
 ```bash
-curl -sSL https://promptpanel.com/manifest/docker-compose.yml | docker compose -f - up
+curl -sSL https://promptpanel.com/content/media/manifest/docker-compose.yml | docker compose -f - up
 ```
 
 which will run:
@@ -57,10 +57,10 @@ Your models, conversations, and logic are locked in walled-gardens.
 
 Let's free your AI interface.
 
-- <a target="_new" href="https://promptpanel.com/included-plugins/openai-gpt/">Run any large language model</a>, across any inference provider, any way you want. From commercial models like OpenAI, Anthropic, Gemini, or Cohere - to open source models, either hosted or running locally via Ollama.
-- <a target="_new" href="https://promptpanel.com/user-management/access-controls/">Access controls</a> to assign users to agents without revealing your API tokens or credentials. Enable user sign-up and login with OpenID Connect (OIDC) single sign-on.
-- <a target="_new" href="https://promptpanel.com/included-plugins/document-lookup/">Bring your own data</a> and store it locally on your instance. Use it safely by pairing it with any language model, whether online or offline.
-- <a target="_new" href="https://promptpanel.com/data-model/packaged-plugins-models/">Create custom agent plugins</a> using Python, to customize your AI agent capabilities, and retrieval augmented generation (RAG) pipelines.
+- <a target="_new" href="https://promptpanel.com//documentation/openai-gpt-chat-assistant-plugin/">Run any large language model</a>, across any inference provider, any way you want. From commercial models like OpenAI, Anthropic, Gemini, or Cohere - to open source models, either hosted or running locally via Ollama.
+- <a target="_new" href="https://promptpanel.com/documentation/access-controls/">Access controls</a> to assign users to agents without revealing your API tokens or credentials. Enable user sign-up and login with OpenID Connect (OIDC) single sign-on.
+- <a target="_new" href="https://promptpanel.com/documentation/document-lookup-rag/">Bring your own data</a> and store it locally on your instance. Use it safely by pairing it with any language model, whether online or offline.
+- <a target="_new" href="https://promptpanel.com/documentation/agent-plugin-quickstart/">Create custom agent plugins</a> using Python, to customize your AI agent capabilities, and retrieval augmented generation (RAG) pipelines.
 
 ## Build your own agent plugins
 
@@ -76,8 +76,8 @@ This `./plugins` directory contains the community plugin agents found in PromptP
 
 To get more information about how to build your first plugin we recommend giving a read to:
 
-- <a href="https://promptpanel.com/plugin-agent-authoring/building-plugin-agents/" target="_new">Building Plugin Agents</a>
-- <a href="https://promptpanel.com/plugin-agent-authoring/data-model/" target="_new">Data Model</a>
+- <a href="https://promptpanel.com/documentation/agent-plugin-quickstart/" target="_new">Building Plugin Agents</a>
+- <a href="https://promptpanel.com/documentation/data-model/" target="_new">Data Model</a>
 
 Running `DEV_PORT=4000 docker compose up -f docker-compose-agent-dev.yml` from this directory with a development port set will bring up a development environment you can use to start developing your agent plugin.
 
