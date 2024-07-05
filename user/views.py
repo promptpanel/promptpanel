@@ -24,14 +24,20 @@ client_secret = os.getenv("PROMPT_OIDC_CLIENT_SECRET", "DISABLED")
 authorize_url = os.getenv("PROMPT_OIDC_AUTHORIZE_URL", "DISABLED")
 access_token_url = os.getenv("PROMPT_OIDC_ACCESS_TOKEN_URL", "DISABLED")
 userinfo_url = os.getenv("PROMPT_OIDC_USERINFO_URL", "DISABLED")
-client_kwargs = os.getenv("PROMPT_OIDC_KWARGS", "DISABLED")
-# Register general oauth
-if (
-    all(
-        value != "DISABLED"
-        for value in [client_id, client_secret, authorize_url, access_token_url]
+client_kwargs_str = os.getenv("PROMPT_OIDC_KWARGS", "DISABLED")
+
+# Parse client_kwargs
+try:
+    client_kwargs = (
+        json.loads(client_kwargs_str) if client_kwargs_str != "DISABLED" else {}
     )
-    and client_kwargs != "DISABLED"
+except json.JSONDecodeError:
+    client_kwargs = {}
+
+# Register general oauth
+if all(
+    value != "DISABLED"
+    for value in [client_id, client_secret, authorize_url, access_token_url]
 ):
     oauth.register(
         name="oauth_provider",
@@ -39,7 +45,7 @@ if (
         client_secret=client_secret,
         authorize_url=authorize_url,
         access_token_url=access_token_url,
-        client_kwargs=json.loads(client_kwargs) if client_kwargs != "DISABLED" else {},
+        client_kwargs=client_kwargs,
     )
 
 
