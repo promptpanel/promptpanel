@@ -166,23 +166,6 @@ def message_expanded(request, panel_id, thread_id, message_id):
 @user_authenticated
 def media_protected(request, path):
     file_path = os.path.join(settings.MEDIA_ROOT, path)
-    if os.path.exists(file_path):
-        file_obj = get_object_or_404(File, filepath=file_path)
-        with open(file_path, "rb") as file:
-            response = HttpResponse(
-                file.read(), content_type="application/octet-stream"
-            )
-            response["Content-Disposition"] = "inline; filename=" + os.path.basename(
-                file_path
-            )
-            return response
-    else:
-        raise Http404
-
-
-@user_authenticated
-def media_protected(request, path):
-    file_path = os.path.join(settings.MEDIA_ROOT, path)
     try:
         file_obj = get_object_or_404(File, filepath=file_path)
     except Exception as e:
