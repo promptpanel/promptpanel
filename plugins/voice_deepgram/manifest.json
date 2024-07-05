@@ -10,7 +10,7 @@
       },
       {
         "command": "/speak",
-        "parameters": "[message*] /voice [voice]",
+        "parameters": "[message-to-speak*] /voice [voice]",
         "description": "Say something out loud using text-to-speech. Optionally select a different voice."
       }
     ]
