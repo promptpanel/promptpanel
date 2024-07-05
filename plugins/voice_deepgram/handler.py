@@ -259,10 +259,35 @@ def message_speak(message, thread, panel):
         ## ----- 1. Get settings and parse the command
         settings = panel.meta
         deepgram_api_key = settings.get("Deepgram API Key")
-        tts_voice = settings.get("Deepgram Text-To-Speech Voice", "aura-asteria-en")
-        text_to_speak = message.content.replace("/speak", "", 1).strip()
+
+        # Remove "/speak" from the beginning of the message
+        command_content = message.content.replace("/speak", "", 1).strip()
+
+        # Split the command content
+        parts = command_content.split()
+
+        # Find the index of "/voice" if it exists
+        voice_index = next(
+            (i for i, part in enumerate(parts) if part.lower() == "/voice"), -1
+        )
+
+        if voice_index == -1:
+            # If "/voice" is not found, use the entire content as text_to_speak
+            text_to_speak = command_content
+            tts_voice = settings.get("Deepgram Text-To-Speech Voice", "aura-asteria-en")
+        else:
+            # If "/voice" is found, split the content
+            text_to_speak = " ".join(parts[:voice_index])
+            if voice_index + 1 < len(parts):
+                tts_voice = parts[voice_index + 1]
+            else:
+                tts_voice = settings.get(
+                    "Deepgram Text-To-Speech Voice", "aura-asteria-en"
+                )
+
         if not text_to_speak:
             raise Exception(f"Error: No text provided for text-to-speech conversion.")
+
         ## ----- 2. Prepare the request to Deepgram API
         url = f"https://api.deepgram.com/v1/speak?model={tts_voice}"
         headers = {
@@ -270,12 +295,14 @@ def message_speak(message, thread, panel):
             "Content-Type": "application/json",
         }
         data = {"text": text_to_speak}
+
         ## ----- 3. Send the request and get the audio
         response = requests.post(url, json=data, headers=headers)
         if response.status_code != 200:
             raise Exception(
                 f"Error: Deepgram API request failed with status code {response.status_code}"
             )
+
         ## ----- 4. Save the audio file
         media_root = django_settings.MEDIA_ROOT
         relative_path = f"{panel.id}/{thread.id}"
@@ -297,7 +324,7 @@ def message_speak(message, thread, panel):
 
         ## ----- 5. Create a new message with the audio link
         relative_url = f"/media/{relative_path}/{file_name}"
-        audio_message_content = f"Text-to-speech audio generated:\n > {text_to_speak}"
+        audio_message_content = f"Text-to-speech audio generated using voice '{tts_voice}':\n > {text_to_speak}"
         audio_message = Message(
             content=audio_message_content,
             thread=thread,
@@ -308,10 +335,11 @@ def message_speak(message, thread, panel):
                 "is_audio": True,
                 "audio_file": relative_url,
                 "original_text": text_to_speak,
+                "tts_voice": tts_voice,
             },
         )
         audio_message.save()
-        yield f"Text-to-speech audio generated:\n > {text_to_speak}"
+        yield f"Text-to-speech audio generated using voice '{tts_voice}':\n > {text_to_speak}"
     except Exception as e:
         logger.error(f"Error in message_speak: {str(e)}", exc_info=True)
         yield f"Error: {str(e)}"
