@@ -1,6 +1,6 @@
 {
   "name": "Deepgram Voice",
-  "category": " Base Models",
+  "category": "Power Tools",
   "capabilities": {
     "actions": [
       {
@@ -10,8 +10,8 @@
       },
       {
         "command": "/speak",
-        "parameters": "[message*]",
-        "description": "Say something out loud using text-to-speech."
+        "parameters": "[message*] /voice [voice]",
+        "description": "Say something out loud using text-to-speech. Optionally select a different voice."
       }
     ]
   },
@@ -188,7 +188,7 @@
     {
       "name": "Deepgram Text-To-Speech Voice",
       "description": "The text-to-speech voice you want to use. Any Deepgram voice is available: https://developers.deepgram.com/docs/tts-models",
-      "default": "nova",
+      "default": "aura-asteria-en",
       "type": "text",
       "selections": [
         {
