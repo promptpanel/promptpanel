@@ -22,6 +22,7 @@ var pluginState = () => {
     responseStream: "",
     messageFormatted: "",
     messageFromEditor: "",
+    messageAbortController: null,
     // Message UI
     osPlatform: "",
     // Files
@@ -333,6 +334,7 @@ var pluginState = () => {
         if (message.id > maxId) maxId = message.id;
       });
       this.messages = this.messages.filter((message) => message.id !== maxId);
+      this.messageAbortController = new AbortController();
       this.indicateProcessing = true;
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/app/thread/retry/" + Alpine.store("active").threadId + "/";
@@ -342,6 +344,7 @@ var pluginState = () => {
           "Content-Type": "application/json",
         },
         credentials: "include",
+        signal: this.messageAbortController.signal,
       })
         .then((response) => {
           if (!response.ok) {
@@ -372,12 +375,6 @@ var pluginState = () => {
                   .then(({ done, value }) => {
                     if (done) {
                       controller.close();
-                      this.indicateProcessing = false;
-                      this.messageFormatted = "";
-                      this.responseStream = "";
-                      this.extractedImages = [];
-                      this.getMessages();
-                      this.getThreads();
                       return;
                     }
                     const string = new TextDecoder().decode(value);
@@ -402,13 +399,31 @@ var pluginState = () => {
         .then((stream) => new Response(stream))
         .then((response) => response.text())
         .catch((error) => {
-          failToast = {
-            type: "error",
-            header: "We had a problem retrieving your message response. Please try again.",
-            message: error.message,
-          };
-          Alpine.store("toastStore").addToast(failToast);
-        });
+          if (error.name === 'AbortError') {
+            successToast = {
+              type: "success",
+              header: "Your message was cancelled.",
+              message: "The message you were sending has been cancelled successfully.",
+            };
+            Alpine.store("toastStore").addToast(failToast);  
+          } else {
+            failToast = {
+              type: "error",
+              header: "We had a problem retrieving your message response. Please try again.",
+              message: error.message,
+            };
+            Alpine.store("toastStore").addToast(failToast);
+          }
+        })
+        .finally(() => {
+          this.messageAbortController = null;
+          this.messageFormatted = "";
+          this.responseStream = "";
+          this.extractedImages = [];
+          this.indicateProcessing = false;
+          this.getMessages();
+          this.getThreads();
+      });
     },
     get filteredThreads() {
       if (this.threadSearchInput === "") {
@@ -494,7 +509,8 @@ var pluginState = () => {
       // Wipe interim message before sending
       this.extractedImages = [];
       this.messageFromEditor = "";
-      // Indicate processing => positioning div
+      // Set abort controller => indicate processing => positioning div ()
+      this.messageAbortController = new AbortController();
       this.indicateProcessing = true;
       setTimeout(() => {
         document.getElementById("processingChat").scrollIntoView();
@@ -506,6 +522,7 @@ var pluginState = () => {
         },
         credentials: "include",
         body: JSON.stringify(messageData),
+        signal: this.messageAbortController.signal,
       })
         .then((response) => {
           if (!response.ok) {
@@ -536,9 +553,6 @@ var pluginState = () => {
                   .then(({ done, value }) => {
                     if (done) {
                       controller.close();
-                      this.getMessages();
-                      this.getThreads();
-                      this.indicateProcessing = false;
                       return;
                     }
                     const string = new TextDecoder().decode(value);
@@ -563,13 +577,39 @@ var pluginState = () => {
         .then((stream) => new Response(stream))
         .then((response) => response.text())
         .catch((error) => {
-          failToast = {
-            type: "error",
-            header: "We had a problem retrieving your message response. Please try again.",
-            message: error.message,
-          };
-          Alpine.store("toastStore").addToast(failToast);
-        });
+          if (error.name === 'AbortError') {
+            successToast = {
+              type: "success",
+              header: "Your message was cancelled.",
+              message: "The message you were sending has been cancelled successfully.",
+            };
+            Alpine.store("toastStore").addToast(failToast);  
+          } else {
+            failToast = {
+              type: "error",
+              header: "We had a problem retrieving your message response. Please try again.",
+              message: error.message,
+            };
+            Alpine.store("toastStore").addToast(failToast);
+          }
+        })
+        .finally(() => {
+          this.getMessages();
+          this.getThreads();
+          this.messageFormatted = "";
+          this.responseStream = "";
+          this.extractedImages = [];
+          this.indicateProcessing = false;
+          this.messageAbortController = null;
+      });      
+    },
+    cancelMessageRequest() {
+      if (this.messageAbortController) {
+        this.messageAbortController.abort();
+        this.messageAbortController = null;
+        this.indicateProcessing = false;
+        this.responseStream = "";
+      }
     },
     getMessages(incrementLimit = false, setLimit = true) {
       const hostname = window.location.origin;
