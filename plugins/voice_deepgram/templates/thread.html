@@ -1,0 +1,728 @@
+<!doctype html>
+<html>
+  <head>
+    <title>PromptPanel</title>
+    {% include "components/head.html" %}
+    <script src="/static/plugin_default/js/highlightjs@11.9.0.js"></script>
+    <script src="/static/plugin_default/js/showdown@2.1.0.js"></script>
+    <script is:inline src="/static/plugin_default/stores/script.js"></script>
+    <!-- Dependancies -->
+    <link rel="stylesheet" href="/static/plugin_default/css/snow.css" />
+    <link rel="stylesheet" href="/static/plugin_default/css/night-owl.css" />
+    <link rel="stylesheet" href="/static/plugin_default/css/custom.css" />
+
+    <script>
+      // prettier-ignore
+      document.addEventListener("alpine:init", () => {
+        Alpine.store("actionStore", {
+          actions: {{ capabilities.actions|default:"[]" |safe }}
+        });
+      });
+    </script>
+  </head>
+  <body class="antialiased text-stone-800">
+    <div x-cloak x-data="pluginState()" x-init="getOS(), getThreads(), getMessages(), getFiles()" class="relative h-[100vh] w-[100vw]">
+      {% include "components/toasts.html" %}
+      <!-- Modals -->
+      <div :class="{'-right-[100vw]': !modalThreadEdit, 'right-0': modalThreadEdit}" class="transition-all fixed mx-auto z-[101] max-w-xl w-full h-full bg-stone-50 border-x border-stone-200 -lg:border-none -lg:max-w-[100vw] -lg:shadow-none shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.05)]">
+        <div class="flex items-center px-3 pt-3 mb-1.5">
+          <button @click="modalThreadEdit = false" class="mr-1.5 cursor-pointer flex items-center justify-center text-sm font-semibold text-stone-500 rounded hover:text-stone-900 hover:bg-stone-200 h-7 w-7 -lg:min-h-9 -lg:min-w-9">
+            <svg class="w-5 h-5 -lg:min-w-6 -lg:min-h-6" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 01-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clip-rule="evenodd"></path></svg>
+          </button>
+          <h2 class="text-xl font-semibold line-clamp-1">Edit Thread</h2>
+          <div x-data="{'open':false}" class="ml-auto relative">
+            <button @click="open = !open" class="mr-1.5 cursor-pointer flex items-center justify-center font-semibold text-stone-500 rounded hover:text-stone-900 hover:bg-stone-200 px-2 h-7 -lg:min-h-9 -lg:px-3">
+              <p>Thread Options</p>
+              <svg :class="{'rotate-180': open}" class="ml-1.5 w-4 h-4 -lg:min-w-5 -lg:min-h-5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 01-1.06 0l-7.5-7.5a.75.75 0 011.06-1.06L12 14.69l6.97-6.97a.75.75 0 111.06 1.06l-7.5 7.5z" clip-rule="evenodd"></path></svg>
+            </button>
+            <div x-show="open" class="absolute mt-1.5 right-3">
+              <div class="bg-white w-max p-1 border border-stone-300 rounded-md shadow-sm">
+                <div @click="cloneThread()" class="cursor-pointer px-2 py-1 font-semibold rounded-md text-stone-500 hover:bg-stone-200 focus:text-stone-800 -lg:p-3">Duplicate</div>
+                <div @click="deleteThread()" class="cursor-pointer px-2 py-1 font-semibold rounded-md text-rose-600 hover:bg-stone-200 focus:text-rose-800 -lg:p-3">Delete</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <form class="px-3 pt-0.5" @submit.prevent="updateThread()">
+          <div class="flex items-center"><span>Thread Title</span><span class="ml-0.5 text-rose-600">*</span></div>
+          <input type="text" x-model="threadNameForUpdate" required placeholder="Thread Title..." class="w-full h-10 px-3 py-1 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
+        </form>
+        <div class="fixed bottom-0 py-2 px-3 border-t border-stone-200 w-full max-w-xl -lg:max-w-[100vw]">
+          <div class="flex items-center">
+            <button @click="deleteThread()" class="px-3 font-semibold text-rose-600 hover:text-rose-800">Delete Thread</button>
+            <button @click="modalThreadEdit = false" class="ml-auto flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 rounded-md transition duration-500 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300">Cancel</button>
+            <button @click="updateThread()" class="ml-1.5 flex items-center justify-center font-semibold bg-primary px-2.5 h-9 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">Update Thread</button>
+          </div>
+        </div>
+      </div>
+
+      <div :class="{'-right-[100vw]': !modalMessageEdit, 'right-0': modalMessageEdit}" class="transition-all fixed mx-auto z-[101] max-w-xl w-full h-full bg-stone-50 border-x border-stone-200 -lg:border-none -lg:max-w-[100vw] -lg:shadow-none shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.05)]">
+        <div class="flex items-center px-4 pt-3 mb-1.5">
+          <button @click="modalMessageEdit = false" class="mr-1.5 cursor-pointer flex items-center justify-center text-sm font-semibold text-stone-500 rounded hover:text-stone-900 hover:bg-stone-200 h-7 w-7 -lg:min-h-9 -lg:min-w-9">
+            <svg class="w-5 h-5 -lg:min-w-6 -lg:min-h-6" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 01-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clip-rule="evenodd"></path></svg>
+          </button>
+          <h2 class="text-xl font-semibold line-clamp-1">Edit Message</h2>
+        </div>
+        <form class="px-4 pt-1.5" @submit.prevent="updateThread()">
+          <div class="mb-6">
+            <div class="mb-3">
+              <div class="flex items-center"><span>Message</span><span class="ml-0.5 text-rose-600">*</span></div>
+              <textarea x-model="messageForUpdate" class="w-full text-lg min-h-24 h-[calc(100vh-14.5rem)] px-3 py-2 rounded-md bg-white shadow-sm border border-stone-400/50 outline-none transition placeholder:text-stone-400 hover:border-stone-400/70 hover:shadow focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10"></textarea>
+            </div>
+          </div>
+        </form>
+        <div class="fixed bottom-0 py-2 px-3 border-t border-stone-200 w-full max-w-xl -lg:max-w-[100vw]">
+          <div class="flex items-center">
+            <button @click="deleteMessage(modalMessageId)" class="px-3 font-semibold text-rose-600 hover:text-rose-800">Delete Message</button>
+            <button @click="modalMessageEdit = false" class="ml-auto flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 rounded-md transition duration-500 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300">Cancel</button>
+            <button @click="updateMessage(modalMessageId)" class="ml-1.5 flex items-center justify-center font-semibold bg-primary px-2.5 h-9 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">Update Message</button>
+          </div>
+        </div>
+      </div>
+
+      <div :class="{'-right-[100vw]': !modalDocuments, 'right-0': modalDocuments}" class="transition-all fixed mx-auto z-[101] max-w-xl w-full h-full bg-stone-50 border-x border-stone-200 -lg:border-none -lg:max-w-[100vw] -lg:shadow-none shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.05)]">
+        <div class="flex items-center px-4 pt-3 mb-1.5">
+          <button @click="modalDocuments = false" class="mr-1.5 cursor-pointer flex items-center justify-center text-sm font-semibold text-stone-500 rounded hover:text-stone-900 hover:bg-stone-200 h-7 w-7 -lg:min-h-9 -lg:min-w-9">
+            <svg class="w-5 h-5 -lg:min-w-6 -lg:min-h-6" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 01-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clip-rule="evenodd"></path></svg>
+          </button>
+          <div>
+            <h2 class="text-xl font-semibold line-clamp-1">Documents</h2>
+            <p class="text-sm text-stone-500">Documents are processed as they are uploaded.</p>
+          </div>
+        </div>
+        <div class="px-4 pt-1.5 max-h-[calc(100%-4.15rem)] overflow-auto">
+          <form enctype="multipart/form-data" @submit.prevent>
+            <div @dragover.prevent="isFileDragged = true" @dragleave.prevent="isFileDragged = false" @drop.prevent="handleFiles($event, true)" @click="$refs.fileInput.click()" :class="{'bg-stone-100': isFileDragged, 'bg-transparent': !isFileDragged}" class="text-stone-500 flex justify-center items-center h-32 mb-3 p-4 border-dashed border border-stone-400 rounded cursor-pointer hover:bg-stone-100 hover:text-stone-700">
+              <div class="text-center w-full">
+                <svg class="w-5 h-5 mb-0.5 mx-auto" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+                  <path fill-rule="evenodd" d="M5.625 1.5H9a3.75 3.75 0 0 1 3.75 3.75v1.875c0 1.036.84 1.875 1.875 1.875H16.5a3.75 3.75 0 0 1 3.75 3.75v7.875c0 1.035-.84 1.875-1.875 1.875H5.625a1.875 1.875 0 0 1-1.875-1.875V3.375c0-1.036.84-1.875 1.875-1.875ZM12.75 12a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V18a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V12Z" clip-rule="evenodd"></path>
+                  <path d="M14.25 5.25a5.23 5.23 0 0 0-1.279-3.434 9.768 9.768 0 0 1 6.963 6.963A5.23 5.23 0 0 0 16.5 7.5h-1.875a.375.375 0 0 1-.375-.375V5.25Z"></path>
+                </svg>
+                <p class="font-semibold">Upload your documents</p>
+              </div>
+              <input id="file-upload" x-ref="fileInput" type="file" name="file-upload[]" multiple class="hidden" @change="handleFiles($event, false)" />
+            </div>
+
+            <div x-show="indicateFile">
+              <div id="processingFile" class="flex items-center justify-center font-semibold text-sm text-stone-800 w-max bg-stone-200 px-3 h-8 rounded-full whitespace-nowrap overflow-hidden">
+                <span class="relative flex h-2 w-2 mr-1.5">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-50"></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                </span>
+                <p>Processing...</p>
+              </div>
+            </div>
+
+            <template x-for="(file, index) in filesQueue" :key="index">
+              <div x-show="file.status !== 'completed'" class="flex justify-between items-center mt-1.5 mb-3">
+                <div x-text="file.filename" class=""></div>
+                <div x-show="file.status == 'uploading'" class="flex items-center">
+                  <!-- <svg class="w-3.5 h-3.5 mr-1 animate-spin text-stone-500" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"></path></svg> -->
+                  <p>Processing</p>
+                </div>
+                <div x-show="file.status == 'cancelled'" class="flex items-center text">
+                  <p>Cancelled</p>
+                </div>
+                <div x-show="file.status == 'error'" class="flex items-center text text-rose-600">
+                  <p>Error</p>
+                </div>
+
+                <button x-show="file.status != 'cancelled' && file.status != 'error'" @click="cancelUpload(file)" type="button" class="flex items-center text-rose-600">
+                  <svg class="w-3.5 h-3.5 mr-1" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-1.72 6.97a.75.75 0 1 0-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 1 0 1.06 1.06L12 13.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L13.06 12l1.72-1.72a.75.75 0 1 0-1.06-1.06L12 10.94l-1.72-1.72Z" clip-rule="evenodd"></path></svg>
+                  <p>Cancel</p>
+                </button>
+                <button x-show="file.status == 'cancelled' || file.status == 'error'" @click="cancelUpload(file)" type="button" class="flex items-center text-stone-500">
+                  <svg class="w-3.5 h-3.5 mr-1" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z" clip-rule="evenodd"></path></svg>
+                  <p>Remove</p>
+                </button>
+              </div>
+            </template>
+          </form>
+          <div class="border border-stone-200 rounded-md shadow-sm overflow-x-auto">
+            <table class="w-full text-left bg-white">
+              <thead class="bg-stone-100 border-b-2 border-stone-200">
+                <tr>
+                  <th class="w-0 px-2 py-1 text-sm font-semibold text-stone-600 text-center">Copy</th>
+                  <th class="px-2 py-1 text-sm font-semibold text-stone-600">File</th>
+                  <th class="px-2 py-1 text-sm font-semibold text-stone-600"></th>
+                  <th class="px-2 py-1 text-sm font-semibold text-stone-600"></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr x-show="files.length == 0">
+                  <td colspan="4" class="text-center text-stone-500 px-2 py-10">
+                    <p>No files uploaded. Upload one above.</p>
+                  </td>
+                </tr>
+                <template x-for="file in files" :key="file.id">
+                  <tr class="border-b border-stone-200 last:border-transparent">
+                    <td class="px-2 py-1 text-center">
+                      <template x-if="file.meta?.upload_status !== 'failed'">
+                        <svg class="w-4 h-4 mx-auto text-stone-500 hover:text-stone-800 cursor-pointer" @click="copyToClipboard(file.filename, 'filename')" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M7.5 3.375c0-1.036.84-1.875 1.875-1.875h.375a3.75 3.75 0 0 1 3.75 3.75v1.875C13.5 8.161 14.34 9 15.375 9h1.875A3.75 3.75 0 0 1 21 12.75v3.375C21 17.16 20.16 18 19.125 18h-9.75A1.875 1.875 0 0 1 7.5 16.125V3.375Z"></path>
+                          <path d="M15 5.25a5.23 5.23 0 0 0-1.279-3.434 9.768 9.768 0 0 1 6.963 6.963A5.23 5.23 0 0 0 17.25 7.5h-1.875A.375.375 0 0 1 15 7.125V5.25ZM4.875 6H6v10.125A3.375 3.375 0 0 0 9.375 19.5H16.5v1.125c0 1.035-.84 1.875-1.875 1.875h-9.75A1.875 1.875 0 0 1 3 20.625V7.875C3 6.839 3.84 6 4.875 6Z"></path>
+                        </svg>
+                      </template>
+                      <template x-if="file.meta?.upload_status == 'failed'">
+                        <svg class="w-4 h-4 mx-auto text-rose-600 not-allowed" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-1.72 6.97a.75.75 0 1 0-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 1 0 1.06 1.06L12 13.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L13.06 12l1.72-1.72a.75.75 0 1 0-1.06-1.06L12 10.94l-1.72-1.72Z" clip-rule="evenodd"></path></svg>
+                      </template>
+                    </td>
+                    <td class="px-2 py-1 whitespace-nowrap">
+                      <a :href="file.filepath" x-text="file.filename" :class="{ 'text-stone-500 hover:text-stone-800': !file.meta?.enabled, 'text-primary hover:text-primary/80': file.meta?.enabled}" class="text-primary hover:text-primary/80"></a>
+                    </td>
+                    <td class="px-2 py-1 whitespace-nowrap">
+                      <template x-if="file.meta?.upload_status !== 'failed'">
+                        <span x-text="formatDate(file.created_on)"></span>
+                      </template>
+                      <template x-if="file.meta?.upload_status == 'failed'">
+                        <span class="text-sm text-rose-600">Failed: <span x-text="file.meta?.fail_reason"></span></span>
+                      </template>
+                    </td>
+                    <td class="px-2 py-1 text-right">
+                      <button @click="deleteFile(file.id)" class="ml-auto flex items-center text-stone-400 text-sm hover:text-rose-600">
+                        <svg class="w-3.5 h-3.5 mr-0.5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z" clip-rule="evenodd"></path></svg>
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div @click="modalDocuments = false, modalMessageEdit = false, modalThreadEdit = false" :class="{'w-px h-px bg-stone-50/0': !modalDocuments && !modalMessageEdit && !modalThreadEdit, 'w-full h-full bg-stone-50/50': modalDocuments || modalMessageEdit || modalThreadEdit}" class="cursor-pointer fixed top-0 left-0 backdrop-blur-sm z-[100] transition-all"></div>
+
+      <!-- Sidebar -->
+      <div :class="{'-lg:-left-[100vw]': !mobileOpen, '-lg:left-0': mobileOpen}" id="sidebar" class="transition-all absolute w-80 h-full bg-stone-50 border-r border-stone-200 overflow-y-auto -lg:top-12 -lg:w-full -lg:z-[60]">
+        <div class="fixed -top-px mt-px border-r border-stone-200 bg-stone-50 pt-3 pb-1 px-4 w-80 -lg:w-full">
+          <div class="lg:hidden -lg:flex items-center mb-1.5">
+            <div @click="mobileOpen = false" class="cursor-pointer flex items-center justify-center text-sm font-semibold text-stone-500 min-h-9 min-w-9 mr-1.5 rounded hover:text-stone-900 hover:bg-stone-200 lg:hidden -lg:flex">
+              <svg class="w-6 h-6" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 01-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clip-rule="evenodd"></path></svg>
+            </div>
+            <p class="font-semibold text-lg">Threads</p>
+            <button @click="createThread()" class="ml-auto flex items-center justify-center font-semibold h-9 px-3 bg-primary rounded-md text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">
+              <svg class="w-4 h-4 mr-1" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 3.75a.75.75 0 01.75.75v6.75h6.75a.75.75 0 010 1.5h-6.75v6.75a.75.75 0 01-1.5 0v-6.75H4.5a.75.75 0 010-1.5h6.75V4.5a.75.75 0 01.75-.75z" clip-rule="evenodd"></path></svg>
+              New
+            </button>
+          </div>
+          <div class="lg:flex -lg:hidden items-center mb-1.5">
+            <p class="font-semibold text-xs text-stone-500 uppercase tracking-wider">Threads</p>
+            <button @click="createThread()" class="ml-auto flex items-center justify-center text-sm font-semibold text-stone-500 h-7 px-2 rounded hover:text-stone-900 hover:bg-stone-200">
+              <svg class="w-4 h-4 mr-1" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 3.75a.75.75 0 01.75.75v6.75h6.75a.75.75 0 010 1.5h-6.75v6.75a.75.75 0 01-1.5 0v-6.75H4.5a.75.75 0 010-1.5h6.75V4.5a.75.75 0 01.75-.75z" clip-rule="evenodd"></path></svg>
+              New
+            </button>
+          </div>
+          <div class="relative mb-1.5">
+            <svg class="w-5 h-5 absolute top-2 left-2.5 text-stone-500" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="200px" width="200px" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10.5 3.75a6.75 6.75 0 100 13.5 6.75 6.75 0 000-13.5zM2.25 10.5a8.25 8.25 0 1114.59 5.28l4.69 4.69a.75.75 0 11-1.06 1.06l-4.69-4.69A8.25 8.25 0 012.25 10.5z" clip-rule="evenodd"></path></svg>
+            <input id="search" name="search" x-model="threadSearchInput" placeholder="Search Thread Title..." class="pl-9 cursor-text w-full h-9 px-3 py-1 rounded-md bg-white border border-stone-400/70 outline-none transition shadow-none placeholder:text-stone-400 hover:shadow-sm hover:border-stone-400/90 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10" />
+          </div>
+        </div>
+        <div class="pt-24 pb-9 px-4 -lg:pt-14">
+          <template x-if="!loadedThreads">
+            <div>
+              <div class="block px-2.5 py-1 mb-1 transition -lg:p-3">
+                <p class="font-semibold line-clamp-1 rounded-md mb-0.5 w-max text-stone-200 bg-stone-200">---------</p>
+                <p class="text-sm w-max rounded-md text-stone-200 bg-stone-200">---------------------------</p>
+              </div>
+              <div class="block px-2.5 py-1 mb-1 transition -lg:p-3">
+                <p class="font-semibold line-clamp-1 rounded-md mb-0.5 w-max text-stone-200 bg-stone-200">---------</p>
+                <p class="text-sm w-max rounded-md text-stone-200 bg-stone-200">---------------------------</p>
+              </div>
+            </div>
+          </template>
+          <template x-for="thread in filteredThreads" :key="thread.id">
+            <a :id="thread.id == $store.active.threadId ? 'active-link' : ''" :href="`/panel/${thread.panel_id}/${thread.id}`" class="group block cursor-pointer rounded-md px-2.5 py-1 mb-1 text-stone-500 transition -lg:p-3" :class="{ 'bg-stone-200/75': thread.id == $store.active.threadId }">
+              <p x-text="thread.title" class="font-semibold line-clamp-1 group-hover:text-stone-900" :class="{ 'text-stone-900': thread.id == $store.active.threadId }"></p>
+              <p x-text="formatDate(thread.created_on)" class="text-sm"></p>
+            </a>
+          </template>
+          <template x-if="threads.length == 0">
+            <p class="text-stone-500 text-sm mb-1">No threads exits, create one.</p>
+          </template>
+          <button @click="createThread()" class="group cursor-pointer group flex items-center w-full px-1 rounded-md font-semibold text-stone-500 transition duration-500 hover:text-stone-900 -lg:px-3 -lg:py-0">
+            <div class="flex items-center justify-center w-7 h-7">
+              <svg class="w-4 h-4" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 3.75a.75.75 0 01.75.75v6.75h6.75a.75.75 0 010 1.5h-6.75v6.75a.75.75 0 01-1.5 0v-6.75H4.5a.75.75 0 010-1.5h6.75V4.5a.75.75 0 01.75-.75z" clip-rule="evenodd"></path></svg>
+            </div>
+            <p class="ml-0.5">New Thread</p>
+          </button>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div id="content-area" class="absolute w-[calc(100%-20rem)] h-full right-0 overflow-y-auto -lg:w-full">
+        <!-- Content: Header -->
+        <div class="fixed top-0 w-[calc(100%-20rem)] flex items-center bg-white border-b border-stone-200 h-12 z-10 -lg:w-full">
+          <div class="flex items-center w-full px-4 -lg:justify-evenly">
+            <button @click="mobileOpen = !mobileOpen" class="lg:hidden -lg:flex items-center justify-center font-semibold bg-transparent px-2.5 h-8 max-w-8 text-sm rounded border border-transparent shadow-none text-stone-500 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300 -lg:min-w-9 -lg:min-h-9">
+              <svg class="min-w-6 min-h-6" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 6.75A.75.75 0 013.75 6h16.5a.75.75 0 010 1.5H3.75A.75.75 0 013 6.75zM3 12a.75.75 0 01.75-.75h16.5a.75.75 0 010 1.5H3.75A.75.75 0 013 12zm0 5.25a.75.75 0 01.75-.75h16.5a.75.75 0 010 1.5H3.75a.75.75 0 01-.75-.75z" clip-rule="evenodd"></path></svg>
+            </button>
+            <div @click="modalThreadEdit = true, threadNameForUpdate = activeThread.title" class="group cursor-pointer flex items-center px-2.5 h-8 -ml-1 rounded-md hover:bg-stone-200 -lg:mx-auto">
+              <template x-if="!loadedThreads">
+                <h1 class="text-xl font-semibold line-clamp-1 rounded-md w-max text-stone-200 bg-stone-200">-----------------------------</h1>
+              </template>
+              <h1 x-text="activeThread.title" class="text-xl font-semibold line-clamp-1"></h1>
+              <button class="ml-1.5 flex items-center justify-center font-semibold bg-transparent text-stone-500 group-hover:text-stone-800">
+                <svg class="min-w-5 min-h-5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 000-3.712zM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 00-1.32 2.214l-.8 2.685a.75.75 0 00.933.933l2.685-.8a5.25 5.25 0 002.214-1.32l8.4-8.4z"></path>
+                  <path d="M5.25 5.25a3 3 0 00-3 3v10.5a3 3 0 003 3h10.5a3 3 0 003-3V13.5a.75.75 0 00-1.5 0v5.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5V8.25a1.5 1.5 0 011.5-1.5h5.25a.75.75 0 000-1.5H5.25z"></path>
+                </svg>
+              </button>
+            </div>
+            <div class="-lg:min-w-9 -lg:min-h-9 lg:hidden"></div>
+          </div>
+        </div>
+
+        <!-- Content: Body -->
+        <div class="flex-col relative flex w-full px-6 min-h-[calc(100vh-12rem)]">
+          <div class="max-w-3xl my-12 mb-40 w-full mx-auto">
+            <div class="h-12 w-full"></div>
+
+            <!-- Messages -->
+            <div id="ai-disclaimer" class="mb-4">
+              <div class="z-[0] relative rounded-t-md rounded-br-md w-11/12 py-2.5">
+                <p class="mr-1.5 w-full space-y-6 masked text-stone-500 text-sm">
+                  Please be aware when interacting with AI models that while they aim to provide accurate information, they can sometimes generate incorrect or misleading content, known as 'hallucinations'.<br />
+                  Always verify critical information through primary sources.
+                </p>
+              </div>
+            </div>
+
+            <button @click="getMessages(true, false)" x-show="!(messages.length < messageLimit)" class="mx-auto mb-3 flex items-center justify-center font-semibold bg-stone50 px-3 h-9 rounded-full shadow-sm border border-stone-200 transition duration-500 hover:shadow focus:shadow-none">Load More</button>
+
+            <template x-if="!loadedMessages">
+              <div>
+                <div class="mb-10">
+                  <div class="z-[0] relative rounded-t-md rounded-br-md w-11/12 py-2.5">
+                    <p class="mr-1.5 mb-0.5 w-full space-y-6 masked text-lg rounded-md w-max text-stone-200 bg-stone-200">----------------------------------------------------------</p>
+                    <p class="w-full space-y-6 masked text-lg rounded-md w-max text-stone-200 bg-stone-200">-----------------------------</p>
+                  </div>
+                  <div class="flex items-center text-sm text-stone-500 w-full mt-0.5">
+                    <p class="rounded-md w-max text-stone-200 bg-stone-200">-----</p>
+                    <p class="mx-1">•</p>
+                    <p class="rounded-md w-max text-stone-200 bg-stone-200">----------</p>
+                  </div>
+                </div>
+                <div class="mb-6">
+                  <div class="z-[0] relative ml-auto rounded-t-md rounded-bl-md bg-stone-100 w-11/12 px-3 py-2.5 overflow-x-auto">
+                    <p class="mr-1.5 mb-0.5 w-full space-y-6 masked text-lg rounded-md w-max text-stone-200 bg-stone-200">----------------------------------------------------------</p>
+                    <p class="w-full space-y-6 masked text-lg rounded-md w-max text-stone-200 bg-stone-200">-----------------------------</p>
+                  </div>
+                  <div class="flex items-center text-sm text-stone-500 w-full mt-1.5">
+                    <p class="ml-auto rounded-md w-max text-stone-200 bg-stone-200">-----</p>
+                    <p class="mx-1">•</p>
+                    <p class="rounded-md w-max text-stone-200 bg-stone-200">----------</p>
+                  </div>
+                </div>
+              </div>
+            </template>
+
+            <template x-for="message in messages" :key="message.id">
+              <div>
+                <template x-if="message.meta?.sender == 'assistant'">
+                  <div class="mb-10">
+                    <template x-if="message.meta?.sentences && message.meta.sentences.length > 0">
+                      <div x-data="{modalOpen: false, filename: '', filepath: '',  page_num: '', excerpt: ''}" class="relative space-y-3 rounded-t-md rounded-br-md w-11/12 -mt-2.5 py-2.5">
+                        <div :class="{'-right-[100vw]': !modalOpen, 'right-0': modalOpen}" class="transition-all top-0 fixed mx-auto z-[101] max-w-xl w-full h-full bg-white border-x border-stone-200 -lg:border-none -lg:max-w-[100vw] -lg:shadow-none shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.05)]">
+                          <div class="flex items-center px-3 pt-3 mb-1.5">
+                            <button @click="modalOpen = false" class="mr-1.5 cursor-pointer flex items-center justify-center text-sm font-semibold text-stone-500 rounded hover:text-stone-900 hover:bg-stone-200 h-7 w-7 -lg:min-h-9 -lg:min-w-9">
+                              <svg class="w-5 h-5 -lg:min-w-6 -lg:min-h-6" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 01-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clip-rule="evenodd"></path></svg>
+                            </button>
+                            <h2 class="text-xl font-semibold line-clamp-1">View Citation</h2>
+                          </div>
+                          <div class="px-3 pt-0.5">
+                            <div class="flex items-end mb-3">
+                              <div>
+                                <p>Source:</p>
+                                <p x-text="filename" class="font-semibold">Filename</p>
+                              </div>
+                              <a :href="filepath" target="_new" class="ml-auto flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 rounded-md transition duration-500 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300">
+                                <svg class="mr-1.5 w-5 h-5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 2.25a.75.75 0 0 1 .75.75v11.69l3.22-3.22a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 1 1 1.06-1.06l3.22 3.22V3a.75.75 0 0 1 .75-.75Zm-9 13.5a.75.75 0 0 1 .75.75v2.25a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5V16.5a.75.75 0 0 1 1.5 0v2.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V16.5a.75.75 0 0 1 .75-.75Z" clip-rule="evenodd"></path></svg>
+                                Download
+                              </a>
+                            </div>
+                            <div>
+                              <p class="mb-0.5">Citation (Page <span x-text="page_num"></span>):</p>
+                              <div x-text="excerpt" class="p-3 rounded-md bg-stone-100 max-h-[calc(100vh-13rem)] overflow-auto">Lorem ipsum...</div>
+                            </div>
+                          </div>
+                          <div class="fixed bottom-0 py-2 px-3 border-t border-stone-200 w-full max-w-xl -lg:max-w-[100vw]">
+                            <div class="flex items-center">
+                              <button @click="modalOpen = false" class="ml-auto flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 rounded-md transition duration-500 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300">Close</button>
+                            </div>
+                          </div>
+                        </div>
+                        <div @click="modalOpen = false" :class="{'w-px h-px bg-stone-50/0': !modalOpen, 'w-full h-full bg-stone-50/50': modalOpen}" class="cursor-pointer fixed top-0 left-0 backdrop-blur-sm z-[100] transition-all"></div>
+                        <template x-if="message.meta?.sentences && message.meta.sentences.length > 0">
+                          <template x-for="sentence in message.meta.sentences">
+                            <div x-data="{tooltipOpen: false}" @mouseleave="tooltipOpen = false" class="relative space-x-1">
+                              <p x-text="sentence.sentence" class="markdown-convert prose w-full text-lg"></p>
+                              <div x-show="tooltipOpen" class="absolute bottom-6 right-0 bg-white p-3 border rounded-md border-stone-300 shadow">
+                                <p>
+                                  <span x-text="filename" class="font-semibold"></span> <span class="text-sm">(Page <span x-text="page_num"></span>)</span>
+                                </p>
+                                <p x-text="excerpt" class="text-sm line-clamp-2">Excerpt</p>
+                              </div>
+                              <div class="flex items-center justify-end space-x-1.5 space-y-1.5">
+                                <template x-for="(citation, index) in sentence.citations">
+                                  <div x-text="index + 1" @mouseover="tooltipOpen = true, filename = citation.filename, page_num = citation.page_num, excerpt = citation.citation_excerpt" @click="tooltipOpen = false, modalOpen = true, filepath = citation.filepath, filename = citation.filename, page_num = citation.page_num, excerpt = citation.citation_excerpt" class="cursor-pointer text-xs w-5 h-5 my-2 rounded-full flex items-center justify-center bg-stone-200 hover:bg-stone-300">1</div>
+                                </template>
+                              </div>
+                            </div>
+                          </template>
+                        </template>
+                      </div>
+                    </template>
+
+                    <template x-if="message.meta?.is_transcription">
+                      <div x-data="{ showAll: false }">
+                        <div class="z-[0] relative rounded-t-md rounded-br-md w-11/12 py-2.5" :class="{ 'max-h-96': !showAll, 'overflow-hidden': !showAll }">
+
+                          <div x-data="{'open':false}" class="absolute right-0">
+                            <button @click="open = !open" class="cursor-pointer flex items-center justify-center font-semibold text-stone-800 rounded hover:text-stone-900 hover:bg-stone-200 px-2 h-7 -lg:min-h-9 -lg:px-3">
+                              <svg class="w-4 mr-1.5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 2.25a.75.75 0 0 1 .75.75v11.69l3.22-3.22a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 1 1 1.06-1.06l3.22 3.22V3a.75.75 0 0 1 .75-.75Zm-9 13.5a.75.75 0 0 1 .75.75v2.25a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5V16.5a.75.75 0 0 1 1.5 0v2.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V16.5a.75.75 0 0 1 .75-.75Z" clip-rule="evenodd"></path></svg>
+                              <p>Download Transcript</p>
+                              <svg :class="{'rotate-180': open}" class="ml-1.5 w-4 h-4 -lg:min-w-5 -lg:min-h-5 rotate-180" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 01-1.06 0l-7.5-7.5a.75.75 0 011.06-1.06L12 14.69l6.97-6.97a.75.75 0 111.06 1.06l-7.5 7.5z" clip-rule="evenodd"></path></svg>
+                            </button>
+                            <div x-show="open" @click.away="open = false" class="absolute mt-1.5 right-0">
+                              <div class="bg-white w-max p-1 border border-stone-300 rounded-md shadow">
+                                <a :href="message.meta?.transcript_txt_path" class="block cursor-pointer px-2 py-1 font-semibold rounded-md text-stone-600 hover:text-stone-800 hover:bg-stone-200 focus:text-stone-800 -lg:p-3">Text Transcript (.txt)</a>
+                                <a :href="message.meta?.transcript_json_path" class="block cursor-pointer px-2 py-1 font-semibold rounded-md text-stone-600 hover:text-stone-800 hover:bg-stone-200 focus:text-stone-800 -lg:p-3">JSON Data Transcript (.json)</a>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div x-html="message.content" class="prose w-full masked text-lg" :class="{ 'pb-16': !showAll }">Message Content</div>
+                          <div x-show="!showAll" class="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white via-white to-transparent pointer-events-none flex items-end justify-center">
+                            <button @click="showAll = !showAll" class="font-semibold pointer-events-auto mb-3.5 text-stone-500 hover:text-stone-800 w-full">Show Full Transcript</button>
+                          </div>
+                        </div>
+                      </div>
+                    </template>
+
+                    <template x-if="message.meta?.is_audio">
+                      <div class="z-[0] relative rounded-t-md rounded-br-md w-11/12 py-2.5">
+                        <div x-html="message.content" class="prose w-full masked text-lg">Message Content</div>
+                        <div class="flex items-center mt-3.5">
+                          <audio controls>
+                            <source :src="message.meta?.audio_file" type="audio/mpeg">
+                            Your browser does not support the audio element.
+                          </audio>  
+                          <a :href="message.meta?.audio_file" class="ml-1.5 cursor-pointer flex items-center justify-center font-semibold text-stone-800 rounded-full hover:text-stone-900 hover:bg-stone-100 px-2 h-[54px] w-[54px]">
+                            <svg class="w-5 h-5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 2.25a.75.75 0 0 1 .75.75v11.69l3.22-3.22a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 1 1 1.06-1.06l3.22 3.22V3a.75.75 0 0 1 .75-.75Zm-9 13.5a.75.75 0 0 1 .75.75v2.25a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5V16.5a.75.75 0 0 1 1.5 0v2.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V16.5a.75.75 0 0 1 .75-.75Z" clip-rule="evenodd"></path></svg>
+                          </a>
+                        </div>                          
+                      </div>
+                    </template>
+
+                    <template x-if="(!message.meta?.sentences || !message.meta.sentences.length > 0) && !message.meta?.is_transcription && !message.meta?.is_audio">
+                      <div class="z-[0] relative rounded-t-md rounded-br-md w-11/12 py-2.5">
+                        <div x-html="message.content" class="prose w-full masked text-lg">Message Content</div>
+                      </div>
+                    </template>
+
+                    <div class="flex items-center text-sm text-stone-500 w-full mt-0.5">
+                      <p>Assistant</p>
+                      <p class="mx-1">•</p>
+                      <p x-text="formatDate(message.created_on)"></p>
+                      <div class="flex items-center opacity-50 hover:opacity-100">
+                        <p class="mx-1">•</p>
+                        <p @click="deleteMessage(message.id)" class="flex items-center font-semibold cursor-pointer transition text-stone-500 hover:text-rose-600">
+                          <svg class="w-3.5 h-3.5 mr-0.5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z" clip-rule="evenodd"></path></svg>
+                          Delete
+                        </p>
+                        <p x-show="isLastAssistantMessage(message.id)" class="mx-1">•</p>
+                        <div x-show="isLastAssistantMessage(message.id)" class="flex items-center">
+                          <p @click="retryThread()" class="flex items-center font-semibold cursor-pointer transition hover:text-stone-800">
+                            <svg class="w-3.5 h-3.5 mr-0.5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.755 10.059a7.5 7.5 0 0112.548-3.364l1.903 1.903h-3.183a.75.75 0 100 1.5h4.992a.75.75 0 00.75-.75V4.356a.75.75 0 00-1.5 0v3.18l-1.9-1.9A9 9 0 003.306 9.67a.75.75 0 101.45.388zm15.408 3.352a.75.75 0 00-.919.53 7.5 7.5 0 01-12.548 3.364l-1.902-1.903h3.183a.75.75 0 000-1.5H2.984a.75.75 0 00-.75.75v4.992a.75.75 0 001.5 0v-3.18l1.9 1.9a9 9 0 0015.059-4.035.75.75 0 00-.53-.918z" clip-rule="evenodd"></path></svg>
+                            Retry
+                          </p>
+                        </div>
+                        <p class="mx-1">•</p>
+                        <p @click="modalMessageEdit = true, modalMessageId=message.id, messageForUpdate = message.content_md.trim()" class="flex items-center font-semibold cursor-pointer transition hover:text-stone-800">
+                          <svg class="w-3.5 h-3.5 mr-0.5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 000-3.712zM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 00-1.32 2.214l-.8 2.685a.75.75 0 00.933.933l2.685-.8a5.25 5.25 0 002.214-1.32l8.4-8.4z"></path>
+                            <path d="M5.25 5.25a3 3 0 00-3 3v10.5a3 3 0 003 3h10.5a3 3 0 003-3V13.5a.75.75 0 00-1.5 0v5.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5V8.25a1.5 1.5 0 011.5-1.5h5.25a.75.75 0 000-1.5H5.25z"></path>
+                          </svg>
+                          Edit
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+
+                <template x-if="message.meta?.sender == 'user'">
+                  <div class="mb-6">
+                    <div class="z-[0] relative ml-auto rounded-t-md rounded-bl-md bg-stone-100 w-11/12 px-3 py-2.5 overflow-x-auto">
+                      <div x-html="message.content" class="prose w-full masked text-lg">Message Content</div>
+                      <template x-if="Array.isArray(message.meta?.images) && message.meta.images.length > 0">
+                        <div class="flex items-center mt-1.5">
+                          <template x-for="image in message.meta?.images" :key="index">
+                            <div class="flex items-center justify-center min-w-7 max-w-7 h-7 rounded-md overflow-hidden mr-1.5 relative">
+                              <a :href="image" download="uploaded_img" class="relative group w-max">
+                                <div class="absolute flex items-center justify-center w-full h-full bg-stone-800 opacity-0 group-hover:opacity-60">
+                                  <svg class="text-stone-50 w-5 h-5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 2.25a.75.75 0 0 1 .75.75v11.69l3.22-3.22a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 1 1 1.06-1.06l3.22 3.22V3a.75.75 0 0 1 .75-.75Zm-9 13.5a.75.75 0 0 1 .75.75v2.25a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5V16.5a.75.75 0 0 1 1.5 0v2.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V16.5a.75.75 0 0 1 .75-.75Z" clip-rule="evenodd"></path></svg>
+                                </div>
+                                <img :src="image" alt="Image Preview" />
+                              </a>
+                            </div>
+                          </template>
+                        </div>
+                      </template>
+                    </div>
+                    <div class="flex items-center text-sm text-stone-500 w-full mt-1.5">
+                      <p class="ml-auto">User</p>
+                      <p class="mx-1">•</p>
+                      <p x-text="formatDate(message.created_on)"></p>
+                      <div class="flex items-center opacity-50 hover:opacity-100">
+                        <p class="mx-1">•</p>
+                        <p @click="deleteMessage(message.id)" class="flex items-center font-semibold cursor-pointer transition text-stone-500 hover:text-rose-600">
+                          <svg class="w-3.5 h-3.5 mr-0.5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z" clip-rule="evenodd"></path></svg>
+                          Delete
+                        </p>
+                        <p class="mx-1">•</p>
+                        <p @click="modalMessageEdit = true, modalMessageId=message.id, messageForUpdate = message.content_md.trim()" class="flex items-center font-semibold cursor-pointer transition hover:text-stone-800">
+                          <svg class="w-3.5 h-3.5 mr-0.5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 000-3.712zM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 00-1.32 2.214l-.8 2.685a.75.75 0 00.933.933l2.685-.8a5.25 5.25 0 002.214-1.32l8.4-8.4z"></path>
+                            <path d="M5.25 5.25a3 3 0 00-3 3v10.5a3 3 0 003 3h10.5a3 3 0 003-3V13.5a.75.75 0 00-1.5 0v5.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5V8.25a1.5 1.5 0 011.5-1.5h5.25a.75.75 0 000-1.5H5.25z"></path>
+                          </svg>
+                          Edit
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+
+                <template x-if="message.meta?.sender == 'info'">
+                  <div class="mb-10">
+                    <div class="z-[0] relative rounded-t-md rounded-br-md w-11/12 py-2.5">
+                      <div x-html="message.content" class="prose w-full masked text-lg">Message Content</div>
+                    </div>
+                    <div class="flex items-center text-sm w-full text-stone-500 mt-0.5">
+                      <p class="">System Info</p>
+                      <p class="mx-1">•</p>
+                      <p x-text="formatDate(message.created_on)"></p>
+                      <div class="flex items-center">
+                        <p class="mx-1">•</p>
+                        <p @click="deleteMessage(message.id)" class="flex items-center font-semibold cursor-pointer transition text-stone-500 opacity-50 hover:opacity-100 hover:text-rose-600">
+                          <svg class="w-3.5 h-3.5 mr-0.5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z" clip-rule="evenodd"></path></svg>
+                          Delete
+                        </p>
+                        <template x-if="message.meta?.prompt">
+                          <div class="flex items-center">
+                            <p class="mx-1">•</p>
+                            <p @click="addPrompt(message.meta.prompt)" class="flex items-center font-semibold cursor-pointer transition text-stone-500 opacity-50 hover:opacity-100 hover:text-primary">
+                              <svg class="w-3.5 h-3.5 mr-0.5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.848 2.771A49.144 49.144 0 0 1 12 2.25c2.43 0 4.817.178 7.152.52 1.978.292 3.348 2.024 3.348 3.97v6.02c0 1.946-1.37 3.678-3.348 3.97-1.94.284-3.916.455-5.922.505a.39.39 0 0 0-.266.112L8.78 21.53A.75.75 0 0 1 7.5 21v-3.955a48.842 48.842 0 0 1-2.652-.316c-1.978-.29-3.348-2.024-3.348-3.97V6.741c0-1.946 1.37-3.68 3.348-3.97Z" clip-rule="evenodd"></path></svg>
+                              Add Message
+                            </p>
+                          </div>
+                        </template>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+
+                <template x-if="message.meta?.sender == 'user_command'">
+                  <div class="mb-6">
+                    <div class="z-[0] relative ml-auto rounded-t-md rounded-bl-md bg-stone-100 w-11/12 px-3 py-2.5 overflow-x-auto">
+                      <div x-html="message.content" class="prose w-full masked text-lg font-mono">Message Content</div>
+                    </div>
+                    <div class="flex items-center text-sm text-stone-500 w-full mt-1.5">
+                      <p class="ml-auto">User Command</p>
+                      <p class="mx-1">•</p>
+                      <p x-text="formatDate(message.created_on)"></p>
+                      <div class="flex items-center opacity-50 hover:opacity-100">
+                        <p class="mx-1">•</p>
+                        <p @click="deleteMessage(message.id)" class="flex items-center font-semibold cursor-pointer transition text-stone-500 hover:text-rose-600">
+                          <svg class="w-3.5 h-3.5 mr-0.5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z" clip-rule="evenodd"></path></svg>
+                          Delete
+                        </p>
+                        <p class="mx-1">•</p>
+                        <p @click="modalMessageEdit = true, modalMessageId=message.id, messageForUpdate = message.content_md.trim()" class="flex items-center font-semibold cursor-pointer transition hover:text-stone-800">
+                          <svg class="w-3.5 h-3.5 mr-0.5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 000-3.712zM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 00-1.32 2.214l-.8 2.685a.75.75 0 00.933.933l2.685-.8a5.25 5.25 0 002.214-1.32l8.4-8.4z"></path>
+                            <path d="M5.25 5.25a3 3 0 00-3 3v10.5a3 3 0 003 3h10.5a3 3 0 003-3V13.5a.75.75 0 00-1.5 0v5.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5V8.25a1.5 1.5 0 011.5-1.5h5.25a.75.75 0 000-1.5H5.25z"></path>
+                          </svg>
+                          Edit
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+
+                <template x-if="message.meta?.sender == 'warning'">
+                  <div class="mb-10">
+                    <div class="z-[0] relative border-l-2 border-stone-200 pl-4 ml-[0.35rem] w-11/12 py-2.5">
+                      <div x-html="message.content" class="prose w-full masked text-lg">Message Content</div>
+                    </div>
+                    <div class="flex items-center text-sm w-full text-stone-500 mt-0.5">
+                      <svg class="w-3.5 h-3.5 mr-0.5 text-amber-500" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003ZM12 8.25a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V9a.75.75 0 0 1 .75-.75Zm0 8.25a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" clip-rule="evenodd"></path></svg>
+                      <p class="">Warning</p>
+                      <p class="mx-1">•</p>
+                      <p x-text="formatDate(message.created_on)"></p>
+                      <div class="flex items-center opacity-50 hover:opacity-100">
+                        <p class="mx-1">•</p>
+                        <p @click="deleteMessage(message.id)" class="flex items-center font-semibold cursor-pointer transition text-stone-500 hover:text-rose-600">
+                          <svg class="w-3.5 h-3.5 mr-0.5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z" clip-rule="evenodd"></path></svg>
+                          Delete
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+
+                <template x-if="message.meta?.sender == 'error'">
+                  <div class="mb-10">
+                    <div class="z-[0] relative border-l-2 border-stone-200 pl-4 ml-[0.35rem] w-11/12 py-2.5">
+                      <div x-html="message.content" class="prose w-full masked text-lg">Message Content</div>
+                    </div>
+                    <div class="flex items-center text-sm w-full text-stone-500 mt-0.5">
+                      <svg class="w-3.5 h-3.5 mr-0.5 text-rose-600" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd"></path></svg>
+                      <p class="">Error</p>
+                      <p class="mx-1">•</p>
+                      <p x-text="formatDate(message.created_on)"></p>
+                      <div class="flex items-center opacity-50 hover:opacity-100">
+                        <p class="mx-1">•</p>
+                        <p @click="deleteMessage(message.id)" class="flex items-center font-semibold cursor-pointer transition text-stone-500 hover:text-rose-600">
+                          <svg class="w-3.5 h-3.5 mr-0.5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z" clip-rule="evenodd"></path></svg>
+                          Delete
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </template>
+
+            <div x-show="messageFormatted !== ''">
+              <div class="mb-6">
+                <div class="z-[0] relative ml-auto rounded-t-md rounded-bl-md bg-stone-100 w-11/12 px-3 py-2.5 overflow-x-auto">
+                  <p x-html="messageFormatted" class="w-full space-y-6 masked text-lg">Message Content</p>
+                  <template x-if="Array.isArray(messageImages) && messageImages.length > 0">
+                    <div class="flex items-center mt-1.5">
+                      <template x-for="image in messageImages" :key="index">
+                        <div class="flex items-center justify-center min-w-7 max-w-7 h-7 rounded-md overflow-hidden mr-1.5 relative">
+                          <a :href="image" download="uploaded_img" class="relative group w-max">
+                            <div class="absolute flex items-center justify-center w-full h-full bg-stone-800 opacity-0 group-hover:opacity-60">
+                              <svg class="text-stone-50 w-5 h-5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 2.25a.75.75 0 0 1 .75.75v11.69l3.22-3.22a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 1 1 1.06-1.06l3.22 3.22V3a.75.75 0 0 1 .75-.75Zm-9 13.5a.75.75 0 0 1 .75.75v2.25a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5V16.5a.75.75 0 0 1 1.5 0v2.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V16.5a.75.75 0 0 1 .75-.75Z" clip-rule="evenodd"></path></svg>
+                            </div>
+                            <img :src="image" alt="Image Preview" />
+                          </a>
+                        </div>
+                      </template>
+                    </div>
+                  </template>
+                </div>
+                <div class="flex items-center text-sm text-stone-500 w-full mt-1.5">
+                  <p class="ml-auto">User</p>
+                </div>
+              </div>
+            </div>
+
+            <div x-show="responseStream !== ''">
+              <div class="mb-10">
+                <div class="z-[0] relative rounded-t-md rounded-br-md w-11/12 py-2.5">
+                  <p x-html="responseStream" class="w-full space-y-6 masked text-lg">Message Content</p>
+                </div>
+                <div class="flex items-center text-sm text-stone-500 w-full mt-0.5">
+                  <p>Assistant</p>
+                </div>
+              </div>
+            </div>
+
+            <div x-show="indicateProcessing">
+              <div id="processingChat" class="mb-6 flex items-center justify-center font-semibold text-sm text-stone-500 w-max bg-stone-100 px-3 h-8 rounded-full">
+                <span class="relative flex h-2 w-2 mr-1.5">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-50"></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                </span>
+                Processing...
+              </div>
+            </div>
+
+            <div class="h-12 w-full"></div>
+          </div>
+        </div>
+
+        <!-- Editor -->
+        <div class="fixed w-[calc(100%-21.15rem)] bottom-0 bg-white px-6 pt-1 -lg:w-full">
+          <div class="max-w-3xl mx-auto">
+            <div class="mt-3 relative w-full z-10">
+              <!-- Actions -->
+              <div x-show="matchedActions.length > 0" class="p-1 bg-white rounded-md border shadow border-stone-200 mb-1.5">
+                <template x-for="action in matchedActions" :key="action.command">
+                  <div @click="addPrompt(action.command)" class="cursor-pointer py-1 px-3 rounded-md hover:bg-stone-100 focus:bg-stone-200">
+                    <p>
+                      <span class="font-mono" x-text="action.command">Command</span> 
+                      <span class="font-mono" x-text="action.parameters">Command</span>
+                    </p>
+                    <p class="text-stone-500 text-sm" x-text="action.description"></p>
+                  </div>
+                </template>
+              </div>
+
+              <!-- Send Button - Blank -->
+              <button x-show="messageFromEditor == '' && !indicateProcessing" disabled :class="{'right-[1.75rem]': osPlatform != 'mac', 'right-[0.75rem]': osPlatform == 'mac'}" class="z-10 flex items-center justify-center absolute bottom-[0.5rem] h-7 w-7 rounded-md text-stone-400">
+                <svg class="w-[1rem] h-[1rem] min-w-[1rem] min-h-[1rem]" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M476.59 227.05l-.16-.07L49.35 49.84A23.56 23.56 0 0027.14 52 24.65 24.65 0 0016 72.59v113.29a24 24 0 0019.52 23.57l232.93 43.07a4 4 0 010 7.86L35.53 303.45A24 24 0 0016 327v113.31A23.57 23.57 0 0026.59 460a23.94 23.94 0 0013.22 4 24.55 24.55 0 009.52-1.93L476.4 285.94l.19-.09a32 32 0 000-58.8z"></path></svg>
+              </button>
+              <!-- Send Button -->
+              <button x-show="messageFromEditor !== '' && !indicateProcessing" @click="createMessageSubmit()" :class="{'right-[1.75rem]': !osPlatform != 'mac', 'right-[0.75rem]': osPlatform == 'mac'}" class="z-10 flex items-center justify-center absolute bottom-[0.5rem] h-7 w-7 bg-primary rounded-md text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">
+                <svg class="w-[0.75rem] h-[0.75rem] min-w-[0.75rem] min-h-[0.75rem]" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M476.59 227.05l-.16-.07L49.35 49.84A23.56 23.56 0 0027.14 52 24.65 24.65 0 0016 72.59v113.29a24 24 0 0019.52 23.57l232.93 43.07a4 4 0 010 7.86L35.53 303.45A24 24 0 0016 327v113.31A23.57 23.57 0 0026.59 460a23.94 23.94 0 0013.22 4 24.55 24.55 0 009.52-1.93L476.4 285.94l.19-.09a32 32 0 000-58.8z"></path></svg>
+              </button>
+              <!-- Processing Button -->
+              <button x-show="indicateProcessing" @click="cancelMessageRequest()" :class="{'right-[1.75rem]': !osPlatform != 'mac', 'right-[0.75rem]': osPlatform == 'mac'}" class="group z-20 flex items-center justify-center absolute bottom-[0.5rem] h-7 w-7 bg-stone-200 rounded-md text-stone-400 transition duration-500">
+                <svg class="group-hover:hidden block animate-spin w-5 h-5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M12 22c5.421 0 10-4.579 10-10h-2c0 4.337-3.663 8-8 8s-8-3.663-8-8c0-4.336 3.663-8 8-8V2C6.579 2 2 6.58 2 12c0 5.421 4.579 10 10 10z"></path></svg>
+                <svg class="group-hover:block hidden w-5 h-5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"></path></svg>
+              </button>
+
+              {% if capabilities.vision %}
+              <!-- Image Upload -->
+              <label for="image-upload" class="absolute bottom-[0.5rem] left-[0.5rem] text-sm font-semibold cursor-pointer z-10 flex items-center justify-center h-7 w-7 text-stone-400 rounded-md hover:bg-stone-200 hover:text-stone-600">
+                <svg class="w-[1.25rem] h-[1.25rem] min-w-[1.25rem] min-h-[1.25rem]" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 20 20" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M1 5.25A2.25 2.25 0 013.25 3h13.5A2.25 2.25 0 0119 5.25v9.5A2.25 2.25 0 0116.75 17H3.25A2.25 2.25 0 011 14.75v-9.5zm1.5 5.81v3.69c0 .414.336.75.75.75h13.5a.75.75 0 00.75-.75v-2.69l-2.22-2.219a.75.75 0 00-1.06 0l-1.91 1.909.47.47a.75.75 0 11-1.06 1.06L6.53 8.091a.75.75 0 00-1.06 0l-2.97 2.97zM12 7a1 1 0 11-2 0 1 1 0 012 0z" clip-rule="evenodd"></path></svg>
+              </label>
+              <input id="image-upload" name="image-upload" type="file" @change="imageUpload" class="hidden" />
+              {% endif %}
+
+              <textarea id="tabTextarea" x-model="messageFromEditor" @keydown.cmd.enter="createMessageSubmit()" @keydown.ctrl.enter="createMessageSubmit()" @keydown.tab.prevent="insertTab($event)" x-ref="chatBox" x-init="$watch('messageFromEditor', () => autoExpand($refs.chatBox))" @input="autoExpand($event.target)" rows="1" class="{% if capabilities.vision %} px-10 {% else %} pl-4 pr-10 {% endif %} block text-lg resize-none w-full min-h-[1.5rem] max-h-[44vh] py-2 rounded-t-md bg-white border border-stone-400/30 outline-none transition placeholder:text-stone-400 hover:shadow-sm focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10"></textarea>
+            </div>
+            <div class="flex items-center bg-stone-100 rounded-b-md border-b border-x border-stone-400/30 mb-1.5 w-full">
+              <div class="flex items-center px-1.5 py-1.5">
+                <!-- Loop through each image in extractedImages array -->
+                <template x-for="(extractedImg, index) in extractedImages" :key="index">
+                  <div class="group flex items-center justify-center min-w-7 max-w-7 h-7 rounded-md overflow-hidden ml-1.5 relative shadow">
+                    <img :src="extractedImg" alt="Image Preview" />
+                    <button @click.prevent="imageUploadRemove(index)" class="opacity-0 flex items-center justify-center absolute z-10 bg-rose-600 w-5 h-5 rounded-full z-10 group-hover:opacity-100">
+                      <svg class="text-white w-4 h-4" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 01-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clip-rule="evenodd"></path></svg>
+                    </button>
+                  </div>
+                </template>
+              </div>
+              <button @click="modalDocuments = true" class="ml-auto flex items-center text-sm font-semibold h-10 px-2.5 text-stone-500 hover:bg-stone-200 hover:text-stone-700">
+                <svg class="w-4 h-4 mr-1" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 20 20" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.5 2A1.5 1.5 0 0 0 3 3.5v13A1.5 1.5 0 0 0 4.5 18h11a1.5 1.5 0 0 0 1.5-1.5V7.621a1.5 1.5 0 0 0-.44-1.06l-4.12-4.122A1.5 1.5 0 0 0 11.378 2H4.5Zm2.25 8.5a.75.75 0 0 0 0 1.5h6.5a.75.75 0 0 0 0-1.5h-6.5Zm0 3a.75.75 0 0 0 0 1.5h6.5a.75.75 0 0 0 0-1.5h-6.5Z" clip-rule="evenodd"></path></svg>
+                <p x-text="getEnabledDocumentsCount() > 0 ? getEnabledDocumentsCount() + ' Document' + (getEnabledDocumentsCount() > 1 ? 's' : '') : 'Add Documents'"></p>
+              </button>
+            </div>
+            <div class="flex items-center pb-5">
+              <div class="flex items-center text-stone-500 text-xs" x-show="osPlatform == 'windows' || osPlatform == 'other'">
+                <span class="font-semibold px-1.5 py-0.5 border border-stone-300 rounded-md shadow-sm">CTRL</span>
+                <span class="mx-0.5 text-stone-500 text-xs">+</span>
+                <span class="font-semibold px-1.5 py-0.5 border border-stone-300 rounded-md shadow-sm">Enter</span>
+              </div>
+              <div class="flex items-center text-stone-500 text-xs" x-show="osPlatform == 'mac'">
+                <span class="font-semibold px-1.5 py-0.5 border border-stone-300 rounded-md shadow-sm">CMD</span>
+                <span class="mx-1 text-stone-500 text-xs">+</span>
+                <span class="font-semibold px-1.5 py-0.5 border border-stone-300 rounded-md shadow-sm">Enter</span>
+              </div>
+              <span class="ml-1 text-stone-500 text-xs">to Send</span>
+              <div class="flex items-center ml-6">
+                <span class="font-semibold text-stone-500 text-xs px-1.5 py-0.5 border border-stone-300 rounded-md shadow-sm">/</span>
+                <span class="ml-1 text-stone-500 text-xs">for available Actions</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

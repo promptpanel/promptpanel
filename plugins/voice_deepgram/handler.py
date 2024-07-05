@@ -36,7 +36,6 @@ def file_stream(file, thread, panel):
 
     try:
         yield "Processing"
-
         ## ----- 1. Check if the file is an audio or video file.
         mime_type, _ = mimetypes.guess_type(file.filepath)
         is_audio_video = mime_type and mime_type.startswith(("audio/", "video/"))
@@ -134,10 +133,6 @@ def message_transcribe(message, thread, panel):
             filename=filename, created_by=message.created_by
         ).first()
 
-        if not file:
-            yield f"Error: File '{filename}' not found.\n"
-            return
-
         ## ----- 4. Transcribe file
         # Deepgram API settings
         deepgram_api_key = settings.get("Deepgram API Key")
@@ -162,14 +157,27 @@ def message_transcribe(message, thread, panel):
             result = response.json()
 
             ## ----- 5. Save JSON response and formatted transcript
-            file_directory = os.path.dirname(file.filepath)
-            base_filename = os.path.splitext(os.path.basename(file.filepath))[0]
+            media_root = django_settings.MEDIA_ROOT
+            relative_path = f"{panel.id}/{thread.id}"
+            full_path = os.path.join(media_root, relative_path)
+            os.makedirs(full_path, exist_ok=True)
 
             # Save JSON response
-            json_filename = f"{base_filename}_transcription.json"
-            json_filepath = os.path.join(file_directory, json_filename)
+            json_filename = f"{message.id}_transcription.json"
+            json_filepath = os.path.join(full_path, json_filename)
+            json_relative_url = f"/media/{relative_path}/{json_filename}"
             with open(json_filepath, "w") as json_file:
                 json.dump(result, json_file, indent=4)
+            # Create or update File object for JSON
+            json_file_obj, created = File.objects.update_or_create(
+                filename=json_filename,
+                created_by=message.created_by,
+                defaults={
+                    "filepath": json_filepath,
+                    "thread": thread,
+                    "panel": panel,
+                },
+            )
 
             # Extract and format the transcript with timestamps
             paragraphs = result["results"]["channels"][0]["alternatives"][0][
@@ -190,22 +198,38 @@ def message_transcribe(message, thread, panel):
                     formatted_transcript += f"[{start_time} - {end_time}]\n {text}\n\n"
 
             # Save formatted transcript
-            transcript_filename = f"{base_filename}_transcript.txt"
-            transcript_filepath = os.path.join(file_directory, transcript_filename)
+            transcript_filename = f"{message.id}_transcription.txt"
+            transcript_filepath = os.path.join(full_path, transcript_filename)
+            transcript_relative_url = f"/media/{relative_path}/{transcript_filename}"
             with open(transcript_filepath, "w") as transcript_file:
                 transcript_file.write(formatted_transcript)
+            # Create or update File object for transcript
+            transcript_file_obj, created = File.objects.update_or_create(
+                filename=transcript_filename,
+                created_by=message.created_by,
+                defaults={
+                    "filepath": transcript_filepath,
+                    "thread": thread,
+                    "panel": panel,
+                },
+            )
 
             ## ----- 6. Save transcription as user message
-            content = f"Transcription for {base_filename}:\n\n{formatted_transcript}"
+            content = f"Transcription for {filename}:\n\n{formatted_transcript}"
             transcription_message = Message(
                 content=content,
                 thread=thread,
                 panel=panel,
                 created_by=message.created_by,
-                meta={"sender": "assistant", "is_transcription": True},
+                meta={
+                    "sender": "assistant",
+                    "is_transcription": True,
+                    "transcript_txt_path": transcript_relative_url,
+                    "transcript_json_path": json_relative_url,
+                },
             )
             transcription_message.save()
-            yield f"Transcription of {base_filename} processed and saved successfully.\n"
+            yield f"Transcription of {filename} processed and saved successfully.\n"
         else:
             raise Exception(
                 f"Transcription request failed: {response.status_code} - {response.text}"
@@ -247,7 +271,6 @@ def message_speak(message, thread, panel):
         }
         data = {"text": text_to_speak}
         ## ----- 3. Send the request and get the audio
-        yield "Sending request to Deepgram TTS API..."
         response = requests.post(url, json=data, headers=headers)
         if response.status_code != 200:
             raise Exception(
@@ -262,10 +285,19 @@ def message_speak(message, thread, panel):
         file_path = os.path.join(full_path, file_name)
         with open(file_path, "wb") as audio_file:
             audio_file.write(response.content)
+        # Save as File object
+        file_obj = File(
+            filename=file_name,
+            filepath=file_path,
+            created_by=message.created_by,
+            thread=thread,
+            panel=panel,
+        )
+        file_obj.save()
 
         ## ----- 5. Create a new message with the audio link
         relative_url = f"/media/{relative_path}/{file_name}"
-        audio_message_content = f"Text-to-speech audio generated:\n {text_to_speak}"
+        audio_message_content = f"Text-to-speech audio generated:\n > {text_to_speak}"
         audio_message = Message(
             content=audio_message_content,
             thread=thread,
