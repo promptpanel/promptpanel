@@ -22,7 +22,3 @@ blockquote {
   border-color: rgb(231 229 228);
   border-left-width: 2px;
 }
-.prose :where(p):not(:where([class~="not-prose"],[class~="not-prose"] *)){
-  margin-top: 0.5rem !important;
-  margin-bottom: 0.5rem !important;
-}
