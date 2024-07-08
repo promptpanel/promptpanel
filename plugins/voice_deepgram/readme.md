@@ -1,1 +1,2 @@
-Deepgram speech-to-text and text-to-speech reference implementation.
+Deepgram speech-to-text and text-to-speech reference implementation. <a class="text-sm underline hover:text-primary" href="https://promptpanel.com/documentation/voice-deepgram/" target="_new">More Info</a>
+
