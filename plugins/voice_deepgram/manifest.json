@@ -24,12 +24,7 @@
       "selections": [
         {
           "group": "OpenAI",
-          "values": [
-            "gpt-4o",
-            "gpt-4-turbo",
-            "gpt-3.5-turbo",
-            "gpt-4"
-          ]
+          "values": ["gpt-4o", "gpt-4-turbo", "gpt-3.5-turbo", "gpt-4"]
         },
         {
           "group": "Google Gemini",
@@ -89,10 +84,7 @@
         },
         {
           "group": "Deepseek",
-          "values": [
-            "deepseek-chat",
-            "deepseek-coder"
-          ]
+          "values": ["deepseek-chat", "deepseek-coder"]
         },
         {
           "group": "Groq",
@@ -113,19 +105,11 @@
       "selections": [
         {
           "group": "OpenAI",
-          "values": [
-            "gpt-4o",
-            "gpt-4-turbo",
-            "gpt-3.5-turbo",
-            "gpt-4"
-          ]
+          "values": ["gpt-4o", "gpt-4-turbo", "gpt-3.5-turbo", "gpt-4"]
         },
         {
           "group": "Google Gemini",
-          "values": [
-            "gemini/gemini-pro",
-            "gemini/gemini-1.5-pro-latest"
-          ]
+          "values": ["gemini/gemini-pro", "gemini/gemini-1.5-pro-latest"]
         },
         {
           "group": "Anthropic",
@@ -173,10 +157,7 @@
         },
         {
           "group": "Deepseek",
-          "values": [
-            "deepseek-chat",
-            "deepseek-coder"
-          ]
+          "values": ["deepseek-chat", "deepseek-coder"]
         },
         {
           "group": "Groq",

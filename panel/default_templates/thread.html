@@ -613,7 +613,7 @@
                 <template x-for="action in matchedActions" :key="action.command">
                   <div @click="addPrompt(action.command)" class="cursor-pointer py-1 px-3 rounded-md hover:bg-stone-100 focus:bg-stone-200">
                     <p>
-                      <span class="font-mono" x-text="action.command">Command</span> 
+                      <span class="font-mono" x-text="action.command">Command</span>
                       <span class="font-mono" x-text="action.parameters">Command</span>
                     </p>
                     <p class="text-stone-500 text-sm" x-text="action.description"></p>

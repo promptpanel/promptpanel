@@ -347,77 +347,80 @@ var pluginState = () => {
         credentials: "include",
         signal: this.messageAbortController.signal,
       })
-      .then((response) => {
-        if (!response.ok) {
-          return response.json().then(errorBody => {
-            throw new Error(errorBody.message || "Unknown error occurred");
-          });
-        }
-        return response.body.getReader();
-      })
-      .then((reader) => {
-        return new ReadableStream({
-          start: (controller) => {
-            const push = () => {
-              reader.read().then(({ done, value }) => {
-                if (done) {
-                  controller.close();
-                  return;
-                }
-                const string = new TextDecoder().decode(value);
-                streaming += string;
-                this.responseStream = mdConverter.makeHtml(streaming);
-                controller.enqueue(value);
-                push();
-              }).catch(error => {
-                if (error.name === 'AbortError') {
-                  isCancelled = true;
-                  controller.error(error);
-                  console.log("Message cancelled");
-                } else {
-                  controller.error(error);
-                }
-              });
-            };
-            push();
-          },
-          cancel: () => {
-            isCancelled = true;
-            console.log("Stream cancelled");
+        .then((response) => {
+          if (!response.ok) {
+            return response.json().then((errorBody) => {
+              throw new Error(errorBody.message || "Unknown error occurred");
+            });
           }
+          return response.body.getReader();
+        })
+        .then((reader) => {
+          return new ReadableStream({
+            start: (controller) => {
+              const push = () => {
+                reader
+                  .read()
+                  .then(({ done, value }) => {
+                    if (done) {
+                      controller.close();
+                      return;
+                    }
+                    const string = new TextDecoder().decode(value);
+                    streaming += string;
+                    this.responseStream = mdConverter.makeHtml(streaming);
+                    controller.enqueue(value);
+                    push();
+                  })
+                  .catch((error) => {
+                    if (error.name === "AbortError") {
+                      isCancelled = true;
+                      controller.error(error);
+                      console.log("Message cancelled");
+                    } else {
+                      controller.error(error);
+                    }
+                  });
+              };
+              push();
+            },
+            cancel: () => {
+              isCancelled = true;
+              console.log("Stream cancelled");
+            },
+          });
+        })
+        .then((stream) => new Response(stream).text())
+        .catch((error) => {
+          if (error.name === "AbortError" || isCancelled) {
+            console.log("Message cancelled");
+            this.responseStream = "Message cancelled.";
+          } else {
+            const failToast = {
+              type: "error",
+              header: "We had a problem retrieving your message response. Please try again.",
+              message: error.message,
+            };
+            Alpine.store("toastStore").addToast(failToast);
+          }
+        })
+        .finally(() => {
+          console.log("Trigger finally...");
+          if (isCancelled) {
+            const successToast = {
+              type: "success",
+              header: "Message cancelled",
+              message: "Your message was cancelled successfully.",
+            };
+            Alpine.store("toastStore").addToast(successToast);
+          }
+          this.getMessages();
+          this.getThreads();
+          this.messageFormatted = "";
+          this.extractedImages = [];
+          this.indicateProcessing = false;
+          this.messageAbortController = null;
         });
-      })
-      .then(stream => new Response(stream).text())
-      .catch((error) => {
-        if (error.name === 'AbortError' || isCancelled) {
-          console.log("Message cancelled");
-          this.responseStream = "Message cancelled.";
-        } else {
-          const failToast = {
-            type: "error",
-            header: "We had a problem retrieving your message response. Please try again.",
-            message: error.message,
-          };
-          Alpine.store("toastStore").addToast(failToast);
-        }
-      })
-      .finally(() => {
-        console.log("Trigger finally...");
-        if (isCancelled) {
-          const successToast = {
-            type: "success",
-            header: "Message cancelled",
-            message: "Your message was cancelled successfully.",
-          };
-          Alpine.store("toastStore").addToast(successToast);
-        }
-        this.getMessages();
-        this.getThreads();
-        this.messageFormatted = "";
-        this.extractedImages = [];
-        this.indicateProcessing = false;
-        this.messageAbortController = null;
-      });    
     },
     get filteredThreads() {
       if (this.threadSearchInput === "") {
@@ -519,10 +522,9 @@ var pluginState = () => {
         body: JSON.stringify(messageData),
         signal: this.messageAbortController.signal,
       })
-
         .then((response) => {
           if (!response.ok) {
-            return response.json().then(errorBody => {
+            return response.json().then((errorBody) => {
               throw new Error(errorBody.message || "Unknown error occurred");
             });
           }
@@ -532,38 +534,41 @@ var pluginState = () => {
           return new ReadableStream({
             start: (controller) => {
               const push = () => {
-                reader.read().then(({ done, value }) => {
-                  if (done) {
-                    controller.close();
-                    return;
-                  }
-                  const string = new TextDecoder().decode(value);
-                  streaming += string;
-                  this.responseStream = mdConverter.makeHtml(streaming);
-                  controller.enqueue(value);
-                  push();
-                }).catch(error => {
-                  if (error.name === 'AbortError') {
-                    isCancelled = true;
-                    controller.error(error);
-                    console.log("Message cancelled");
-                  } else {
-                    controller.error(error);
-                  }
-                });
+                reader
+                  .read()
+                  .then(({ done, value }) => {
+                    if (done) {
+                      controller.close();
+                      return;
+                    }
+                    const string = new TextDecoder().decode(value);
+                    streaming += string;
+                    this.responseStream = mdConverter.makeHtml(streaming);
+                    controller.enqueue(value);
+                    push();
+                  })
+                  .catch((error) => {
+                    if (error.name === "AbortError") {
+                      isCancelled = true;
+                      controller.error(error);
+                      console.log("Message cancelled");
+                    } else {
+                      controller.error(error);
+                    }
+                  });
               };
               push();
             },
             cancel: () => {
               isCancelled = true;
               console.log("Stream cancelled");
-            }
+            },
           });
         })
-        .then(stream => new Response(stream).text())
+        .then((stream) => new Response(stream).text())
 
         .catch((error) => {
-          if (error.name === 'AbortError' || isCancelled) {
+          if (error.name === "AbortError" || isCancelled) {
             console.log("Message cancelled");
             this.responseStream = "Message cancelled.";
           } else {
@@ -592,7 +597,7 @@ var pluginState = () => {
           this.indicateProcessing = false;
           this.messageAbortController = null;
         });
-    },    
+    },
     cancelMessageRequest() {
       if (this.messageAbortController) {
         this.messageAbortController.abort();
