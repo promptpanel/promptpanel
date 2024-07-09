@@ -90,14 +90,14 @@
           <p x-show="!$store.onboardStore.runningGetStarted" class="mb-3">We can get started by downloading and running Phi-3 a tiny, but mighty, local / offline model by Microsoft Research.</p>
 
           <p x-show="$store.onboardStore.runningGetStarted" class="mb-3">Your model is warming up...</p>
-          <p x-show="$store.onboardStore.runningGetStarted" class="mb-3">Phi-3 is a great small model for getting started - but using a larger, more resource intensive model can yield better results. <a href="https://promptpanel.com/getting-started/quickstart/" target="_new" class="text-sm underline hover:text-primary">Learn more</a></p>
+          <p x-show="$store.onboardStore.runningGetStarted" class="mb-3">Phi-3 is a great small model for getting started - but using a larger, more resource intensive model can yield better results. <a href="https://promptpanel.com/documentation/quickstart//" target="_new" class="text-sm underline hover:text-primary">Learn more</a></p>
 
           <div class="flex items-center mb-3">
             <a href="/app/" class="flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 mr-3 rounded-md transition duration-500 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300">Skip</a>
             {% if env_ollama %}
             <button x-show="!$store.onboardStore.runningGetStarted" @click="$store.onboardStore.getStartedOllama()" class="flex items-center justify-center ml-auto w-max font-semibold bg-primary px-3 h-9 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">Download & Get Started</button>
             {% endif %} {% if not env_ollama %}
-            <p class="text-stone-500 text-sm ml-auto">Ollama is not configured for offline inference. <br /><a class="underline text-primary hover:text-primary/80" href="https://promptpanel.com/getting-started/quickstart/" target="_new">Upgrade your instance for inference</a></p>
+            <p class="text-stone-500 text-sm ml-auto">Ollama is not configured for offline inference. <br /><a class="underline text-primary hover:text-primary/80" href="https://promptpanel.com/documentation/quickstart/" target="_new">Upgrade your instance for inference</a></p>
             {% endif %}
             <div x-show="$store.onboardStore.runningGetStarted" class="flex items-center justify-center ml-auto w-max font-semibold bg-primary px-3 h-9 rounded-md text-stone-50">
               <svg class="animate-spin mr-1.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

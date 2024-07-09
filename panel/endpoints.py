@@ -1057,7 +1057,7 @@ def file_list_thread(request, thread_id):
 @require_http_methods(["POST"])
 def file_create(request):
     try:
-        if not "file" in request.FILES:
+        if "file" not in request.FILES:
             return JsonResponse(
                 {"status": "error", "message": "No files provided"}, status=400
             )
@@ -1086,18 +1086,21 @@ def file_create(request):
                 )
         # Upload file
         uploaded_file = request.FILES["file"]
-        file_name = uploaded_file.name
+        original_filename = uploaded_file.name
         save_path_components = [settings.MEDIA_ROOT, str(panel_id)]
         if thread_id:
             save_path_components.append(str(thread_id))
         save_path = os.path.join(*save_path_components)
         os.makedirs(save_path, exist_ok=True)
-        file_path = os.path.join(save_path, file_name)
         fs = FileSystemStorage(location=save_path)
-        filepath = fs.save(file_name, uploaded_file)
-        file_full_path = os.path.join(save_path, filepath)
+        saved_filename = fs.save(original_filename, uploaded_file)
+        file_full_path = os.path.join(save_path, saved_filename)
+        if saved_filename != original_filename:
+            filename = saved_filename
+        else:
+            filename = original_filename
         new_file = File(
-            filename=file_name,
+            filename=filename,
             filepath=file_full_path,
             thread=thread,
             panel=panel,
@@ -1187,7 +1190,7 @@ def file_delete(request, file_id):
 def ollama_proxy(request, route):
     prompt_ollama_host = os.getenv("PROMPT_OLLAMA_HOST")
     ## Check Ollama host setup
-    if not prompt_ollama_host:
+    if prompt_ollama_host != "DISABLED":
         return JsonResponse(
             {
                 "status": "error",

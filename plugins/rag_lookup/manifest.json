@@ -5,7 +5,7 @@
     "actions": [
       {
         "command": "/lookup",
-        "parameters": "(/file [filename]) [question*]",
+        "parameters": "/file [filename*] [question*]",
         "description": "Lookup content from your file."
       }
     ]
@@ -64,6 +64,17 @@
             "mistral/open-mixtral-8x7b",
             "mistral/open-mixtral-8x22b",
             "mistral/codestral-latest"
+          ]
+        },
+        {
+          "group": "Perplexity",
+          "values": [
+            "perplexity/llama-3-sonar-small-32k-chat",
+            "perplexity/llama-3-sonar-small-32k-chat-online",
+            "perplexity/llama-3-sonar-large-32k-chat",
+            "perplexity/llama-3-sonar-large-32k-chat-online",
+            "perplexity/llama-3-8b-instruct",
+            "perplexity/llama-3-70b-instruct"
           ]
         },
         {
@@ -126,6 +137,17 @@
             "mistral/mistral-small",
             "mistral/mistral-medium",
             "mistral/mistral-large-latest"
+          ]
+        },
+        {
+          "group": "Perplexity",
+          "values": [
+            "perplexity/llama-3-sonar-small-32k-chat",
+            "perplexity/llama-3-sonar-small-32k-chat-online",
+            "perplexity/llama-3-sonar-large-32k-chat",
+            "perplexity/llama-3-sonar-large-32k-chat-online",
+            "perplexity/llama-3-8b-instruct",
+            "perplexity/llama-3-70b-instruct"
           ]
         },
         {

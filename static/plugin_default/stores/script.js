@@ -22,6 +22,7 @@ var pluginState = () => {
     responseStream: "",
     messageFormatted: "",
     messageFromEditor: "",
+    messageAbortController: null,
     // Message UI
     osPlatform: "",
     // Files
@@ -333,7 +334,9 @@ var pluginState = () => {
         if (message.id > maxId) maxId = message.id;
       });
       this.messages = this.messages.filter((message) => message.id !== maxId);
+      this.messageAbortController = new AbortController();
       this.indicateProcessing = true;
+      let isCancelled = false;
       const hostname = window.location.origin;
       const url = hostname + "/api/v1/app/thread/retry/" + Alpine.store("active").threadId + "/";
       fetch(url, {
@@ -342,24 +345,13 @@ var pluginState = () => {
           "Content-Type": "application/json",
         },
         credentials: "include",
+        signal: this.messageAbortController.signal,
       })
         .then((response) => {
           if (!response.ok) {
-            response
-              .clone()
-              .json()
-              .then((errorBody) => {
-                const errorMessage = errorBody.message || "Unknown error occurred";
-                let failToast = {
-                  type: "error",
-                  header: "We had a problem retrieving your message response. Please try again.",
-                  message: errorMessage,
-                };
-                Alpine.store("toastStore").addToast(failToast);
-              })
-              .catch((err) => {
-                console.error("Error parsing response error body:", err);
-              });
+            return response.json().then((errorBody) => {
+              throw new Error(errorBody.message || "Unknown error occurred");
+            });
           }
           return response.body.getReader();
         })
@@ -372,12 +364,6 @@ var pluginState = () => {
                   .then(({ done, value }) => {
                     if (done) {
                       controller.close();
-                      this.indicateProcessing = false;
-                      this.messageFormatted = "";
-                      this.responseStream = "";
-                      this.extractedImages = [];
-                      this.getMessages();
-                      this.getThreads();
                       return;
                     }
                     const string = new TextDecoder().decode(value);
@@ -387,27 +373,53 @@ var pluginState = () => {
                     push();
                   })
                   .catch((error) => {
-                    failToast = {
-                      type: "error",
-                      header: "We had a problem retrieving your message response. Please try again.",
-                      message: error.message,
-                    };
-                    Alpine.store("toastStore").addToast(failToast);
+                    if (error.name === "AbortError") {
+                      isCancelled = true;
+                      controller.error(error);
+                      console.log("Message cancelled");
+                    } else {
+                      controller.error(error);
+                    }
                   });
               };
               push();
             },
+            cancel: () => {
+              isCancelled = true;
+              console.log("Stream cancelled");
+            },
           });
         })
-        .then((stream) => new Response(stream))
-        .then((response) => response.text())
+        .then((stream) => new Response(stream).text())
         .catch((error) => {
-          failToast = {
-            type: "error",
-            header: "We had a problem retrieving your message response. Please try again.",
-            message: error.message,
-          };
-          Alpine.store("toastStore").addToast(failToast);
+          if (error.name === "AbortError" || isCancelled) {
+            console.log("Message cancelled");
+            this.responseStream = "Message cancelled.";
+          } else {
+            const failToast = {
+              type: "error",
+              header: "We had a problem retrieving your message response. Please try again.",
+              message: error.message,
+            };
+            Alpine.store("toastStore").addToast(failToast);
+          }
+        })
+        .finally(() => {
+          console.log("Trigger finally...");
+          if (isCancelled) {
+            const successToast = {
+              type: "success",
+              header: "Message cancelled",
+              message: "Your message was cancelled successfully.",
+            };
+            Alpine.store("toastStore").addToast(successToast);
+          }
+          this.getMessages();
+          this.getThreads();
+          this.messageFormatted = "";
+          this.extractedImages = [];
+          this.indicateProcessing = false;
+          this.messageAbortController = null;
         });
     },
     get filteredThreads() {
@@ -494,8 +506,10 @@ var pluginState = () => {
       // Wipe interim message before sending
       this.extractedImages = [];
       this.messageFromEditor = "";
-      // Indicate processing => positioning div
+      // Set abort controller => indicate processing => positioning div
+      this.messageAbortController = new AbortController();
       this.indicateProcessing = true;
+      let isCancelled = false;
       setTimeout(() => {
         document.getElementById("processingChat").scrollIntoView();
       }, 80);
@@ -506,24 +520,13 @@ var pluginState = () => {
         },
         credentials: "include",
         body: JSON.stringify(messageData),
+        signal: this.messageAbortController.signal,
       })
         .then((response) => {
           if (!response.ok) {
-            response
-              .clone()
-              .json()
-              .then((errorBody) => {
-                const errorMessage = errorBody.message || "Unknown error occurred";
-                let failToast = {
-                  type: "error",
-                  header: "We had a problem retrieving your message response. Please try again.",
-                  message: errorMessage,
-                };
-                Alpine.store("toastStore").addToast(failToast);
-              })
-              .catch((err) => {
-                console.error("Error parsing response error body:", err);
-              });
+            return response.json().then((errorBody) => {
+              throw new Error(errorBody.message || "Unknown error occurred");
+            });
           }
           return response.body.getReader();
         })
@@ -536,9 +539,6 @@ var pluginState = () => {
                   .then(({ done, value }) => {
                     if (done) {
                       controller.close();
-                      this.getMessages();
-                      this.getThreads();
-                      this.indicateProcessing = false;
                       return;
                     }
                     const string = new TextDecoder().decode(value);
@@ -548,28 +548,63 @@ var pluginState = () => {
                     push();
                   })
                   .catch((error) => {
-                    failToast = {
-                      type: "error",
-                      header: "We had a problem retrieving your message response. Please try again.",
-                      message: error.message,
-                    };
-                    Alpine.store("toastStore").addToast(failToast);
+                    if (error.name === "AbortError") {
+                      isCancelled = true;
+                      controller.error(error);
+                      console.log("Message cancelled");
+                    } else {
+                      controller.error(error);
+                    }
                   });
               };
               push();
             },
+            cancel: () => {
+              isCancelled = true;
+              console.log("Stream cancelled");
+            },
           });
         })
-        .then((stream) => new Response(stream))
-        .then((response) => response.text())
+        .then((stream) => new Response(stream).text())
+
         .catch((error) => {
-          failToast = {
-            type: "error",
-            header: "We had a problem retrieving your message response. Please try again.",
-            message: error.message,
-          };
-          Alpine.store("toastStore").addToast(failToast);
+          if (error.name === "AbortError" || isCancelled) {
+            console.log("Message cancelled");
+            this.responseStream = "Message cancelled.";
+          } else {
+            const failToast = {
+              type: "error",
+              header: "We had a problem retrieving your message response. Please try again.",
+              message: error.message,
+            };
+            Alpine.store("toastStore").addToast(failToast);
+          }
+        })
+        .finally(() => {
+          console.log("Trigger finally...");
+          if (isCancelled) {
+            const successToast = {
+              type: "success",
+              header: "Message cancelled",
+              message: "Your message was cancelled successfully.",
+            };
+            Alpine.store("toastStore").addToast(successToast);
+          }
+          this.getMessages();
+          this.getThreads();
+          this.messageFormatted = "";
+          this.extractedImages = [];
+          this.indicateProcessing = false;
+          this.messageAbortController = null;
         });
+    },
+    cancelMessageRequest() {
+      if (this.messageAbortController) {
+        this.messageAbortController.abort();
+        this.messageAbortController = null;
+        this.indicateProcessing = false;
+        this.responseStream = "";
+      }
     },
     getMessages(incrementLimit = false, setLimit = true) {
       const hostname = window.location.origin;
@@ -596,6 +631,7 @@ var pluginState = () => {
           this.responseStream = "";
           // Add new messages (re-sorted by date)
           this.messages = data.sort((a, b) => new Date(a.created_on) - new Date(b.created_on));
+          console.log(this.messages);
           this.newMessage = "";
           this.newRawMessage = "";
           setTimeout(() => {

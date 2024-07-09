@@ -205,7 +205,7 @@ def user_create(request):
             if (
                 os.getenv("PROMPT_USER_SIGNUP_ACTIVATE") == "ENABLED"
                 and send_verification
-                and smtp_url
+                and smtp_url.strip().upper() != "DISABLED"
             ):
                 token = get_random_string(32)
                 expires_at = timezone.now() + timedelta(days=30)

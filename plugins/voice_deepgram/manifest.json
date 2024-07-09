@@ -1,12 +1,17 @@
 {
-  "name": "LLM Universal",
-  "category": " Base Models",
+  "name": "Deepgram Voice",
+  "category": "Power Tools",
   "capabilities": {
     "actions": [
       {
-        "command": "/append",
-        "parameters": "/file [filename*] [message]",
-        "description": "Append a file to your message."
+        "command": "/transcribe",
+        "parameters": "/file [filename*] /diarize",
+        "description": "Transcribe your file to text using voice-to-text. Optionally add speaker diarazation."
+      },
+      {
+        "command": "/speak",
+        "parameters": "[message-to-speak*] /voice [voice]",
+        "description": "Say something out loud using text-to-speech. Optionally select a different voice."
       }
     ]
   },
@@ -166,6 +171,55 @@
       "required": true
     },
     {
+      "name": "Deepgram Speech-to-Text Model",
+      "description": "The speech-to-text model you want to use. Any Deepgram model is available: https://developers.deepgram.com/docs/models-languages-overview",
+      "default": "nova-2",
+      "type": "text",
+      "selections": [
+        "nova-2",
+        "nova",
+        "enhanced",
+        "base",
+        "whisper-tiny",
+        "whisper-base",
+        "whisper-small",
+        "whisper-medium",
+        "whisper-large"
+      ],
+      "required": true
+    },
+    {
+      "name": "Deepgram Text-To-Speech Voice",
+      "description": "The text-to-speech voice you want to use. Any Deepgram voice is available: https://developers.deepgram.com/docs/tts-models",
+      "default": "aura-asteria-en",
+      "type": "text",
+      "selections": [
+        {
+          "group": "Female",
+          "values": [
+            "aura-asteria-en",
+            "aura-luna-en",
+            "aura-stella-en",
+            "aura-athena-en",
+            "aura-hera-en"
+          ]
+        },
+        {
+          "group": "Male",
+          "values": [
+            "aura-orion-en",
+            "aura-arcas-en",
+            "aura-perseus-en",
+            "aura-angus-en",
+            "aura-orpheus-en",
+            "aura-helios-en",
+            "aura-zeus-en"
+          ]
+        }
+      ],
+      "required": true
+    },
+    {
       "name": "Context Size",
       "description": "The max context size your model supports. Extend this for most newer models (for example: 8192, 16385, or 128000)",
       "default": "8192",
@@ -180,8 +234,15 @@
       "required": true
     },
     {
-      "name": "API Key",
+      "name": "LLM Model API Key",
       "description": "API access key for connecting to API.",
+      "type": "text",
+      "private": true,
+      "required": true
+    },
+    {
+      "name": "Deepgram API Key",
+      "description": "API access key for connecting to Deepgram for voice services.",
       "type": "text",
       "private": true,
       "required": true

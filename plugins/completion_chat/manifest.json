@@ -5,7 +5,7 @@
     "actions": [
       {
         "command": "/append",
-        "parameters": "(/file [filename]) [message*]",
+        "parameters": "/file [filename*] [message]",
         "description": "Append a file to your message."
       }
     ]
@@ -31,7 +31,7 @@
     {
       "name": "Context Size",
       "description": "The max context size your model supports.",
-      "default": "4096",
+      "default": "8192",
       "type": "number",
       "required": true
     },

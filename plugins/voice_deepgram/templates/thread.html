@@ -21,80 +21,9 @@
     </script>
   </head>
   <body class="antialiased text-stone-800">
-    <!-- 
-      Ollama Tweaks:
-      - Load model on init
-      - Model select modal
-      - Model select modal backdrop
-      - Header model selector
-      - Body message for Ollama env enabled or disabled
-    -->
-
-    <div x-cloak x-data="pluginState()" x-init="isOllama = true, getModels(), getOS(), getThreads(), getMessages(), getFiles()" class="relative h-[100vh] w-[100vw]">
+    <div x-cloak x-data="pluginState()" x-init="getOS(), getThreads(), getMessages(), getFiles()" class="relative h-[100vh] w-[100vw]">
       {% include "components/toasts.html" %}
       <!-- Modals -->
-      <div :class="{'-right-[100vw]': !modalSelectModel, 'right-0': modalSelectModel}" class="transition-all fixed mx-auto z-[101] max-w-xl w-full h-full bg-stone-50 border-x border-stone-200 -lg:border-none -lg:max-w-[100vw] -lg:shadow-none shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.05)]">
-        <div class="flex items-center px-4 pt-3 mb-1.5">
-          <button @click="modalSelectModel = false" class="mr-1.5 cursor-pointer flex items-center justify-center text-sm font-semibold text-stone-500 rounded hover:text-stone-900 hover:bg-stone-200 h-7 w-7 -lg:min-h-9 -lg:min-w-9">
-            <svg class="w-5 h-5 -lg:min-w-6 -lg:min-h-6" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 01-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clip-rule="evenodd"></path></svg>
-          </button>
-          <h2 class="text-xl font-semibold line-clamp-1">Select Model</h2>
-          {% if user_is_admin %}
-          <a href="/system/ollama/" target="_top" class="ml-auto cursor-pointer flex items-center justify-center font-semibold text-stone-500 rounded hover:text-stone-900 hover:bg-stone-200 px-2 h-7 -lg:min-h-9 -lg:px-3">
-            <p>Manage Local Models</p>
-            <svg class="ml-1.5 w-4 h-4 -lg:min-w-5 -lg:min-h-5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12.97 3.97a.75.75 0 011.06 0l7.5 7.5a.75.75 0 010 1.06l-7.5 7.5a.75.75 0 11-1.06-1.06l6.22-6.22H3a.75.75 0 010-1.5h16.19l-6.22-6.22a.75.75 0 010-1.06z" clip-rule="evenodd"></path></svg>
-          </a>
-          {% endif %}
-        </div>
-        <form class="px-4 pt-1.5" @submit.prevent="setModel()">
-          <div class="border border-stone-200 rounded-md shadow-sm overflow-x-auto">
-            <table class="w-full text-left">
-              <thead class="bg-stone-100 border-b-2 border-stone-200">
-                <tr>
-                  <th class="px-2 py-1.5 text-sm font-semibold text-stone-600"></th>
-                  <th class="px-2 py-1.5 text-sm font-semibold text-stone-600">Name</th>
-                  <th class="px-2 py-1.5 text-sm font-semibold text-stone-600">Model</th>
-                  <th class="px-2 py-1.5 text-sm font-semibold text-stone-600">Parameters</th>
-                  <th class="px-2 py-1.5 text-sm font-semibold text-stone-600"></th>
-                </tr>
-              </thead>
-              <tbody>
-                <template x-for="model in ollamaModels" :key="model.name">
-                  <tr @click="selectedOllamaModel=model.name" class="cursor-pointer border-b border-stone-200 bg-white hover:bg-primary/5 last:border-transparent">
-                    <td class="px-2 py-3 flex items-center justify-center h-[3.1rem]">
-                      <div x-show="selectedOllamaModel == model.name" class="flex items-center justify-center mt-1 rounded-full min-w-4 min-h-4 max-w-4 max-h-4 bg-primary border border-primary mr-1.5">
-                        <div class="bg-white w-1.5 h-1.5 rounded-full"></div>
-                      </div>
-                      <div x-show="selectedOllamaModel != model.name" class="mt-1 rounded-full min-w-4 min-h-4 max-w-4 max-h-4 border border-stone-300 mr-1.5 group-hover:border-stone-400" style="display: none"></div>
-                    </td>
-                    <td class="px-2 py-3" x-text="model.name">Name</td>
-                    <td class="px-2 py-3" x-text="model.model">Model</td>
-                    <td class="px-2 py-3" x-text="model.details.parameter_size">Parameters</td>
-                    <td class="px-2 py-3">
-                      <div x-show="model.name == activeOllamaModel" class="capitalize px-2 py-1 bg-primary/10 w-max text-sm font-semibold text-primary rounded-md">Active</div>
-                    </td>
-                  </tr>
-                </template>
-                <tr x-show="ollamaModels.length == 0">
-                  <td colspan="6" class="text-center text-stone-500 px-2 py-10 bg-white">
-                    <p>
-                      No local AI models added. {% if user_is_admin %}
-                      <a href="/system/ollama/" target="_top" class="underline hover:text-stone-900">Get one</a> to continue. {% endif %} {% if not user_is_admin %} Get one to continue. {% endif %}
-                    </p>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </form>
-        <div class="fixed bottom-0 py-2 px-3 border-t border-stone-200 w-full max-w-xl -lg:max-w-[100vw]">
-          <div class="flex items-center">
-            <button @click="modalSelectModel = false" class="ml-auto flex items-center justify-center font-semibold text-stone-500 px-2.5 h-9 rounded-md transition duration-500 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300">Cancel</button>
-            <button @click="setModel()" class="ml-1.5 flex items-center justify-center font-semibold bg-primary px-2.5 h-9 rounded-md shadow-sm text-stone-50 transition duration-500 hover:shadow-lg focus:shadow-none">Update Model</button>
-          </div>
-        </div>
-      </div>
-
       <div :class="{'-right-[100vw]': !modalThreadEdit, 'right-0': modalThreadEdit}" class="transition-all fixed mx-auto z-[101] max-w-xl w-full h-full bg-stone-50 border-x border-stone-200 -lg:border-none -lg:max-w-[100vw] -lg:shadow-none shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.05)]">
         <div class="flex items-center px-3 pt-3 mb-1.5">
           <button @click="modalThreadEdit = false" class="mr-1.5 cursor-pointer flex items-center justify-center text-sm font-semibold text-stone-500 rounded hover:text-stone-900 hover:bg-stone-200 h-7 w-7 -lg:min-h-9 -lg:min-w-9">
@@ -263,7 +192,7 @@
         </div>
       </div>
 
-      <div @click="modalDocuments = false, modalMessageEdit = false, modalThreadEdit = false, modalSelectModel = false" :class="{'w-px h-px bg-stone-50/0': !modalDocuments && !modalMessageEdit && !modalThreadEdit && !modalSelectModel, 'w-full h-full bg-stone-50/50': modalDocuments || modalMessageEdit || modalThreadEdit || modalSelectModel}" class="cursor-pointer fixed top-0 left-0 backdrop-blur-sm z-[100] transition-all"></div>
+      <div @click="modalDocuments = false, modalMessageEdit = false, modalThreadEdit = false" :class="{'w-px h-px bg-stone-50/0': !modalDocuments && !modalMessageEdit && !modalThreadEdit, 'w-full h-full bg-stone-50/50': modalDocuments || modalMessageEdit || modalThreadEdit}" class="cursor-pointer fixed top-0 left-0 backdrop-blur-sm z-[100] transition-all"></div>
 
       <!-- Sidebar -->
       <div :class="{'-lg:-left-[100vw]': !mobileOpen, '-lg:left-0': mobileOpen}" id="sidebar" class="transition-all absolute w-80 h-full bg-stone-50 border-r border-stone-200 overflow-y-auto -lg:top-12 -lg:w-full -lg:z-[60]">
@@ -341,35 +270,11 @@
                 </svg>
               </button>
             </div>
-            <div x-show="activeOllamaModel && !ollamaNotFoundError" @click="modalSelectModel = true" class="group cursor-pointer flex items-center px-2.5 h-8 rounded-md ml-auto whitespace-nowrap text-stone-500 hover:bg-stone-200">
-              <!-- <svg class="mr-1" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.337 21.718a6.707 6.707 0 01-.533-.074.75.75 0 01-.44-1.223 3.73 3.73 0 00.814-1.686c.023-.115-.022-.317-.254-.543C3.274 16.587 2.25 14.41 2.25 12c0-5.03 4.428-9 9.75-9s9.75 3.97 9.75 9c0 5.03-4.428 9-9.75 9-.833 0-1.643-.097-2.417-.279a6.721 6.721 0 01-4.246.997z" clip-rule="evenodd"></path></svg> -->
-              <svg class="mr-1" stroke="currentColor" fill="none" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z"></path></svg>
-              <p class="mr-1 font-semibold">Model:</p>
-              <p x-text="activeOllamaModel">Model</p>
-            </div>
-            <div x-show="ollamaNotFoundError" @click="modalSelectModel = true" class="group cursor-pointer flex items-center px-2.5 h-8 rounded-md ml-auto whitespace-nowrap bg-stone-100 text-stone-500 hover:bg-stone-200">
-              <svg class="mr-1.5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd"></path></svg>
-              <p>Model not found</p>
-            </div>
-            <div x-show="!activeOllamaModel" @click="modalSelectModel = true" class="group cursor-pointer flex items-center px-2.5 h-8 rounded-md ml-auto whitespace-nowrap bg-stone-100 text-stone-500 hover:bg-stone-200">
-              <svg class="mr-1.5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd"></path></svg>
-              <p>No model active</p>
-            </div>
             <div class="-lg:min-w-9 -lg:min-h-9 lg:hidden"></div>
           </div>
         </div>
 
         <!-- Content: Body -->
-        {% if not env_ollama %}
-        <div class="flex items-center justify-center mt-12 py-6 w-full bg-stone-800">
-          <div class="max-w-md">
-            <img src="/static/promptpanel/img/logo-ollama-transparent.png" class="mb-3 w-7 invert" />
-            <p class="text-stone-100 font-semibold mb-1.5">Ollama is not configured for offline inference.</p>
-            <p class="text-stone-300">Read more on how to run our <a class="underline hover:text-primary" href="https://promptpanel.com/documentation/quickstart/" target="_new">docker compose</a> which includes offline inference built-in.</p>
-          </div>
-        </div>
-        {% endif %}
-
         <div class="flex-col relative flex w-full px-6 min-h-[calc(100vh-12rem)]">
           <div class="max-w-3xl my-12 mb-40 w-full mx-auto">
             <div class="h-12 w-full"></div>
@@ -469,11 +374,53 @@
                         </template>
                       </div>
                     </template>
-                    <template x-if="!message.meta?.sentences || !message.meta.sentences.length > 0">
+
+                    <template x-if="message.meta?.is_transcription">
+                      <div x-data="{ showAll: false }">
+                        <div class="z-[0] relative rounded-t-md rounded-br-md w-11/12 py-2.5" :class="{ 'max-h-96': !showAll, 'overflow-hidden': !showAll }">
+                          <div x-data="{'open':false}" class="absolute right-0">
+                            <button @click="open = !open" class="cursor-pointer flex items-center justify-center font-semibold text-stone-800 rounded hover:text-stone-900 hover:bg-stone-200 px-2 h-7 -lg:min-h-9 -lg:px-3">
+                              <svg class="w-4 mr-1.5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 2.25a.75.75 0 0 1 .75.75v11.69l3.22-3.22a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 1 1 1.06-1.06l3.22 3.22V3a.75.75 0 0 1 .75-.75Zm-9 13.5a.75.75 0 0 1 .75.75v2.25a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5V16.5a.75.75 0 0 1 1.5 0v2.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V16.5a.75.75 0 0 1 .75-.75Z" clip-rule="evenodd"></path></svg>
+                              <p>Download Transcript</p>
+                              <svg :class="{'rotate-180': open}" class="ml-1.5 w-4 h-4 -lg:min-w-5 -lg:min-h-5 rotate-180" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 01-1.06 0l-7.5-7.5a.75.75 0 011.06-1.06L12 14.69l6.97-6.97a.75.75 0 111.06 1.06l-7.5 7.5z" clip-rule="evenodd"></path></svg>
+                            </button>
+                            <div x-show="open" @click.away="open = false" class="absolute mt-1.5 right-0">
+                              <div class="bg-white w-max p-1 border border-stone-300 rounded-md shadow">
+                                <a :href="message.meta?.transcript_txt_path" class="block cursor-pointer px-2 py-1 font-semibold rounded-md text-stone-600 hover:text-stone-800 hover:bg-stone-200 focus:text-stone-800 -lg:p-3">Text Transcript (.txt)</a>
+                                <a :href="message.meta?.transcript_json_path" class="block cursor-pointer px-2 py-1 font-semibold rounded-md text-stone-600 hover:text-stone-800 hover:bg-stone-200 focus:text-stone-800 -lg:p-3">JSON Data Transcript (.json)</a>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div x-html="message.content" class="prose w-full masked text-lg" :class="{ 'pb-16': !showAll }">Message Content</div>
+                          <div x-show="!showAll" class="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white via-white to-transparent pointer-events-none flex items-end justify-center">
+                            <button @click="showAll = !showAll" class="font-semibold pointer-events-auto mb-5 text-stone-500 hover:text-stone-800 w-full">Show Full Transcript</button>
+                          </div>
+                        </div>
+                      </div>
+                    </template>
+
+                    <template x-if="message.meta?.is_audio">
+                      <div class="z-[0] relative rounded-t-md rounded-br-md w-11/12 py-2.5">
+                        <div x-html="message.content" class="prose w-full masked text-lg">Message Content</div>
+                        <div class="flex items-center mt-3.5">
+                          <audio controls>
+                            <source :src="message.meta?.audio_file" type="audio/mpeg" />
+                            Your browser does not support the audio element.
+                          </audio>
+                          <a :href="message.meta?.audio_file" class="ml-1.5 cursor-pointer flex items-center justify-center font-semibold text-stone-800 rounded-full hover:text-stone-900 hover:bg-stone-100 px-2 h-[54px] w-[54px]">
+                            <svg class="w-5 h-5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 2.25a.75.75 0 0 1 .75.75v11.69l3.22-3.22a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 1 1 1.06-1.06l3.22 3.22V3a.75.75 0 0 1 .75-.75Zm-9 13.5a.75.75 0 0 1 .75.75v2.25a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5V16.5a.75.75 0 0 1 1.5 0v2.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V16.5a.75.75 0 0 1 .75-.75Z" clip-rule="evenodd"></path></svg>
+                          </a>
+                        </div>
+                      </div>
+                    </template>
+
+                    <template x-if="(!message.meta?.sentences || !message.meta.sentences.length > 0) && !message.meta?.is_transcription && !message.meta?.is_audio">
                       <div class="z-[0] relative rounded-t-md rounded-br-md w-11/12 py-2.5">
                         <div x-html="message.content" class="prose w-full masked text-lg">Message Content</div>
                       </div>
                     </template>
+
                     <div class="flex items-center text-sm text-stone-500 w-full mt-0.5">
                       <p>Assistant</p>
                       <p class="mx-1">•</p>
@@ -704,11 +651,12 @@
               <!-- Actions -->
               <div x-show="matchedActions.length > 0" class="p-1 bg-white rounded-md border shadow border-stone-200 mb-1.5">
                 <template x-for="action in matchedActions" :key="action.command">
-                  <div @click="addPrompt(action.command)" class="cursor-pointer flex items-center py-1 px-3 rounded-md hover:bg-stone-100 focus:bg-stone-200">
-                    <p><span class="font-mono" x-text="action.command">Command</span> <span class="font-mono" x-text="action.parameters">Command</span></p>
-                    <p></p>
-                    <p class="ml-auto ml-1.5 text-stone-500 text-right text-sm" x-text="action.description"></p>
-                    <p></p>
+                  <div @click="addPrompt(action.command)" class="cursor-pointer py-1 px-3 rounded-md hover:bg-stone-100 focus:bg-stone-200">
+                    <p>
+                      <span class="font-mono" x-text="action.command">Command</span>
+                      <span class="font-mono" x-text="action.parameters">Command</span>
+                    </p>
+                    <p class="text-stone-500 text-sm" x-text="action.description"></p>
                   </div>
                 </template>
               </div>
