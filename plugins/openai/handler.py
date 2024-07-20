@@ -52,6 +52,9 @@ def file_stream(file, thread, panel):
         if model_selected == "GPT-4o":
             completion_model = "gpt-4o"
             max_tokens = 128000
+        if model_selected == "GPT-4o Mini":
+            completion_model = "gpt-4o-mini"
+            max_tokens = 128000
 
         ## ----- 2. Parse file and save to .txt file.
         logger.info("** 2. Parse file and save to .txt file.")
@@ -174,6 +177,9 @@ def message_append(message, thread, panel):
             max_tokens = 128000
         if model_selected == "GPT-4o":
             completion_model = "gpt-4o"
+            max_tokens = 128000
+        if model_selected == "GPT-4o Mini":
+            completion_model = "gpt-4o-mini"
             max_tokens = 128000
 
         ## ----- 2. Get max context and system message.
@@ -423,6 +429,9 @@ def chat_stream(message, thread, panel):
             max_tokens = 128000
         if model_selected == "GPT-4o":
             completion_model = "gpt-4o"
+            max_tokens = 128000
+        if model_selected == "GPT-4o Mini":
+            completion_model = "gpt-4o-mini"
             max_tokens = 128000
 
         ## ----- 2. Get max context and system message.
