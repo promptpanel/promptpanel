@@ -2,6 +2,7 @@ import os
 import json
 import logging
 import secrets
+from django.db.backends.sqlite3.base import DatabaseWrapper
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -148,25 +149,16 @@ WSGI_APPLICATION = "promptpanel.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+PG_VARS = [
+    "PROMPT_PG_HOST",
+    "PROMPT_PG_PORT",
+    "PROMPT_PG_DBNAME",
+    "PROMPT_PG_USER",
+    "PROMPT_PG_PASS",
+]
 if all(
-    os.environ.get(var, "").strip().upper() != "DISABLED"
-    for var in [
-        "PROMPT_PG_HOST",
-        "PROMPT_PG_PORT",
-        "PROMPT_PG_DBNAME",
-        "PROMPT_PG_USER",
-        "PROMPT_PG_PASS",
-    ]
-) and all(
-    os.environ.get(var, "").strip()
-    for var in [
-        "PROMPT_PG_HOST",
-        "PROMPT_PG_PORT",
-        "PROMPT_PG_DBNAME",
-        "PROMPT_PG_USER",
-        "PROMPT_PG_PASS",
-    ]
-):
+    os.environ.get(var, "").strip().upper() != "DISABLED" for var in PG_VARS
+) and all(os.environ.get(var, "").strip() for var in PG_VARS):
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -178,13 +170,28 @@ if all(
         }
     }
 else:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "database/db.sqlite3",
-        }
+    SQLITE_WAL = os.environ.get("PROMPT_SQLITE_WAL", "").strip().upper() == "ENABLED"
+    sqlite_config = {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "database/db.sqlite3",
     }
+    if SQLITE_WAL:
+        # Custom database wrapper to set pragmas
+        class WALDatabaseWrapper(DatabaseWrapper):
+            def get_new_connection(self, conn_params):
+                conn = super().get_new_connection(conn_params)
+                cursor = conn.cursor()
+                cursor.execute("PRAGMA journal_mode=WAL;")
+                cursor.execute("PRAGMA synchronous=NORMAL;")
+                cursor.execute("PRAGMA cache_size=-64000;")
+                cursor.execute("PRAGMA foreign_keys=ON;")
+                return conn
 
+        sqlite_config["ENGINE"] = "django.db.backends.sqlite3"
+        sqlite_config["OPTIONS"] = {"timeout": 20}
+        # Use the custom wrapper
+        DatabaseWrapper = WALDatabaseWrapper
+    DATABASES = {"default": sqlite_config}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

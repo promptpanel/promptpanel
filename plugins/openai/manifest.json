@@ -20,7 +20,7 @@
       "selections": [
         {
           "group": "OpenAI",
-          "values": ["GPT-4o", "GPT-4 Turbo", "GPT-4", "GPT-3.5"]
+          "values": ["GPT-4o", "GPT-4o Mini", "GPT-4 Turbo", "GPT-4", "GPT-3.5"]
         }
       ],
       "required": true

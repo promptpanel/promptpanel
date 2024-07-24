@@ -14,6 +14,19 @@ if [ "$PROMPT_DEV_INSTALL_REQS" == "ENABLED" ]; then
     find . -name requirements.txt -exec pip install --no-cache-dir -r {} \;
 fi
 
+if [ "$PROMPT_SQLITE_WAL" == "ENABLED" ]; then
+    echo "💡 Enabling SQLite WAL"
+    touch /app/database/db.sqlite3
+    sqlite3 /app/database/db.sqlite3 "PRAGMA journal_mode=WAL;"
+else
+  touch /app/database/db.sqlite3
+  sqlite3 /app/database/db.sqlite3 <<EOF
+PRAGMA journal_mode=DELETE;
+PRAGMA wal_checkpoint(TRUNCATE);
+EOF
+  rm -f /app/database/db.sqlite3-wal /app/database/db.sqlite3-shm
+fi
+
 # Setup .json
 if [ ! -f /app/system.json ]; then
     cp /app/system.default.json /app/system.json
