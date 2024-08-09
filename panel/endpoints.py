@@ -132,10 +132,6 @@ def panel_list(request):
                 | Q(created_by=request.user)
                 | Q(users_with_access=request.user)
             ).distinct()
-        panels = panels.annotate(
-            last_message=Max("messages_x_panel__created_on"),
-            last_file=Max("file_x_panel__created_on"),
-        )
         panel_data_list = []
         # Enrich panels
         for panel in panels:
@@ -160,7 +156,6 @@ def panel_list(request):
                     for setting in manifest_data.get("settings", []):
                         if setting.get("private", False):
                             private_settings.append(setting.get("name"))
-
             filtered_metadata = {
                 key: value
                 for key, value in panel.meta.items()
@@ -185,9 +180,6 @@ def panel_list(request):
                 "created_on": panel.created_on,
                 "updated_at": panel.updated_at,
                 "meta": filtered_metadata,
-                "last_active": (
-                    panel.last_message or panel.last_file or panel.updated_at
-                ),
                 "display_image": display_image,
             }
             if request.user.is_staff:
@@ -196,12 +188,7 @@ def panel_list(request):
                     for user in panel.users_with_access.all()
                 ]
             panel_data_list.append(panel_data)
-        # Sort panels by last active timestamp before response
-        # TODO: Evaluate best method for this (if last_active is good for users?)
-        sorted_panels = sorted(
-            panel_data_list, key=lambda x: x["last_active"], reverse=True
-        )
-        return JsonResponse(sorted_panels, safe=False)
+        return JsonResponse(panel_data_list, safe=False)
     except Exception as e:
         logger.error(e, exc_info=True)
         return JsonResponse({"status": "error", "message": str(e)}, status=400)
