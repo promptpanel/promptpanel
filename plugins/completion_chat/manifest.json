@@ -63,6 +63,11 @@
       "type": "textarea"
     },
     {
+      "name": "Min Tokens to Generate",
+      "type": "number",
+      "advanced": true
+    },
+    {
       "name": "Max Tokens to Generate",
       "type": "number",
       "advanced": true
@@ -86,6 +91,18 @@
       "advanced": true
     },
     {
+      "name": "Top K",
+      "description": "Number of top tokens to consider in the sampling process.",
+      "type": "number",
+      "advanced": true
+    },
+    {
+      "name": "Min P",
+      "description": "Minimum probability threshold for considering tokens in the sampling process.",
+      "type": "number",
+      "advanced": true
+    },
+    {
       "name": "Stop Sequence",
       "description": "Sequence where if generated the API will stop generating further tokens.",
       "type": "text",
@@ -100,6 +117,12 @@
     {
       "name": "Frequency Penalty",
       "description": "Aims to decrease the repetition of individual words or phrases within the generated text. (Between -2.0 to 2.0)",
+      "type": "number",
+      "advanced": true
+    },
+    {
+      "name": "Repetition Penalty",
+      "description": "Aims to reduce the likelihood of the model repeating the same information or topics it has already mentioned in the current text generation task. (Between -2.0 to 2.0)",
       "type": "number",
       "advanced": true
     }
