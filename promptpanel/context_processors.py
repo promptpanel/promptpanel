@@ -16,6 +16,7 @@ def global_context(request):
         context = {
             "version_id": settings.VERSION_ID,
             "app_id": settings.APP_ID,
+            "app_title": os.getenv("PROMPT_TITLE"),
             "current_datetime": formatted_now,
             "color_primary": os.getenv("PROMPT_BRAND_COLOR"),
             "env_head": os.getenv("PROMPT_HEAD") == "ENABLED",
@@ -40,6 +41,7 @@ def global_context(request):
         context = {
             "version_id": settings.VERSION_ID,
             "app_id": settings.APP_ID,
+            "app_title": os.getenv("PROMPT_TITLE"),
             "current_datetime": formatted_now,
             "color_primary": os.getenv("PROMPT_BRAND_COLOR"),
             "env_head": os.getenv("PROMPT_HEAD") == "ENABLED",
