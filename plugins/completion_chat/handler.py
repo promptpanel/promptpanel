@@ -288,24 +288,9 @@ def message_append(message, thread, panel):
                 if settings.get("Max Tokens to Generate") is not None
                 else None
             ),
-            "min_tokens": (
-                int(settings.get("Min Tokens to Generate"))
-                if settings.get("Min Tokens to Generate") is not None
-                else None
-            ),
             "top_p": (
                 float(settings.get("Top P"))
                 if settings.get("Top P") is not None
-                else None
-            ),
-            "top_k": (
-                float(settings.get("Top K"))
-                if settings.get("Top K") is not None
-                else None
-            ),
-            "min_p": (
-                float(settings.get("Min P"))
-                if settings.get("Min P") is not None
                 else None
             ),
             "presence_penalty": (
@@ -316,11 +301,6 @@ def message_append(message, thread, panel):
             "frequency_penalty": (
                 float(settings.get("Frequency Penalty"))
                 if settings.get("Frequency Penalty") is not None
-                else None
-            ),
-            "repetition_penalty": (
-                float(settings.get("Repetition Penalty"))
-                if settings.get("Repetition Penalty") is not None
                 else None
             ),
         }
