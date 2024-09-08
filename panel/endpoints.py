@@ -331,6 +331,8 @@ def panel_update(request, panel_id):
             for key, value in incoming_meta.items():
                 if value != "":
                     panel.meta[key] = value
+                else:
+                    panel.meta[key] = None
         panel.save()
         if user_ids is not None:
             users_with_access = User.objects.filter(id__in=user_ids)
