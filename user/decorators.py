@@ -111,12 +111,30 @@ def user_authenticated(view_func):
                     )
                     user_id = refresh_payload["user_id"]
                     user = get_user_model().objects.get(id=user_id)
+                    request.user = user
                     access_token = generate_jwt_login(user, None, "access")
                     response = view_func(request, *args, **kwargs)
                     response.set_cookie(
                         "authToken", access_token, httponly=True, path="/"
                     )
                     return response
+                except jwt.ExpiredSignatureError:
+                    logger.error("Refresh token has expired")
+                    return JsonResponse(
+                        {"status": "error", "message": "Refresh token has expired"},
+                        status=401,
+                    )
+                except jwt.InvalidTokenError:
+                    logger.error("Invalid refresh token")
+                    return JsonResponse(
+                        {"status": "error", "message": "Invalid refresh token"},
+                        status=401,
+                    )
+                except get_user_model().DoesNotExist:
+                    logger.error(f"User with id {user_id} does not exist")
+                    return JsonResponse(
+                        {"status": "error", "message": "User not found"}, status=401
+                    )
                 except Exception as e:
                     logger.error(str(e), exc_info=True)
                     if "api" in request.path:
