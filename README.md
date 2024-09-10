@@ -20,6 +20,14 @@ After running, your environment will be available at:
 
 Read more on <a href="https://promptpanel.com/documentation/quickstart/" target="_new">running PromptPanel</a>.
 
+### Deploy on Render
+
+Build and deploy the PromptPanel image from the `main` branch over on Render:
+
+<a href="https://render.com/deploy?repo=https://github.com/promptpanel/promptpanel">
+  <img src="https://render.com/images/deploy-to-render-button.svg" alt="Deploy to Render">
+</a>
+
 ### Via Docker Compose + Local / Offline Inference
 
 To run Ollama for local / offline inference with the following Docker Compose file:
