@@ -16,6 +16,7 @@ def global_context(request):
         context = {
             "version_id": settings.VERSION_ID,
             "app_id": settings.APP_ID,
+            "app_title": os.getenv("PROMPT_TITLE"),
             "current_datetime": formatted_now,
             "color_primary": os.getenv("PROMPT_BRAND_COLOR"),
             "env_head": os.getenv("PROMPT_HEAD") == "ENABLED",
@@ -23,6 +24,10 @@ def global_context(request):
             "env_user_signup_activate": os.getenv("PROMPT_USER_SIGNUP_ACTIVATE")
             == "ENABLED",
             "env_password_reset": os.getenv("PROMPT_USER_RESET_PASSWORD") == "ENABLED",
+            "env_google_oauth": os.getenv("PROMPT_GOOGLE_CLIENT_ID") != "DISABLED",
+            "env_microsoft_oauth": os.getenv("PROMPT_MICROSOFT_CLIENT_ID")
+            != "DISABLED",
+            "env_oidc": os.getenv("PROMPT_OIDC_CLIENT_ID") != "DISABLED",
             "env_oidc_display": os.getenv("PROMPT_OIDC_DISPLAY_NAME"),
             "env_ollama": os.getenv("PROMPT_OLLAMA_HOST") != "DISABLED",
             "user_id": user.id,
@@ -40,6 +45,7 @@ def global_context(request):
         context = {
             "version_id": settings.VERSION_ID,
             "app_id": settings.APP_ID,
+            "app_title": os.getenv("PROMPT_TITLE"),
             "current_datetime": formatted_now,
             "color_primary": os.getenv("PROMPT_BRAND_COLOR"),
             "env_head": os.getenv("PROMPT_HEAD") == "ENABLED",
@@ -47,6 +53,10 @@ def global_context(request):
             "env_user_signup_activate": os.getenv("PROMPT_USER_SIGNUP_ACTIVATE")
             == "ENABLED",
             "env_password_reset": os.getenv("PROMPT_USER_RESET_PASSWORD") == "ENABLED",
+            "env_google_oauth": os.getenv("PROMPT_GOOGLE_CLIENT_ID") != "DISABLED",
+            "env_microsoft_oauth": os.getenv("PROMPT_MICROSOFT_CLIENT_ID")
+            != "DISABLED",
+            "env_oidc": os.getenv("PROMPT_OIDC_CLIENT_ID") != "DISABLED",
             "env_oidc_display": os.getenv("PROMPT_OIDC_DISPLAY_NAME"),
             "env_ollama": os.getenv("PROMPT_OLLAMA_HOST") != "DISABLED",
         }

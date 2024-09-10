@@ -22,6 +22,10 @@ urlpatterns = [
     path("signup/", user_views.user_signup, name="view_user_signup"),
     path("oauth/login/", user_views.oauth_login, name="view_oauth_login"),
     path("oauth/callback/", user_views.oauth_callback, name="view_oauth_callback"),
+    path("google/login/", user_views.google_login, name="view_google_login"),
+    path("google/callback/", user_views.google_callback, name="view_google_callback"),
+    path("microsoft/login/", user_views.microsoft_login, name="view_google_login"),
+    path("microsoft/callback/", user_views.microsoft_callback, name="view_microsoft_callback"),
     ## System settings
     path("system/", user_views.system, name="view_system"),
     path("system/ollama/", user_views.ollama_model, name="view_ollama"),

@@ -1,2 +1,2 @@
-litellm==1.43.4
+litellm==1.44.22
 unstructured[all-docs]==0.14.10

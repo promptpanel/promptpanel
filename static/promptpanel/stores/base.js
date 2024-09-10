@@ -94,10 +94,14 @@ var baseState = () => {
         });
     },
     get filteredPanels() {
-      if (this.panelSearchInput === "") {
-        return this.panels;
-      }
-      return this.panels.filter((panel) => panel.name.toLowerCase().includes(this.panelSearchInput.toLowerCase()) || panel.plugin.toLowerCase().includes(this.panelSearchInput.toLowerCase()));
+      let result = this.panels;
+      if (this.panelSearchInput !== "") {
+        result = result.filter((panel) => 
+          panel.name.toLowerCase().includes(this.panelSearchInput.toLowerCase()) || 
+          panel.plugin.toLowerCase().includes(this.panelSearchInput.toLowerCase())
+        );
+      }      
+      return result.sort((a, b) => a.name.localeCompare(b.name));
     },
   };
 };

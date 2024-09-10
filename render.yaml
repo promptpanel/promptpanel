@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: promptpanel
+    env: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    numInstances: 1
+    envVars:
+      - key: PORT
+        value: 4000

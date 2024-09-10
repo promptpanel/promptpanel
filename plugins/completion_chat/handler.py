@@ -273,7 +273,11 @@ def message_append(message, thread, panel):
             "stream": True,
             "model": settings.get("Model"),
             "prompt": message_prepped,
-            "stop": settings.get("Stop Sequence"),
+            "stop": (
+                settings.get("Stop Sequence", "").split(",")
+                if settings.get("Stop Sequence")
+                else None
+            ),
             "temperature": (
                 float(settings.get("Temperature"))
                 if settings.get("Temperature") is not None
@@ -472,7 +476,11 @@ def chat_stream(message, thread, panel):
             "stream": True,
             "model": settings.get("Model"),
             "prompt": message_prepped,
-            "stop": settings.get("Stop Sequence"),
+            "stop": (
+                settings.get("Stop Sequence", "").split(",")
+                if settings.get("Stop Sequence")
+                else None
+            ),
             "temperature": (
                 float(settings.get("Temperature"))
                 if settings.get("Temperature") is not None

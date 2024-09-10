@@ -1,6 +1,6 @@
 <!-- prettier-ignore -->
 {% extends "base-blank.html" %}
-{% block title %}Login{% endblock title %}
+{% block title %}{{ app_title }} - Login{% endblock title %}
 {% block content %}
 <style>
   .wave {
@@ -99,6 +99,33 @@
       });
     </script>
 
+    {% if env_oidc or env_google_oauth or env_microsoft_oauth %}
+    <div class="space-y-3">
+      {% if env_oidc %}
+        <a href="/oauth/login" class="relative flex items-center justify-center font-semibold text-stone-500 bg-white px-2.5 h-10 rounded-md transition duration-500 border border-stone-300 hover:shadow hover:text-stone-800"> 
+          <svg class="absolute left-3.5 w-5 h-5" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.5 2.25a.75.75 0 0 0 0 1.5v16.5h-.75a.75.75 0 0 0 0 1.5h16.5a.75.75 0 0 0 0-1.5h-.75V3.75a.75.75 0 0 0 0-1.5h-15ZM9 6a.75.75 0 0 0 0 1.5h1.5a.75.75 0 0 0 0-1.5H9Zm-.75 3.75A.75.75 0 0 1 9 9h1.5a.75.75 0 0 1 0 1.5H9a.75.75 0 0 1-.75-.75ZM9 12a.75.75 0 0 0 0 1.5h1.5a.75.75 0 0 0 0-1.5H9Zm3.75-5.25A.75.75 0 0 1 13.5 6H15a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75ZM13.5 9a.75.75 0 0 0 0 1.5H15A.75.75 0 0 0 15 9h-1.5Zm-.75 3.75a.75.75 0 0 1 .75-.75H15a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75ZM9 19.5v-2.25a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 .75.75v2.25a.75.75 0 0 1-.75.75h-4.5A.75.75 0 0 1 9 19.5Z" clip-rule="evenodd"></path></svg>        
+          Continue with {% if env_oidc_display == "DISABLED" %}OIDC{% else %}{{ env_oidc_display }}{% endif %}
+        </a>
+      {% endif %}
+      {% if env_google_oauth %}
+        <a href="/google/login" class="relative flex items-center justify-center font-semibold text-stone-500 bg-white px-2.5 h-10 rounded-md transition duration-500 border border-stone-300 hover:shadow hover:text-stone-800">
+          <svg class="absolute left-3" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path fill="#4285F4" fill-rule="evenodd" d="M12 11v3h4.5c-.19 1.02-.711 1.742-1.575 2.32v2.048h2.637c1.543-1.42 2.433-3.513 2.433-5.998 0-.465-.096-1.352-.096-1.352L12 11Z" clip-rule="evenodd"></path><path fill="#34A853" fill-rule="evenodd" d="M12.161 20.346c2.203 0 4.05-.731 5.401-1.978l-2.637-2.047c-.731.49-1.666.779-2.764.779-2.126 0-3.925-1.436-4.566-3.365H4.868v2.115a8.158 8.158 0 0 0 7.293 4.496Z" clip-rule="evenodd"></path><path fill="#FBBC04" fill-rule="evenodd" d="M7.595 13.735a4.905 4.905 0 0 1-.256-1.55c0-.538.092-1.061.256-1.551V8.52H4.868A8.158 8.158 0 0 0 4 12.185c0 1.316.315 2.563.868 3.665l2.727-2.115Z" clip-rule="evenodd"></path><path fill="#EA4335" fill-rule="evenodd" d="M12.161 7.27c1.198 0 2.274.411 3.12 1.22l2.34-2.34c-1.413-1.318-3.26-2.126-5.46-2.126A8.158 8.158 0 0 0 4.868 8.52l2.727 2.114c.641-1.929 2.44-3.365 4.566-3.365Z" clip-rule="evenodd"></path></svg>        
+          Continue with Google
+        </a>
+      {% endif %}
+      {% if env_microsoft_oauth %}
+        <a href="/microsoft/login" class="relative flex items-center justify-center font-semibold text-stone-500 bg-white px-2.5 h-10 rounded-md transition duration-500 border border-stone-300 hover:shadow hover:text-stone-800">
+          <svg class="absolute left-3" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path fill="#F25022" d="M4 4h7v7H4z"></path><path fill="#7FBA00" d="M13 4h7v7h-7z"></path><path fill="#FFB900" d="M13 13h7v7h-7z"></path><path fill="#00A4EF" d="M4 13h7v7H4z"></path></svg>
+          Continue with Microsoft
+        </a>
+      {% endif %}
+    </div>
+    <div class="relative">
+      <p class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-stone-100 w-10 py-0.5 text-sm font-semibold text-stone-500 text-center">or</p>
+      <hr class="my-6 border-stone-300" />
+    </div>
+    {% endif %}
+  
     <form class="mb-3" @submit.prevent="$store.loginStore.loginUser()">
       <div class="mb-3">
         <label for="username" class="block text-stone-500 mb-1">Username</label>
@@ -112,16 +139,13 @@
     </form>
 
     <div class="space-y-3">
-      {% if env_oidc_display != "DISABLED" %}
-      <a href="/oauth/login" class="flex items-center justify-center font-semibold text-stone-500 px-2.5 h-10 rounded-md transition duration-500 border border-stone-300 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300"> Continue with {{ env_oidc_display }} </a>
-      {% endif %} {% if env_user_signup %}
+      {% if env_user_signup %}
       <a href="/signup/" class="mt-3 mb-3 flex items-center justify-center font-semibold text-stone-500 px-2.5 h-10 rounded-md transition duration-500 border border-stone-300 hover:bg-stone-200 hover:text-stone-800 focus:bg-stone-300"> Sign up with Email </a>
-      {% endif %} {% if env_password_reset %}
+      {% endif %} 
+      {% if env_password_reset %}
       <a href="/reset_password_request/" class="mb-1 ml-auto w-max flex items-center justify-center font-semibold text-primary px-2.5 h-10 rounded-md transition duration-500 hover:bg-primary/10"> Reset Password </a>
-      {% endif %}
+      {% endif %}  
     </div>
-
-    <!-- <p class="text-stone-500">Need a new account? <a class="font-semibold text-emerald-600 hover:text-emerald-800" href="#!">Sign up</a> here.</p> -->
   </div>
 </div>
 
@@ -139,7 +163,8 @@
     }
   });
 </script>
-{% endif %} {% if not env_user_signup_activate %}
+{% endif %} 
+{% if not env_user_signup_activate %}
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const urlParams = new URLSearchParams(window.location.search);

@@ -305,23 +305,6 @@ def message_append(message, thread, panel):
 
         ## ----- 5. Cleanup message text, and save.
         logger.info("** 5. Cleanup message text, and save.")
-        # Cleanup
-        last_period_pos = response_content.rfind(".")
-        last_question_mark_pos = response_content.rfind("?")
-        last_exclamation_mark_pos = response_content.rfind("!")
-        last_quote_period_pos = response_content.rfind('."')
-        last_quote_question_mark_pos = response_content.rfind('?"')
-        last_quote_exclamation_mark_pos = response_content.rfind('!"')
-        last_sentence_end_pos = max(
-            last_period_pos,
-            last_question_mark_pos,
-            last_exclamation_mark_pos,
-            last_quote_period_pos,
-            last_quote_question_mark_pos,
-            last_quote_exclamation_mark_pos,
-        )
-        if last_sentence_end_pos != -1:
-            response_content = response_content[: last_sentence_end_pos + 1]
         # Save message
         response_message = Message(
             content=response_content,
@@ -472,23 +455,6 @@ def chat_stream(message, thread, panel):
 
         ## ----- 5. Cleanup message text, and save.
         logger.info("** 5. Cleanup message text, and save.")
-        # Cleanup
-        last_period_pos = response_content.rfind(".")
-        last_question_mark_pos = response_content.rfind("?")
-        last_exclamation_mark_pos = response_content.rfind("!")
-        last_quote_period_pos = response_content.rfind('."')
-        last_quote_question_mark_pos = response_content.rfind('?"')
-        last_quote_exclamation_mark_pos = response_content.rfind('!"')
-        last_sentence_end_pos = max(
-            last_period_pos,
-            last_question_mark_pos,
-            last_exclamation_mark_pos,
-            last_quote_period_pos,
-            last_quote_question_mark_pos,
-            last_quote_exclamation_mark_pos,
-        )
-        if last_sentence_end_pos != -1:
-            response_content = response_content[: last_sentence_end_pos + 1]
         # Save message
         response_message = Message(
             content=response_content,
