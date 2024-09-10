@@ -1,4 +1,4 @@
-# PromptPanel: Your private, open-source, AI assistant platform
+# PromptPanel: Your private, open-source, AI assistant
 <img src="https://promptpanel.com/content/images/logo-64.png" alt="logo" style="width:64px;">
 
 **PromptPanel**\
